@@ -1,55 +1,10 @@
 charset:
 
-.byte $00
-.byte $00
-.byte $6C
-.byte $6C
-.byte $FE
-.byte $BE
-.byte $FE
-.byte $FE
-.byte $FE
-.byte $FE
-.byte $7C
-.byte $7C
-.byte $38
-.byte $38
-.byte $10
-.byte $10
+.byte $00, $00, $6C, $6C, $FE, $BE, $FE, $FE, $FE, $FE, $7C, $7C, $38, $38, $10, $10
 
-.byte $38
-.byte $00
-.byte $4C
-.byte $00
-.byte $C6
-.byte $00
-.byte $C6
-.byte $00
-.byte $C6
-.byte $00
-.byte $64
-.byte $00
-.byte $38
-.byte $00
-.byte $00
-.byte $00
+.byte $38, $00, $4C, $00, $C6, $00, $C6, $00, $C6, $00, $64, $00, $38, $00, $00, $00
 
-.byte $18
-.byte $00
-.byte $38
-.byte $00
-.byte $18
-.byte $00
-.byte $18
-.byte $00
-.byte $18
-.byte $00
-.byte $18
-.byte $00
-.byte $7E
-.byte $00
-.byte $00
-.byte $00
+.byte $18, $00, $38, $00, $18, $00, $18, $00, $18, $00, $18, $00, $7E, $00, $00, $00
 
 .byte $7C
 .byte $00

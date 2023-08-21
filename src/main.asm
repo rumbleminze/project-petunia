@@ -3,22 +3,20 @@
 
 .include "macros.inc"
 .include "registers.inc"
-
 .include "header.asm"
-
 .include "variables.asm"
+
+
+.segment "BSS"
+oam_lo_buffer: .res 512
+oam_hi_buffer: .res 32
+oamb_buffer_end:
 
 .segment "CODE"
 
 VRAM_CHARS = $0000
+VRAM_BG_CHARS = $1000
 VRAM_BG1   = $2000
-
-TILE_START_LB = 		$0041
-TILE_START_HB = 		$0042
-TILE_TO_WRITE_LB = 		$0043
-TILE_TO_WRITE_HB = 		$0044
-NUM_TILES_TO_WRITE = 	$0045
-TILESET_OFFSET = 		$0050
 
 OLD_TILE_GROUP_OFFSET = $A2E8
 
@@ -27,8 +25,6 @@ start:
 	
 	; Set up the color palette
 	stz CGADD
-
-
 	LDX #$0000
 	@fill_palette:
 		@palette_loop:
@@ -50,81 +46,56 @@ start:
 	fill_palette_done:
 
 	
-	; Set Graphics Mode 0, 8x8 tiles
-	; lda #$01
-	stz BGMODE
+	; Set Graphics Mode 0, 8x8 tiles, 4bpp
+	lda #$01
+	sta BGMODE
+
     ; Set BG1 and tile map and character data
 	; lda #$20
 	lda #$22
 	sta BG1SC
+
+	setAXY16
 	lda #VRAM_CHARS
 	sta BG12NBA
-
-	; Load character data into VRAM
-	lda #$80
-	sta VMAIN
-	ldx #VRAM_CHARS
-	stx VMADDL
+	setA8
 
 	lda #$04
 	sta SETINI
 	
-	ldx #$00
-@charset_loop:
-
-	ldy #$00	
-	@charset_row_loop:
-		lda tiles,x
-		sta VMDATAL
-		lda tiles+8,x
-		sta VMDATAH
-		iny
-		inx
-		cpy #08
-		bne @charset_row_loop
-	inx
-	inx
-	inx
-	inx
-	inx
-	inx
-	inx
-	inx
-	cpx #(tiles_end - tiles)
-	bne @charset_loop
- 
+	jsr load_tilesets
 	jsr clearvm
-	; jsr copytilestobackground
-	STZ TILESET_OFFSET
-	STZ TILESET_OFFSET + 1
+	
+	STZ tileset_offset
+	STZ tileset_offset + 1
 	load_all_tilesets:		
 		jsr readtileset
 		jsr writetileset
-		inc TILESET_OFFSET		
-		inc TILESET_OFFSET		
-		inc TILESET_OFFSET		
-		inc TILESET_OFFSET		
-		inc TILESET_OFFSET		
-		inc TILESET_OFFSET
-		lda TILESET_OFFSET
+		inc tileset_offset		
+		inc tileset_offset		
+		inc tileset_offset		
+		inc tileset_offset		
+		inc tileset_offset		
+		inc tileset_offset
+		lda tileset_offset
 		CMP #(background_tilesets_end - background_tilesets)
 		bne load_all_tilesets
-
-	; Write a tile to position (1, 1)
-	TILE_X = 0
-	TILE_Y = 0
-	ldx #(VRAM_BG1 + (TILE_Y * 32) + TILE_X)
-	stx VMADDL
-	lda #$12 ; tile number
-	sta VMDATAL
-	stz VMDATAH
-
 	; Show BG1
 	lda #%00000001
 	sta TM
 
 	lda #$0f
 	sta INIDISP
+
+	lda #%0000000
+	sta OBSEL
+
+	ldx #0
+@zero_oam:
+	stz oam_lo_buffer, x
+	inx
+	cpx #(oam_buffer_end - oam_lo_buffer)
+	bne @zero_oam
 
 	lda #%10000001
 	sta NMITIMEN
@@ -223,24 +194,89 @@ scroll_bg1:
 	sta BG1VOFS
 	rts
 
-	; my ghetto scroll 
-	; inc bg1_y
-	; bne scroll
+load_tilesets:
 
-	; inc bg1_y_hb
-	; lda bg1_y_hb
-	; and #$01
-	; sta bg1_y_hb
+		; Load character data into VRAM
+	lda #$80
+	sta VMAIN
 
-	; scroll:
-	; lda bg1_y
-	; sta BG1VOFS
+	ldx #VRAM_CHARS
+	stx VMADDL
+	
+	LDA #< sprite_tiles
+	STA tileset_load_start
+	CLC
+	ADC #$08
+	STA tileset_load_hb_start
 
-	; lda bg1_y_hb
-	; sta BG1VOFS
+	LDA #> sprite_tiles
+	STA tileset_load_start + 1
 
+	BCC :+
+	INC A
+:	STA tileset_load_hb_start + 1
 
+	JSR load_tileset
+
+	ldx #VRAM_BG_CHARS
+	stx VMADDL
+
+	LDA #<tiles
+	STA tileset_load_start
+	CLC
+	ADC #$08
+	STA tileset_load_hb_start
+
+	LDA #>tiles
+	STA tileset_load_start + 1
+	BCC :+
+	INC A
+:	STA tileset_load_hb_start + 1
+
+	JSR load_tileset
+	RTS
+
+load_tileset:
+	ldy #$00
+	@charset_loop:
+
+		ldx #$00	
+
+		@charset_row_loop:
+
+			lda (tileset_load_start), y
+			sta VMDATAL
+
+			lda (tileset_load_hb_start),y
+			sta VMDATAH
+
+			inx
+			iny
+
+			cpx #08
+			bne @charset_row_loop
+
+		; NES tiles are 2bpp but we want to use 4bpp
+		; the way they tiles are structures this means that 
+		; for a row of 8 pixels, the first 16 bytes are the 2bpp data
+		; and the next 16 bytes are just 0's (transparent)
+		; we also take the oppurtunity to inc x by 8 here, to skip over the high
+		; bits of the tiles we read
+		ldx #$00
+		@second_bit_plane_zeros:
+			lda #$00
+			sta VMDATAL
+			sta VMDATAH
+			inx
+			iny
+			cpx #08
+			bne @second_bit_plane_zeros
+
+		cpy #$1000
+		bne @charset_loop
+	
 	rts
+
 
 unload_heart_sprites:
   LDA #$5F                 
@@ -324,12 +360,12 @@ move_heart_sprites:
 
 
 readtileset:
-  	ldx TILESET_OFFSET
+  	ldx tileset_offset
 	
 	setAXY16
 	; First two bytes are where the tiles go in the background
 	LDA background_tilesets, x
-	STA TILE_START_LB
+	STA tile_start_lb
 
 	inx
 	inx
@@ -337,21 +373,23 @@ readtileset:
 	; in the original NES game this starts at $a2e8
 	; we've copied that data to tiles_to_background
 	LDA background_tilesets, x
+
 	; ADC #(background_tile_group_defintions - $A2E8)
 	; CLC
 	; ADC #$0f77
-	STA TILE_TO_WRITE_LB
+	STA tile_to_write_lb
 
 	inx
 	inx
 	LDA background_tilesets, x
-	STA NUM_TILES_TO_WRITE
+	STA num_tiles_to_write
 	setA8
 
   	rts
 
 writetileset:
-  ldx TILE_START_LB
+  ldx tile_start_lb
+
   stx current_vram_addr
   stx VMADDL 
     
@@ -445,15 +483,17 @@ writetileset:
 
 	write_tile_to_vram:
 	LDY tile_counter
-	LDA (TILE_TO_WRITE_LB),Y
+	LDA (tile_to_write_lb),Y
 	AND #$00FF
+	CLC
+	ADC #$0100
 	ADC attribute_for_tile
         
 	STA VMDATAL
 	INY        	
 	inc current_vram_addr      
 	STY tile_counter
-	CPY NUM_TILES_TO_WRITE
+	CPY num_tiles_to_write
 	BNE nexttile    
 
   setA8
@@ -463,12 +503,12 @@ clearvm:
   	ldx #VRAM_BG1
   	stx VMADDL 
 	
-	lda #$12
+	setAXY16
+	lda #$0112
 	
 	LDY #$0000
 	clear_loop:
 		sta VMDATAL
-		stz VMDATAH
 		iny
 		CPY #(32*64)
 		BNE clear_loop
@@ -479,3 +519,4 @@ clearvm:
 ; .include "charset.asm"
 .include "tiles.asm"
 .include "backgroundtilesets.asm"
+.include "sprite_tiles.asm"

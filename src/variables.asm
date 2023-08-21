@@ -16,3 +16,14 @@ column_offset: .res 2
 row_offset: .res 2
 attribute_for_tile: .res 2
 tile_counter: .res 2
+
+tile_start_lb: .res 1
+tile_start_hb: .res 1
+tile_to_write_lb: .res 1
+tile_to_write_hb: .res 1	
+num_tiles_to_write: .res 2
+tileset_offset: .res 2	
+
+tileset_load_start: .res 2
+tileset_load_hb_start: .res 2
+tileset_load_end: .res 2
