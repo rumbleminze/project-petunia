@@ -6,11 +6,14 @@
 .include "header.asm"
 .include "variables.asm"
 
+.segment "NES_SPRITES"
+nes_sprites_buffer: .res 256
+nes_sprites_buffer_end:
 
 .segment "BSS"
 oam_lo_buffer: .res 512
 oam_hi_buffer: .res 32
-oamb_buffer_end:
+oam_buffer_end:
 
 .segment "CODE"
 
@@ -63,9 +66,13 @@ start:
 	lda #$04
 	sta SETINI
 	
+	jsr clear_zero_page
 	jsr load_tilesets
 	jsr clearvm
-	
+	stz scroll_stop_flag
+	inc scroll_stop_flag
+	jsr clear_nes_sprite_ram
+
 	STZ tileset_offset
 	STZ tileset_offset + 1
 	load_all_tilesets:		
@@ -110,6 +117,7 @@ mainloop:
 	php
 	jsr count_frames
 	jsr scroll_bg1
+	jsr initialize_heart_sprites
 	plp
 
 	bra mainloop
@@ -156,42 +164,49 @@ scroll_bg1:
 	LDA frame_counter_lb
 	AND #$01
 	; only scroll every other frame
-	BEQ keep_scrolling
+	BEQ :+
 	rts
 
-	keep_scrolling:
-	LDA frame_counter_hb
+:	LDA frame_counter_hb
 	BNE increment_vertical_scroll
+
 	LDA frame_counter_lb
+
 	CMP #$80
-	BCC done_scrolling
+	BCC store_bg1_scroll
+
 	increment_vertical_scroll:
 	inc bg1_y
-	bne done_incrementing_scroll
+	bne :+
+	; inc. the hb if we rolled
 	inc bg1_y_hb
+	:
 	
-	done_incrementing_scroll:
 	jsr move_heart_sprites
+	; jsr move_heart_sprites
 
 	LDA bg1_y
-	CMP #$F0
-	BNE done_scrolling
-	LDA #$00
-	STA frame_counter_lb
-	STA frame_counter_hb
+	CMP #$00
+	BNE store_bg1_scroll
 
-	LDA $1A
-	EOR #$01
-	STA $1A
-	; LDA #$00
-	; STA bg1_y
+		LDA #$00
+		STA frame_counter_lb
+		STA frame_counter_hb
 
-	done_scrolling:
+		LDA scroll_stop_flag
+		EOR #$01
+
+		STA scroll_stop_flag
+		LDA #$00
+		; STA bg1_y
+
+	store_bg1_scroll:
 	lda bg1_y
 	sta BG1VOFS
 
 	lda bg1_y_hb
 	sta BG1VOFS
+	
 	rts
 
 load_tilesets:
@@ -293,6 +308,27 @@ load_sprite_to_00:
   STA title_scroll_state                
   RTS                      
 
+clear_nes_sprite_ram:
+	setA8
+	LDY #$0000
+
+	@clear_sprite_memory:
+	
+	LDA #$F8
+	STA $0200, Y
+
+	LDA #$00
+	STA $0201, Y
+	STA $0202, Y
+	STA $0203, Y
+
+	INY
+	INY
+	INY
+	INY
+	CPY #$0100
+	BNE @clear_sprite_memory
+	RTS
 
 initialize_heart_sprites:  
   ; check current scroll position     
@@ -346,7 +382,7 @@ move_heart_sprites:
   LDA bg1_y                  
   CMP #$48                 
   BNE exit_move_sprites               
-  LDA $1A                  
+  LDA scroll_stop_flag                  
   LSR A                    
   BCC exit_move_sprites                
   LDA #$EF                 
@@ -514,6 +550,16 @@ clearvm:
 		BNE clear_loop
 	RTS
 
+clear_zero_page:
+    setA8
+	lda #$00
+	ldy #$0000
+:	sta $00, Y
+	iny
+	cpy #$0100
+	bne :-
+
+	rts
 
 .include "palettes.asm"
 ; .include "charset.asm"
