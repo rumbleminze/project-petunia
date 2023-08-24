@@ -88,7 +88,7 @@ start:
 		CMP #(background_tilesets_end - background_tilesets)
 		bne load_all_tilesets
 	; Show BG1
-	lda #%00000001
+	lda #%00010001
 	sta TM
 
 	lda #$0f
@@ -100,9 +100,23 @@ start:
 	ldx #0
 @zero_oam:
 	stz oam_lo_buffer, x
+	lda #$f8
+	sta oam_lo_buffer + 1, x
+	stz oam_lo_buffer + 2, x
+	stz oam_lo_buffer + 3, x
 	inx
-	cpx #(oam_buffer_end - oam_lo_buffer)
+	inx
+	inx
+	inx
+	cpx #(oam_hi_buffer - oam_lo_buffer)
 	bne @zero_oam
+	
+	ldx #0
+@zero_oam_hi:
+	stz oam_hi_buffer, X
+	inx
+	cpx #(oam_buffer_end - oam_hi_buffer)
+	bne @zero_oam_hi
 
 	lda #%10000001
 	sta NMITIMEN
@@ -115,9 +129,11 @@ mainloop:
 	cmp nmi_count
 	beq @nmi_check
 	php
+	jsr dma_oam_table
 	jsr count_frames
 	jsr scroll_bg1
 	jsr initialize_heart_sprites
+	jsr translate_nes_sprites_to_oam
 	plp
 
 	bra mainloop
@@ -357,7 +373,7 @@ initialize_heart_sprites:
   STA $0287                
   STA $028F   
 
-  ; #$21 is magic number?  not sure, but every sprite shares it.  maybe palatte?
+  ; #$21 is palatte and
   LDA #$21                 
   STA $0282                
   STA $0286                
@@ -372,15 +388,113 @@ initialize_heart_sprites:
   LDA #$93                 
   STA $0289                
   LDA #$AE                 
-  STA $028D                
+  STA $028D       
+         
   RTS                      
+
+translate_nes_sprites_to_oam:
+	setA8
+	LDY #$0000
+
+sprite_loop:	
+	; byte 1, Tile index
+	LDA $201, Y
+	STA oam_lo_buffer + 2, y
+	beq empty_sprite
+
+	; byte 0, Tile Y position
+	LDA $200,Y
+	STA oam_lo_buffer + 1, y
+
+	; byte 3, Tile X Position
+	LDA $203, Y
+	STA oam_lo_buffer, y 
+
+	; properties
+	LDA $202, Y
+	PHA
+	AND #$03
+	ASL A
+	STA junk_byte
+	PLA
+	AND #$F0
+	EOR #%00110000
+	ORA junk_byte
+	LDA #%00010010
+	STA oam_lo_buffer + 3, y
+	bra next_sprite
+
+	empty_sprite:
+	sta oam_lo_buffer, y
+	lda #$f8 
+	sta oam_lo_buffer + 1, y
+	lda #$38
+	sta oam_lo_buffer + 3, y
+
+	next_sprite:
+	INY
+	INY
+	INY
+	INY
+	CPY #$100
+	BNE sprite_loop
+	rts
+
+dma_oam_table:
+	; DMA - infidelities from DuckTales title 
+	; setXY16
+	; stz OAMADDL
+
+	; lda #$A0 ; ?
+	; ldx #$FDE0
+	; ldy #(oam_buffer_end - oam_lo_buffer)
+	; stx A1T0L
+	; sta A1B0
+	; sty DAS0L
+	; stz DMAP0
+
+	; LDA #$04
+	; sta BBAD0
+	; LDA #$01
+	; STA MDMAEN
+
+	; LDA #$80
+	; STA BBAD0
+	; LDX #$FDE0
+	; STX A1T0L
+	; LDA #$A0
+	; LDX oam_lo_buffer
+	; stx WMADDL
+	; LDA #$7e
+	; STA WMADDH
+	; LDY #(oam_buffer_end - oam_lo_buffer)
+	; STY DAS0L
+	; LDA #$01
+	; STA MDMAEN
+
+
+	lda #%00000000
+	sta DMAP1
+	lda #<OAMDATA
+	sta BBAD1
+	ldx #.loword(oam_lo_buffer)
+	stx A1T1L
+	lda #^oam_lo_buffer
+	sta A1B1
+	ldx #(oam_buffer_end - oam_lo_buffer)
+	stx DAS1L
+	lda #%00000010
+	sta MDMAEN
+
+	RTS
+
 
 	
 move_heart_sprites:
 ;   move sprite of heartdown with the BG
   DEC $0280                
   LDA bg1_y                  
-  CMP #$48                 
+  CMP #$58                 
   BNE exit_move_sprites               
   LDA scroll_stop_flag                  
   LSR A                    

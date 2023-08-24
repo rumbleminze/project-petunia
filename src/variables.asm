@@ -28,3 +28,4 @@ tileset_load_start: .res 2
 tileset_load_hb_start: .res 2
 tileset_load_end: .res 2
 scroll_stop_flag: .res 1
+junk_byte: .res 2
