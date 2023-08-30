@@ -30,6 +30,9 @@ background_tilesets:
 
 .byte $E7, $21, $E8, $A2, $12, $00
 ; .byte $C0, $2B, $FA, $A2, $40, $00  ;attributes
+; these addresses have been adjusted from their original values
+; since the 2800 - 2B00 VRAM on the NES
+; corresponds to 2400-2800 on the SNES
 .byte $35, $24, $3A, $A3, $04, $00
 .byte $53, $24, $3E, $A3, $08, $00
 .byte $72, $24, $4B, $A3, $0E, $00
@@ -62,7 +65,7 @@ background_tile_group_defintions:
 .byte $31, $5D, $C0, $64, $12, $C0, $C3, $A7, $B6, $C3, $12, $65, $5D, $C3, $C3, $B7
 .byte $A6, $12 
 
-; attribute data
+; attribute data for title screen 2
 attribute_data:
 .byte $00, $00, $00, $00, $80, $AA, $A2, $A0 
 .byte $AA, $22, $00, $00, $08, $0A, $0A, $0A
@@ -137,6 +140,10 @@ background_tile_palatte_info_end:
 ; 0x673B in ROM
 nes_bg_palattes:
 .byte $0F, $20, $10, $00, $0F, $24, $2A, $0A, $0F, $31, $1C, $0C, $0F, $27, $06, $31
+
+; 0x674B in ROM
+; Start / Continue
+.byte $0F, $20, $22, $02, $0F, $27, $17, $07, $0F, $2C, $11, $0A, $0F, $02, $27, $15
 
 ; 0x675B in ROM
 nes_sprite_palattes:

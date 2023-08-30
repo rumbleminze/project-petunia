@@ -3,6 +3,7 @@
 ; This is simple and understandable, though
 ; Will leave you in A8 XY16 mode
 
+; equivilent to nes_c000
 ; Disable interrupts and enable native mode
 sei
 clc
@@ -43,12 +44,38 @@ stx CGWSEL
 ldy #$00E0
 sty COLDATA
 
-setA8
 
 ; Zero window masks
 stz WOBJSEL
 
+setAXY8
 ; zero some of my variables
-stz bg1_y
-stz bg1_y_hb
+;   LDX #$FF                 
+;   TXS                      
+  LDA #$03                 
+  STA $6FFA                
+  LDA #$7F                 
+  STA $6FFB                
+  JSR nes_eb07          
+  LDX #$00                 
+: LDA $F081,X              
+  STA $6000,X              
+  INX                      
+  BNE :-
+
+
+LDA #$00                 
+TAX                      
+: STA $0100,X              
+STA $0200,X              
+; STA $0300,X              
+; STA $0400,X              
+; STA $0500,X              
+; STA $0600,X              
+; STA $0700,X              
+INX                      
+BNE :-     
+
+setXY16
+
 

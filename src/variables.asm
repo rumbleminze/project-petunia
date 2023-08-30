@@ -1,4 +1,7 @@
 .segment "ZEROPAGE"
+nes_zp_00: .res 1
+nes_zp_01: .res 1
+
 
 bg1_x: .res 1
 bg1_y: .res 1
@@ -29,3 +32,14 @@ tileset_load_hb_start: .res 2
 tileset_load_end: .res 2
 scroll_stop_flag: .res 1
 junk_byte: .res 2
+
+joy1_buttons: .res 1
+joy2_buttons: .res 1
+joy1_buttons_mirror: .res 1
+joy2_buttons_mirror: .res 1
+
+some_copy_of_joy1: .res 4
+
+nes_ef: .res 1
+nes_f0: .res 1
+nes_31f: .res 1

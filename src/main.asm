@@ -17,11 +17,9 @@ oam_buffer_end:
 
 .segment "CODE"
 
-VRAM_CHARS = $0000
-VRAM_BG_CHARS = $1000
-VRAM_BG1   = $2000
-
-OLD_TILE_GROUP_OFFSET = $A2E8
+VRAM_CHARS 		= $0000
+VRAM_BG_CHARS 	= $1000
+VRAM_BG1   		= $2000
 
 start:
 	.include "init.asm"
@@ -30,15 +28,15 @@ start:
 	stz CGADD
 	LDX #$0000
 	@fill_palette:
-		@palette_loop:
+		:
 			LDA palettes, x
 			sta CGDATA
 			inx
 			CPX #(palettes_end - palettes)
-			BNE @palette_loop
+			BNE :-
 
 		CPX #$00FF
-		BEQ fill_palette_done
+		BEQ :+
 		@zero_rest:
 			STZ CGDATA			
 			STZ CGDATA
@@ -46,7 +44,7 @@ start:
 			inx
 			CPX #$0200
 		BNE @zero_rest
-	fill_palette_done:
+	:
 
 	
 	; Set Graphics Mode 0, 8x8 tiles, 4bpp
@@ -129,101 +127,27 @@ mainloop:
 	cmp nmi_count
 	beq @nmi_check
 	php
-	jsr dma_oam_table
-	jsr count_frames
-	jsr scroll_bg1
-	jsr initialize_heart_sprites
-	jsr translate_nes_sprites_to_oam
+	; jsr read_input
+	; jsr count_frames
+	; jsr scroll_bg1
+
+	; jsr translate_nes_sprites_to_oam
 	plp
 
-	bra mainloop
+	LDA joy1_buttons_mirror
+	AND #$10
+	beq mainloop
+	jsr post_start
+
 nmi:
+	jsr dma_oam_table           
+  	JSR handle_input  
+	jsr title_screen_interrupt_handler	
+	jsr initialize_heart_sprites
 	bit RDNMI
 	inc nmi_count
 _rti:
 	rti
-
-count_frames:
-	inc frame_counter_lb
-	bne done_counting
-	inc frame_counter_hb
-	done_counting:
-	rts
-
-scroll_bg1:
-
-;   ;Original code:
-;	LDA frame_counter_lb                 
-;   AND #$01                 
-;   BEQ $A210                
-;   RTS                               
-;   LDA frame_counter_hb                  
-;   BNE $A21A                
-;   LDA frame_counter_lb                  
-;   CMP #$80                 
-;   BCC $A235                
-;   INC $FD                  
-;   JSR $A5CA                
-;   LDA $FD                  
-;   CMP #$F0                 
-;   BNE $A235                
-;   LDA #$00                 
-;   STA frame_counter_lb                  
-;   STA frame_counter_hb                 
-;   LDA $1A                  
-;   EOR #$01                 
-;   STA $1A                  
-;   LDA #$00                 
-;   STA $FD                  
-;   RTS                      
-
-	LDA frame_counter_lb
-	AND #$01
-	; only scroll every other frame
-	BEQ :+
-	rts
-
-:	LDA frame_counter_hb
-	BNE increment_vertical_scroll
-
-	LDA frame_counter_lb
-
-	CMP #$80
-	BCC store_bg1_scroll
-
-	increment_vertical_scroll:
-	inc bg1_y
-	bne :+
-	; inc. the hb if we rolled
-	inc bg1_y_hb
-	:
-	
-	jsr move_heart_sprites
-	; jsr move_heart_sprites
-
-	LDA bg1_y
-	CMP #$00
-	BNE store_bg1_scroll
-
-		LDA #$00
-		STA frame_counter_lb
-		STA frame_counter_hb
-
-		LDA scroll_stop_flag
-		EOR #$01
-
-		STA scroll_stop_flag
-		LDA #$00
-		; STA bg1_y
-
-	store_bg1_scroll:
-	lda bg1_y
-	sta BG1VOFS
-
-	lda bg1_y_hb
-	sta BG1VOFS
-	
-	rts
 
 load_tilesets:
 
@@ -324,6 +248,7 @@ load_sprite_to_00:
   STA title_scroll_state                
   RTS                      
 
+; in the nes routine this only sets the v bit to F8
 clear_nes_sprite_ram:
 	setA8
 	LDY #$0000
@@ -441,38 +366,6 @@ sprite_loop:
 	rts
 
 dma_oam_table:
-	; DMA - infidelities from DuckTales title 
-	; setXY16
-	; stz OAMADDL
-
-	; lda #$A0 ; ?
-	; ldx #$FDE0
-	; ldy #(oam_buffer_end - oam_lo_buffer)
-	; stx A1T0L
-	; sta A1B0
-	; sty DAS0L
-	; stz DMAP0
-
-	; LDA #$04
-	; sta BBAD0
-	; LDA #$01
-	; STA MDMAEN
-
-	; LDA #$80
-	; STA BBAD0
-	; LDX #$FDE0
-	; STX A1T0L
-	; LDA #$A0
-	; LDX oam_lo_buffer
-	; stx WMADDL
-	; LDA #$7e
-	; STA WMADDH
-	; LDY #(oam_buffer_end - oam_lo_buffer)
-	; STY DAS0L
-	; LDA #$01
-	; STA MDMAEN
-
-
 	lda #%00000000
 	sta DMAP1
 	lda #<OAMDATA
@@ -487,26 +380,6 @@ dma_oam_table:
 	sta MDMAEN
 
 	RTS
-
-
-	
-move_heart_sprites:
-;   move sprite of heartdown with the BG
-  DEC $0280                
-  LDA bg1_y                  
-  CMP #$58                 
-  BNE exit_move_sprites               
-  LDA scroll_stop_flag                  
-  LSR A                    
-  BCC exit_move_sprites                
-  LDA #$EF                 
-  STA $0280                
-  LDA #$39                 
-  STA $0283                
-  LDA #$80                 
-  STA title_scroll_state  
-  exit_move_sprites:              
-  RTS                      
 
 
 readtileset:
@@ -680,3 +553,5 @@ clear_zero_page:
 .include "tiles.asm"
 .include "backgroundtilesets.asm"
 .include "sprite_tiles.asm"
+.include "input.asm"
+.include "title_screen_post_start.asm"
