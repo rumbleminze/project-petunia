@@ -1,6 +1,6 @@
 ; tilesets & attributes, the first 2 bytes are where in the VRAM to write it
 ; the 2nd two bytes are where the group definition lives
-; the last two bytes are how many tiles are in the group
+; the last byte is how many tiles are in the group
 
 
 background_tilesets:

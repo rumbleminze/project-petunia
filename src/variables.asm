@@ -43,3 +43,7 @@ some_copy_of_joy1: .res 4
 nes_ef: .res 1
 nes_f0: .res 1
 nes_31f: .res 1
+nes_1a: .res 1
+
+.segment "SIXKREGION"
+nes_6000_something: .res 256

@@ -1,9 +1,90 @@
+; $1A
 ; $A0 - seems to determine if we've hit start
 ; $b2 - start vs. continue vs. whatever, essentially what state we're in
+; $B6 - What bank we're in
+; $BE ?
 ; $FD - bg_scroll_y / bg1_y
 ; $FE - bg1_y_hb
 ; $390 - $39f - palatte storage prior to copying
 ; a0ba
+
+nes_98c6:
+  ;LDA PpuStatus_2002       
+  LDA $0100                
+  ;STA PpuControl_2000  
+nes_98cf:    
+  RTS                      
+
+nes_98d0:
+; don's seem to go here
+;   LDA $A0                  
+;   CMP #$02                 
+;   BCC nes_98cf                
+;   LSR A                    
+;   BCS $990B                
+;   LSR A                    
+;   BCC nes_98cf               
+;   CMP #$02                 
+;   BCS nes_98cf                
+;   ASL A                    
+;   TAX                      
+;   LDA $9907,X              
+;   STA $00                  
+;   LDA $9908,X              
+;   STA $01                  
+;   LDA #$00                 
+;   STA $02                  
+;   LDA #$70                 
+;   STA $03                  
+;   LDX #$0F                 
+;   LDY #$00    
+;   nes_98f8:             
+;   LDA ($00),Y              
+;   STA ($02),Y              
+;   INY                      
+;   BNE nes_98f8           
+;   INC $01                  
+;   INC $03                  
+;   DEX                      
+;   BNE nes_98f8         
+  RTS                      
+
+nes_990b:
+;nyi C904B0C00A
+
+rts
+
+
+nes_a003_something_with_music:
+  JMP nes_a0fd            
+
+nes_a000_data:
+JMP nes_a05a ; 4C 5A A0
+JMP nes_a554 ; 4C 54 A5
+.byte $4c, $47, $AD ; JMP nes_ad47 ; 4C 47 AD
+.byte $4C, $40, $DF ; JMP nes_df40 ; 4C 40 DF 
+.byte $4c, $47, $AD ; 4C 47 AD 
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+.byte $4c, $47, $AD; 4C 47 AD
+.byte $4c, $47, $AD ; 4C 47 AD
+
+; I doubt these are all real, just doing byte code for the rest.
+.byte $67, $C5, $E7, $C5, $47, $AD, $47, $AD, $47, $AD, $47, $AD, $47, $AD, $47, $AD, $47, $AD, $47, $AD, $47, $AD, $47, $AD
+
 nes_a05a:
   setAXY8
   LDX #$00     
@@ -25,7 +106,7 @@ nes_a05a:
   STA $A0                  
   STA $18                  
   STA $0600                
-  INC $1A                  
+  INC nes_1a                 
   JSR clear_nes_sprite_ram
   JSR nes_a236 
   LDA #$00                 
@@ -41,7 +122,7 @@ nes_a05a:
   JSR nes_ef01   
   main_busy_loop:
   nes_a0a5:             
-  LDA $1A                  
+  LDA nes_1a                
   ROR A                    
   BCC check_for_start      
 ;   LDA $038D                
@@ -67,7 +148,7 @@ post_start:
     LDA #$20                 
     STA $85                  
     JSR nes_eee5               
-    INC $1A                  
+    INC nes_1a                 
     JSR clear_nes_sprite_ram
     LDA #$01                 
     JSR nes_a700                
@@ -87,7 +168,7 @@ post_start:
     BNE nes_a0f7            
     JSR nes_eef0                
     LDA $B2                  
-    JSR $EE2B      
+    JSR nes_ee2b     
 
 
 
@@ -184,8 +265,7 @@ nes_a56a:
   RTS                      
 nes_a577:
   JSR nes_a529                
-  JSR nes_ebc9                
-  JSR handle_input         
+  JSR nes_ebc9       
   JSR scroll_bg1_every_other_frame
   
   jsr initialize_heart_sprites
@@ -219,55 +299,6 @@ move_heart_sprites:
   exit_move_sprites:              
   RTS         
 
-nes_98c6:
-  ;LDA PpuStatus_2002       
-  LDA $0100                
-  ;STA PpuControl_2000  
-nes_98cf:    
-  RTS                      
-
-nes_98d0:
-; don's seem to go here
-;   LDA $A0                  
-;   CMP #$02                 
-;   BCC nes_98cf                
-;   LSR A                    
-;   BCS $990B                
-;   LSR A                    
-;   BCC nes_98cf               
-;   CMP #$02                 
-;   BCS nes_98cf                
-;   ASL A                    
-;   TAX                      
-;   LDA $9907,X              
-;   STA $00                  
-;   LDA $9908,X              
-;   STA $01                  
-;   LDA #$00                 
-;   STA $02                  
-;   LDA #$70                 
-;   STA $03                  
-;   LDX #$0F                 
-;   LDY #$00    
-;   nes_98f8:             
-;   LDA ($00),Y              
-;   STA ($02),Y              
-;   INY                      
-;   BNE nes_98f8           
-;   INC $01                  
-;   INC $03                  
-;   DEX                      
-;   BNE nes_98f8         
-  RTS                      
-
-nes_990b:
-;nyi C904B0C00A
-
-rts
-
-
-nes_a003_something_with_music:
-  JMP nes_a0fd            
 
 
 nes_a0fd:
@@ -761,10 +792,11 @@ nes_c096:
   JSR nes_c24a                
   LDA #$00                 
   STA $38                  
-  JMP $7F00  ; jump to a05a
+  JMP $1F00  ; jump to a05a
 
 ;c0c9-c14f
 nes_c0c9:
+  setAXY8
   LDA #$00                 
   TAY                      
   STA $00                  
@@ -777,19 +809,31 @@ nes_c0c9:
   BNE nes_c0e6 
   ; load tiles from $A000               
   LDA #$A0                 
-  STA tileset_load_hb_start                  
+  STA tileset_load_start + 1
   LDX #$20                 
   JSR nes_c170              
   BEQ nes_c120               
 nes_c0e6: 
-  ; load tiles from $8000  
-  LDA #$80                 
-  STA tileset_load_hb_start                
-  LDX #$20                 
+ lda #$0080
+sta INIDISP ; Turn off screen ("forced blank")
+  setXY16
+  ldx #VRAM_BG_CHARS
+  stx VMADDL
+
+  ; disable interrupts
+ stz NMITIMEN
+
+
+  setAXY8
+  ; load tiles from $8000 to BG Characters
+
+  LDA #$C0                 
+  STA tileset_load_start + 1            
+  LDX #$0F                 
   JSR nes_c170         
   LDA $A0                  
   TAX                      
-  LDA $C152,X              
+  LDA nes_c152_data,X              
   CMP #$80                 
   BEQ nes_c120
   game_start_maybe:
@@ -797,29 +841,25 @@ nes_c0e6:
   STA $01                  
   LDA #$01                 
   JSR nes_c17f    
-  LDA #$0C                 
-;   STA PpuAddr_2006
-  STA VMADDH         
-  LDA #$00                 
-;   STA PpuAddr_2006         
-  STA VMADDL
-  LDX #$04                 
+ 
   JSR nes_c170
   LDA #$1C                 
-;   STA PpuAddr_2006    
-  STA VMADDH     
-  LDA #$00                 
-;   STA PpuAddr_2006         
-  STA VMADDL
+
   LDX #$04                 
   JSR nes_c170
-nes_c120:    
+  lda #%10000001
+	sta NMITIMEN
+  lda #$0f
+	sta INIDISP  
+nes_c120:  
+; this builds up some code at 7F00 which is jumped to later
+; 7f00 holds a jump table, mostly going to 
   LDA $A0                  
   ASL A                    
   TAY                      
-  LDA $C15C,Y              
+  LDA nes_c15c_data,Y              
   STA $00                  
-  LDA $C15D,Y              
+  LDA nes_c15c_data + 1,Y              
   STA $01                  
   LDY #$00                 
   LDA ($00),Y              
@@ -833,18 +873,93 @@ nes_c120:
   STA $01                  
   PLA                      
   STA $00                  
-  LDY #$59    
-  nes_c145:             
-  LDA ($00),Y              
+  LDY #$59   
+: LDA ($00),Y              
   STA $7F00,Y              
   DEY                      
-  BPL nes_c145      
+  BPL :-
   LDA #$10                 
-  JMP $CA90       ;         
+  JMP nes_ca90       
+
+; This data is referenced, usually indexed by $A0
+nes_c152_data:
+.byte $A0, $80, $C0
+
+; this is a pointer to the data stored in c1a8, which seems to contain the location
+; of the #$59 bytes to copy to $7F00 depending on what was in $A0
+; this is possibly for levels/start menu
+; these are definitely wrong as they point to NES addresses currently
+nes_c15c_data:
+.byte .lobyte(nes_c1a8_data)
+.byte .hibyte(nes_c1a8_data)
+
+.byte .lobyte(nes_c1a8_data+3)
+.byte .hibyte(nes_c1a8_data+3)
+
+.byte .lobyte(nes_c1a8_data+6)
+.byte .hibyte(nes_c1a8_data+6)
+
+.byte .lobyte(nes_c1a8_data+9)
+.byte .hibyte(nes_c1a8_data+9)
+
+.byte .lobyte(nes_c1a8_data+12)
+.byte .hibyte(nes_c1a8_data+12)
+
+.byte .lobyte(nes_c1a8_data+15)
+.byte .hibyte(nes_c1a8_data+15) 
+
+.byte .lobyte(nes_c1a8_data+18)
+.byte .hibyte(nes_c1a8_data+18) 
+
+.byte .lobyte(nes_c1a8_data+21)
+.byte .hibyte(nes_c1a8_data+21) 
+
+.byte .lobyte(nes_c1a8_data+24)
+.byte .hibyte(nes_c1a8_data+24) 
+
+.byte .lobyte(nes_c1a8_data+27)
+.byte .hibyte(nes_c1a8_data+27)  
+
+.byte .lobyte(nes_c1a8_data+30)
+.byte .hibyte(nes_c1a8_data+30) 
+
+; c1a8 data, seems maybe... some index then an address, usually on a bank barrier
+; 01 00 A0 ; c1 a8
+; 01 00 A0 ; c1 ab
+; 02 00 80 ; c1 ae
+; 05 00 80 ; c1 b1
+; 02 A0 99 ; c1 b4
+; 05 00 80 ; c1 b7
+; 03 00 80 ; c1 ba
+; 05 00 80 ; c1 bd
+; 03 30 9C ; c1 c0
+; 04 00 80 ; c1 c3
+
+nes_c1a8_data:
+.byte $01, .lobyte(nes_a000_data), .hibyte(nes_a000_data)
+.byte $01, .lobyte(nes_a000_data), .hibyte(nes_a000_data)
+.byte $02, $00, $80
+.byte $05, $00, $80
+.byte $02, $A0, $99
+.byte $05, $00, $80
+.byte $03, $00, $80
+.byte $05, $00, $80
+.byte $03, $30, $9C
+.byte $04, $00, $80
 
 copy_tile_data_banks:
 copy_X_by_100_bytes_from_ptr_00_to_ppu:
 nes_c170:
+    stz tile_counter
+
+    lda tileset_load_start + 1
+    sta tileset_load_hb_start + 1
+
+    lda tileset_load_start
+    CLC
+    ADC #$08
+    STA tileset_load_hb_start
+
 ;   LDA ($00),Y              
 ;   STA PpuData_2007         
 ;   INC $00                  
@@ -860,14 +975,19 @@ nes_c170:
     sta VMDATAH
 
     inc tileset_load_start
-    lda tileset_load_start
+    inc tileset_load_hb_start
+
+    inc tile_counter
+    lda tile_counter
+
     AND #$08
 
-    bne @charset_row_loop
+    beq @charset_row_loop
     ; NES tiles are 2bpp but we want to use 4bpp
-    ; the way they tiles are structures this means that 
+    ; the way they tiles are structured this means that 
     ; for a row of 8 pixels, the first 16 bytes are the 2bpp data
     ; and the next 16 bytes are just 0's (transparent)
+    stz tile_counter
     stz VMDATAL
     stz VMDATAH    
     stz VMDATAL
@@ -884,12 +1004,20 @@ nes_c170:
     stz VMDATAH    
     stz VMDATAL
     stz VMDATAH
-
+    lda tileset_load_start
+    CLC
+    ADC #$08
+    sta tileset_load_start
+    CLC
+    ADC #$08
+    STA tileset_load_hb_start
+    
     ; keep going until we roll back to 0
     lda tileset_load_start
     bne copy_tile_data_banks
 
-    inc tileset_load_hb_start
+    inc tileset_load_start + 1
+    inc tileset_load_hb_start + 1
     dex
 
     bne copy_tile_data_banks
@@ -1033,15 +1161,15 @@ nes_ca90:
   STA $BD                  
   LDA #$06                 
   STA $B6                  
-  STA $FFFF                
-  LSR A                    
-  STA $FFFF                
-  LSR A                    
-  STA $FFFF                
-  LSR A                    
-  STA $FFFF                
-  LSR A                    
-  STA $FFFF                
+;   STA $FFFF                
+;   LSR A                    
+;   STA $FFFF                
+;   LSR A                    
+;   STA $FFFF                
+;   LSR A                    
+;   STA $FFFF                
+;   LSR A                    
+;   STA $FFFF                
   LDA #$6C                 
   STA $BB                  
   JMP $00BB ; we stored 6c 10 80 01 there, which is a JMP to ($8010), which is $98D0 in my one test
@@ -1168,18 +1296,21 @@ nes_ea4b:
   PLP                      
   RTS                      
 
-funny_9fff_lsr:
+set_up_bank_switching:
 nes_eb07:
-  LDA #$0F                 
-  STA $9FFF                
-  LSR A                    
-  STA $9FFF                
-  LSR A                    
-  STA $9FFF                
-  LSR A                    
-  STA $9FFF                
-  LSR A                    
-  STA $9FFF                
+  ; sets horizontal mirroring 
+  ; and fix last bank at $C000 and switch 16 KB bank at $8000
+  ; we don't need to do this, I think.
+  ; LDA #$0F                 
+  ; STA $9FFF                
+  ; LSR A                    
+  ; STA $9FFF                
+  ; LSR A                    
+  ; STA $9FFF                
+  ; LSR A                    
+  ; STA $9FFF                
+  ; LSR A                    
+  ; STA $9FFF                
   RTS                      
 
 nes_eb2e:
@@ -1256,7 +1387,7 @@ nes_ebc9:
   LDA $1B                  
   AND #$01                 
   STA $00                  
-  LDA $1A                  
+  LDA nes_1a               
   EOR #$FF                 
   AND #$01                 
   ASL A                    
@@ -1396,7 +1527,7 @@ count_frames:
 
 nes_eee5:            
   STZ bg1_y          
-  STZ $1A                  
+  STZ nes_1a                  
   STZ bg1_y_hb                  
   STZ $1B                  
   RTS                      

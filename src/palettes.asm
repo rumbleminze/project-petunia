@@ -82,3 +82,72 @@ palettes:
 ; .byte $00, $00, $00, $00, $00, $00, $00, $00
 ; .byte $00, $00, $00, $00, $00, $00, $00, $00
 palettes_end:
+
+palette_lookup:
+$8C, $31 ; $00 dark grey
+$00, $00 ; $01 nyi
+$42, $50 ; $02 dark blue
+$00, $00 ; $03 nyi
+$00, $00 ; $04 nyi
+$0D, $20 ; $05 maroon
+$0D, $00 ; $06 burgandy
+$6A, $00 ; $07 dark brown
+$00, $00 ; $08 nyi
+$00, $00 ; $09 nyi
+$40, $01 ; $0A dark green
+$00, $00 ; $0B nyi
+$00, $25 ; $0C dark teal
+$00, $00 ; $0D nyi
+$00, $00 ; $0E nyi
+$00, $00 ; $0F Black
+
+$B5, $56 ; $10 light grey
+$00, $00 ; $11 nyi
+$08, $7D ; $12 light dark blue
+$00, $00 ; $13 nyi
+$00, $00 ; $14 nyi
+$76, $3C ; $15 dark pink
+$D6, $10 ; $16 red
+$00, $00 ; $17 nyi
+$00, $00 ; $18 nyi
+$00, $00 ; $19 nyi
+$00, $00 ; $1A nyi
+$00, $00 ; $1B nyi
+$E0, $45 ; $1C teal
+$00, $00 ; $1D nyi
+$00, $00 ; $1E nyi
+$00, $00 ; $1F Black
+
+$FF, $7F ; $20 white
+$00, $00 ; $21 nyi
+$00, $00 ; $22 nyi
+$00, $00 ; $23 nyi
+$BE, $7D ; $24 pink
+$00, $00 ; $25 nyi
+$1F, $3A ; $26 peach
+$7D, $12 ; $27 orange
+$00, $00 ; $28 nyi
+$00, $00 ; $29 nyi
+$8B, $1B ; $2A bright green
+$00, $00 ; $2B nyi
+$00, $00 ; $2C nyi
+$00, $00 ; $2D nyi
+$00, $00 ; $2E nyi
+$00, $00 ; $2F Black
+
+$FF, $7F ; $30 white
+$78, $7F ; $31 light blue
+$00, $00 ; $32 nyi
+$00, $00 ; $33 nyi
+$00, $00 ; $34 nyi
+$00, $00 ; $35 nyi
+$00, $00 ; $36 nyi
+$00, $00 ; $37 nyi
+$9C, $4B ; $38 nyi
+$00, $00 ; $39 nyi
+$00, $00 ; $3A nyi
+$00, $00 ; $3B nyi
+$00, $00 ; $3C nyi
+$00, $00 ; $3D nyi
+$00, $00 ; $3E nyi
+$00, $00 ; $3F Black
