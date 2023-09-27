@@ -1071,4 +1071,4 @@ fixeda7:
 fixeda7_end:
 
 .segment "PRGA7F"
-.include "bank_fixed_f000.asm"
+.include "bank_fixed_fc00.asm"

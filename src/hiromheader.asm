@@ -1,16 +1,19 @@
 .segment "HEADER"
-
 .byte "KID ICARUSNES        " ; ROM name, must be 21 chars
-.byte $30   ; Map Mode: 3.58MHz LoROM
-.byte $00   ; Cartridge Type: ROM only
-.byte $08   ; ROM Size
-.byte $00   ; RAM size
+
+                
+.segment "ROMSPEC"
+.byte $31   ; Map Mode: 3.58MHz HiROM
+.byte $02   ; Cartridge Type: ROM+SRAM only
+.byte $0C   ; ROM Size
+.byte $03   ; RAM size
 .byte $01   ; Destination Code: USA
-.byte $33   ; Fixed value
+.byte $01   ; Fixed value
 .byte $00   ; Mask ROM Version
 .word $0000 ; Complement Check
 .word $0000 ; Check Sum
 
+.segment "VECTOR"
 ; native mode vectors
 .word 0, 0
 .addr _rti  ; COP

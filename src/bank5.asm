@@ -1032,4 +1032,4 @@ fixeda6:
 .include "bank_fixed.asm"
 fixeda6_end:
 .segment "PRGA6F"
-.include "bank_fixed_f000.asm"
+.include "bank_fixed_fc00.asm"

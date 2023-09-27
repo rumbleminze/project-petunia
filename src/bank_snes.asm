@@ -131,7 +131,8 @@ initialize_registers:
   LDA #$02
   STA W12SEL
   STA WOBJSEL
-  LDA #$11
+  
+  lda #%00000001
   STA TM
   LDA #$01
   STA MEMSEL
@@ -141,12 +142,7 @@ initialize_registers:
   lda #0000
 	sta BG12NBA
   JSR clearvm
-
-  lda #%00010001
-	sta TM
-
-	; lda #$0f
-	; sta INIDISP
+  JSR zero_oam
 
 	lda #%0000000
 	sta OBSEL
@@ -155,6 +151,11 @@ initialize_registers:
   PHA
   PLB 
   JML $A1C000
+
+snes_nmi:
+  JSR dma_oam_table
+  JSR translate_nes_sprites_to_oam
+  RTL
 
 clearvm:
 	setAXY16
@@ -173,6 +174,96 @@ clearvm:
   setAXY8
 	RTS
 
+zero_oam:
+
+  setXY16
+  ldx #$0000
+
+: stz SNES_OAM_START, x
+  lda #$f8
+  STA SNES_OAM_START + 1, x
+  STZ SNES_OAM_START + 2, x
+  STZ SNES_OAM_START + 3, x
+  INX
+  INX
+  INX
+  INX
+  CPX #$200
+  bne :-
+: stz SNES_OAM_START, X
+  inx
+  CPX #$220
+  bne :-
+  setAXY8
+  RTS
+
+translate_nes_sprites_to_oam:
+	setXY16
+	LDY #$0000
+
+sprite_loop:	
+	; byte 1, Tile index
+	LDA $201, Y
+	STA SNES_OAM_START + 2, y
+	beq empty_sprite
+
+	; byte 0, Tile Y position
+	LDA $200,Y
+	STA SNES_OAM_START + 1, y
+
+	; byte 3, Tile X Position
+	LDA $203, Y
+	STA SNES_OAM_START, y 
+
+	; properties
+	LDA $202, Y
+	PHA
+	AND #$03
+	ASL A
+	STA SPRITE_LOOP_JUNK
+	PLA
+	AND #$F0
+	EOR #%00110000
+	ORA SPRITE_LOOP_JUNK
+	; LDA #%00010010
+
+	STA SNES_OAM_START + 3, y
+	bra next_sprite
+
+	empty_sprite:
+	sta SNES_OAM_START, y
+	lda #$f8 
+	sta SNES_OAM_START + 1, y
+	lda #$38
+	sta SNES_OAM_START + 3, y
+
+	next_sprite:
+	INY
+	INY
+	INY
+	INY
+	CPY #$100
+	BNE sprite_loop
+
+  setAXY8
+	rts
+
+dma_oam_table:
+  setXY16
+	lda #%00000000
+	sta DMAP1
+	lda #<OAMDATA
+	sta BBAD1
+	ldx #.loword(SNES_OAM_START)
+	stx A1T1L
+	lda #^SNES_OAM_START
+	sta A1B1
+	ldx #$220
+	stx DAS1L
+	lda #%00000010
+	sta MDMAEN
+  setAXY8
+	RTS
 
 ; $45 - number of bytes to copy
 ; $43 $44 - Source tiles address
@@ -181,6 +272,9 @@ write_data_to_ppu:
   PHX
   PHY
   PHA
+
+	lda #$80
+	sta INIDISP
 
   LDA BG_TILE_COUNT
   STA TILES_TO_WRITE
@@ -255,6 +349,7 @@ write_data_to_ppu:
 	LDA (PPU_SOURCE_LB),Y
 	AND #$00FF
 	CLC
+  ; add #$0100 to use BG tiles instead of sprite tiles
 	ADC #$0100
 	ADC PPU_TILE_ATTR
         
@@ -266,6 +361,8 @@ write_data_to_ppu:
 	BNE nexttile    
 
 exit_ppu_copy:
+	lda #$0f
+	sta INIDISP
   setAXY8
   PLA
   PLY  
@@ -273,6 +370,8 @@ exit_ppu_copy:
    
   RTL
 
+; in mode AXY16
+; A should be the address of the NES PpuData we're writing
 calculate_attributes_from_address:	
   setAXY16
 	; chop off unnecessary address part
@@ -301,8 +400,7 @@ calculate_attributes_from_address:
 	ASL A
 	ADC PPU_COL_OFFSET
 	TAY
-  ; this should actually be indirecty Y from LAST_ATTRIB_LOC_LOB
-	; LDA $A303, Y
+  ; LAST_ATTRIB_LOC is where the attributes for the 
   LDA (LAST_ATTRIB_LOC_LB), Y
 	AND #$00FF
 	STA PPU_TILE_ATTR
@@ -432,13 +530,13 @@ palette_lookup:
 .byte $00, $00 ; $0F Black
 
 .byte $B5, $56 ; $10 light grey
-.byte $00, $00 ; $11 nyi
+.byte $62, $6D ; $11 blue
 .byte $08, $7D ; $12 light dark blue
 .byte $00, $00 ; $13 nyi
 .byte $00, $00 ; $14 nyi
 .byte $76, $3C ; $15 dark pink
 .byte $D6, $10 ; $16 red
-.byte $00, $00 ; $17 nyi
+.byte $33, $01 ; $17 Brown 0133
 .byte $00, $00 ; $18 nyi
 .byte $00, $00 ; $19 nyi
 .byte $00, $00 ; $1A nyi
@@ -450,7 +548,7 @@ palette_lookup:
 
 .byte $FF, $7F ; $20 white
 .byte $00, $00 ; $21 nyi
-.byte $00, $00 ; $22 nyi
+.byte $52, $7E ; $22 light purple
 .byte $00, $00 ; $23 nyi
 .byte $BE, $7D ; $24 pink
 .byte $00, $00 ; $25 nyi
@@ -460,7 +558,7 @@ palette_lookup:
 .byte $00, $00 ; $29 nyi
 .byte $8B, $1B ; $2A bright green
 .byte $00, $00 ; $2B nyi
-.byte $00, $00 ; $2C nyi
+.byte $29, $6F ; $2C bright light blue
 .byte $00, $00 ; $2D nyi
 .byte $00, $00 ; $2E nyi
 .byte $00, $00 ; $2F Black

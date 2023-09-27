@@ -1035,4 +1035,4 @@ fixeda1:
 .include "bank_fixed.asm"
 fixeda1_end:
 .segment "PRGA1F"
-.include "bank_fixed_f000.asm"
+.include "bank_fixed_fc00.asm"

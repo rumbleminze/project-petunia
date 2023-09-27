@@ -1033,4 +1033,4 @@ fixeda4:
 .include "bank_fixed.asm"
 fixeda4_end:
 .segment "PRGA4F"
-.include "bank_fixed_f000.asm"
+.include "bank_fixed_fc00.asm"

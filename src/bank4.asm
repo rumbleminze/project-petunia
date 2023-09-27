@@ -1092,4 +1092,4 @@ fixeda5:
 .include "bank_fixed.asm"
 fixeda5_end:
 .segment "PRGA5F"
-.include "bank_fixed_f000.asm"
+.include "bank_fixed_fc00.asm"
