@@ -854,7 +854,7 @@ a2a554:
   TYA                      
   PHA   
 
-  LDA RDNMI ; LDA PpuStatus_2002       
+  .byte $ea, $ea, $ea ; LDA RDNMI ; LDA PpuStatus_2002       
   JSR $EB2E                
   LDA $85                  
   CMP #$10                 

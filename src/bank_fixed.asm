@@ -54,10 +54,10 @@
   .byte $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA
   ; IT IS IMPORTANT THIS IS AT EXACTLY C06D
   @nes_c06d:
-  LDA #$8F     ; LDA #$00             
-  STA INIDISP ; STA PpuControl_2000       
-  STZ NMITIMEN      ; STA PpuMask_2001         
-  STA $0100                
+  LDA #$00        ; LDA #$00             
+  STZ TM          ; STA PpuControl_2000       
+  STZ NMITIMEN    ; STA PpuMask_2001         
+  STZ $0100                
   
   LDA $38                  
   BMI @nes_c08d
@@ -77,7 +77,7 @@
 : JSR @c24a                 
   STZ $38 
   
-  lda #$71
+  lda #$81
   STA NMITIMEN
 
   JMP REPLC_7F00                
@@ -489,7 +489,7 @@
   PHA                      
   LDA $0100                
   ORA #$80                
-  STA INIDISP ; STA PpuControl_2000      
+  STA NMITIMEN ; STA PpuControl_2000      
   PLA                      
   STA $B8                  
   PLA                      
@@ -509,7 +509,7 @@
   PHA                      
   ; LDA PpuStatus_2002       
   LDA $0100                
-  STA INIDISP      
+  STA NMITIMEN      
   PLA                      
   RTS                      
 
@@ -1264,48 +1264,19 @@
 .byte $E8, $8C, $E8, $9D, $E8, $AE, $E8, $CD, $E8, $E1, $E8, $03, $E9, $1C, $E9, $3C
 .byte $E9, $3C, $E9, $3C, $E9, $3C, $E9, $3C, $E9, $79, $E9
 
-; 0xE81B
-  JSR $EA4B                
-  STA $00                  
-  STZ VMAIN
-
-  STA VMADDH ; PpuAddr_2006         
-  LDA #$00                 
-  STA VMADDL ; PpuAddr_2006         
-  JSR $EA4B                
-  JSR $E83B                
-  JSR $EA4B                
-  TAX                      
-  JSR $EA4B                
-  JMP $E84B                
-  
-  LDX #$00                 
-  JSR $E861                
-  JSR $E861                
-  JSR $E861                
-  LDX #$C0                 
-  JMP $E861   
-  ; loads attributes 
-  ; we use this location to store where
-  ; attributes are for the next tiles whenever they change
-  ; and load them with the tiles                
-    STX LAST_ATTRIB_LOC_LB ; $0C                  
-    STA LAST_ATTRIB_LOC_HB ; $0D                  
-    STY $01              
-    .byte $ea, $ea         ; LDX #$40                 
-    .byte $ea, $ea         ; LDY #$00                 
-    .byte $ea, $ea         ;:LDA ($0C),Y              
-    .byte $ea, $ea, $ea    ; STA PpuData_2007 
-    .byte $ea              ; INY                      
-    .byte $ea              ; DEX                      
-    .byte $ea, $ea         ; BNE :-                
-  LDY $01                  
-  RTS                      
-  
-: STA VMDATAL ; PpuData_2007         
-  DEX                      
-  BNE :-                
-  RTS             
+; 0xE81B - E860
+  JMP @nes_e81b_replacement
+  ; using 00 so if something does jmp here I know to fix it
+  .byte $00, $00
+  .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+  .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+  .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+  .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+  .byte $00
+                   
+  ; e861 - write A to VM Data X Times
+JMP @nes_e861_replacement
+.byte $00, $00, $00, $00          
          
   JSR $E93D                
   JSR $EA4B                
@@ -1413,14 +1384,17 @@
   TAX                      
   AND #$80                 
   PHP                      
-  LDA $0100                
-  AND #$00                 
+             
+  .byte $ea, $ea     ; LDA $0100    
+  LDA VMAIN_CONTROL_STATE          ; AND #$FB    
+
   PLP                      
   BEQ :+  
-  ; change the increment to add 32      
-  LDA #$01 ; ORA #$04                 
-: STA $0100                
-  STA VMAIN ; PpuControl_2000      
+  ; change the increment to add 32 instead of 1, inc on VMADDH    
+  ORA #$01 ; ORA #$04                 
+: .byte $ea, $ea, $ea ; STA $0100 ; since we're not working with Ppu controle don't store it
+  STA VMAIN ; PpuControl_2000 
+
   TXA                      
   AND #$7F                 
   STA $02                  
@@ -1676,13 +1650,10 @@
   NOP
   NOP
 
-  LDA $0100                
-  AND #$FB                 
-  ; STA INIDISP  ; STA PpuControl_2000
-  NOP
-  NOP
-  NOP
-  
+  ; Set VRAM increments to increment on HB
+  LDA VMAIN_CONTROL_STATE             ; AND #$FB                 
+  ORA #$80           
+  STA VMAIN            ; STA PpuControl_2000
 
   LDA $00                  
   STA VMADDH
@@ -1706,15 +1677,16 @@
   DEX                      
   BNE :-     
 
+  LDA VMAIN_CONTROL_STATE
+  STA VMAIN
+
 ; the rest of this is clearing out attributes
 ; these aren't even in the same place on SNES, so we'll 
 ; just not do anything for now.   
-; 
-; it works out well because we needed 3 extra bytes for stz VMDATAH up there
 
-.byte $EA, $EA      ;  LDY $02                  
-.byte $EA, $EA      ;  LDA $00                  
-.byte $EA, $EA      ;  CMP #$20                 
+; .byte $EA, $EA      ;  LDY $02                  
+; .byte $EA, $EA      ;  LDA $00                  
+; .byte $EA, $EA      ;  CMP #$20                 
 .byte $EA, $EA      ;  BCC :+
 .byte $EA, $EA      ;  ADC #$02                   
 .byte $EA, $EA, $EA ;  STA PpuAddr_2006           
@@ -1748,22 +1720,12 @@
   ASL A                    
   ORA $00                  
   STA $00                  
-  ; LDA PPU_CONTROL_STATE                
-  NOP
-  NOP
-  NOP
-  
+  ; NES is resetting back to $2000 base name table
+  LDA PPU_CONTROL_STATE                
   AND #$FC                 
   ORA $00                  
-  ; STA INIDISP
-  NOP
-  NOP
-  NOP
-  
-  ; STA PPU_CONTROL_STATE                
-  NOP
-  NOP
-  NOP
+  STA NMITIMEN
+  STA PPU_CONTROL_STATE
   
   RTS                      
 
@@ -2015,11 +1977,10 @@
 
 ; 0xEEF0 - Disable vblank, bgs and sprites
   LDA PPU_CONTROL_STATE
-  ; NES does AND #$7F here, but
-  ; SNES only uses bits 7, 5, 4, and 0, so we AND with 0011 0001                
-  ORA #$80                 
+  ; NES does AND #$7F here          
+  AND #$7E                 
   STA PPU_CONTROL_STATE  
-  STA INIDISP            ; STA PpuControl_2000
+  STA NMITIMEN            ; STA PpuControl_2000
   
   ; hide sprites and BG
   LDA #$00                              
@@ -2027,20 +1988,9 @@
   
   RTS  
 
-; 0xEF01 enable display and sprites and bg1
-  LDA PPU_CONTROL_STATE                
-  LDA #$0F       
-  STA INIDISP            ; STA PpuControl_2000
-  
-  STA PPU_CONTROL_STATE               
-  LDA #%00010001                  
-  ; STA TM ;STA PpuMask_2001      
-  STA TM
-
-  ; enable interrupts now
-  lda #%10000001
-	sta NMITIMEN
-     
+; 0xEF01 enable vblank
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  JSR @enable_vblank     
   RTS                      
 
 ; 0xEF17
@@ -2110,13 +2060,15 @@
 
 ; F200
 @moved_nes_c0c9:
+  LDA INIDISP_STATE
+  ORA #$80
+  STA INIDISP 
   LDA #$00                 
   TAY                       
   STZ VMADDL ; STA PpuAddr_2006         
   STZ VMADDH ; STA PpuAddr_2006
   
   JSR @switch_bank
-  STZ $00
   LDA $A0                  
   BNE :+                
   LDA #$A0                 
@@ -2128,8 +2080,7 @@
   ; first set of tiles       
   JSR @copy_tile_data_banks                
   BEQ @c120                
-: LDA #$80    
-  STZ $00             
+: LDA #$80             
   STA $01
   STA $03  
   LDA #$08
@@ -2183,7 +2134,7 @@
   STA REPLC_7F00,Y              
   DEY                      
   BPL :-
-  LDA #$10                 
+  LDA #$10               
   JMP @ca90                
 
 @c152:
@@ -2214,6 +2165,10 @@
 .byte .hibyte(@c1a8+27)
 
 @copy_tile_data_banks:
+  LDA VMAIN_CONTROL_STATE
+  ORA #$80
+  STA VMAIN
+
 : LDA ($00),Y
   STA VMDATAL
   
@@ -2268,14 +2223,17 @@
   DEX                      
   BNE :--               
 
+  LDA VMAIN_CONTROL_STATE
+  STA VMAIN
+
   RTS        
 
   @switch_bank:
   PHA                      
   ; disable video while we bank switch
   LDA $0100                
-  ORA #$80
-  STA INIDISP     
+  AND #$7F
+  STA NMITIMEN     
 
   PLA                      
   STA $B6
@@ -2295,20 +2253,95 @@
 ;  re-enable video
   ;  LDA PpuStatus_2002       
   LDA $0100                
-  STA INIDISP     
+  STA NMITIMEN     
   RTS    
 
-; F300
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $01, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+
+@enable_vblank:
+  LDA INIDISP_STATE
+  ORA #$80
+  STA INIDISP 
+  
+  LDA PPU_CONTROL_STATE                
+  ORA #$80       
+  STA NMITIMEN            ; STA PpuControl_2000
+  
+  STA PPU_CONTROL_STATE               
+  LDA #%00010001                  
+  ; STA TM ;STA PpuMask_2001      
+  STA TM
+
+  LDA #$7F
+  STA INIDISP
+  STA INIDISP_STATE
+
+  RTS
+
+@nes_e81b_replacement:
+             
+  JSR $EA4B   
+  STA $00
+
+; disable video while we do stuff
+  LDA INIDISP_STATE
+  ORA #$80
+  STA INIDISP 
+
+  ; increment on L byte
+  LDA VMAIN_CONTROL_STATE
+  AND $7F                
+  STA VMAIN
+
+  LDA $00
+  STA VMADDH ; PpuAddr_2006         
+  LDA #$00                 
+  STA VMADDL ; PpuAddr_2006  
+
+  JSR $EA4B                
+  JSR @nes_e83b               
+  JSR $EA4B                
+  TAX                      
+  JSR $EA4B                
+  JMP @nes_e84b             
+ @nes_e83b: 
+  LDX #$00                 
+  JSR $E861                
+  JSR $E861                
+  JSR $E861               
+ @nes_e84b:                
+  LDX #$C0                 
+  JMP $E861
+  ; loads attributes 
+  ; we use this location to store where
+  ; attributes are for the next tiles whenever they change
+  ; and load them with the tiles                
+  STX LAST_ATTRIB_LOC_LB ; $0C                  
+  STA LAST_ATTRIB_LOC_HB ; $0D                  
+  STY $01              
+  ; LDX #$40                 
+  ; LDY #$00                 
+  ;:LDA ($0C),Y              
+  ; STA PpuData_2007 
+  ; INY                      
+  ; DEX                      
+  ; BNE :-                
+  LDY $01    
+  LDA INIDISP_STATE
+  STA INIDISP   
+
+  LDA VMAIN_CONTROL_STATE
+  STA VMAIN 
+
+  RTS             
+
+@nes_e861_replacement:        
+  ; LDY #$01    
+: STA VMDATAL ; PpuData_2007  
+  DEX                      
+  BNE :-                
+  RTS   
+; F300-something
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
@@ -2347,7 +2380,7 @@
   @post_jump_loc:           
   LDA $0100                
   ORA #$80               
-  STA INIDISP
+  STA NMITIMEN
   
   ; bank switch to wherever we were  
   PLA                      
@@ -2365,14 +2398,14 @@
   JML ($0800)
 @bank_switch_jump2:
   LDA $0100                
-  STA INIDISP  
+  STA NMITIMEN  
   PLA       
   setAXY16
   PLY
   PLX
   PLA
   setAXY8    
-  PLP             
+  PLP          
   RTI  
      
 .byte $00, $00, $00, $00, $00, $00, $00, $00

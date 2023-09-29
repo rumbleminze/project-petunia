@@ -3,8 +3,6 @@
 init_routine:
   PHK 
   PLB 
-  LDA #$80
-  STA INIDISP
   BRA initialize_registers
 
 initialize_registers:
@@ -20,8 +18,9 @@ initialize_registers:
   setAXY16
   setA8
 
-  LDA #$8F
+  LDA #$80
   STA INIDISP
+  STA INIDISP_STATE
   STZ OBSEL
   STZ OAMADDL
   STZ OAMADDH
@@ -153,6 +152,7 @@ initialize_registers:
   JML $A1C000
 
 snes_nmi:
+  LDA RDNMI
   JSR dma_oam_table
   JSR translate_nes_sprites_to_oam
   RTL
@@ -273,8 +273,13 @@ write_data_to_ppu:
   PHY
   PHA
 
-	lda #$80
-	sta INIDISP
+  LDA PPU_CONTROL_STATE
+	AND #$7F
+	sta NMITIMEN
+
+  LDA VMAIN_CONTROL_STATE
+  ORA #$80
+  STA VMAIN
 
   LDA BG_TILE_COUNT
   STA TILES_TO_WRITE
@@ -300,7 +305,14 @@ write_data_to_ppu:
   STA LAST_ATTRIB_LOC_HB
   LDA PPU_SOURCE_LB
   STA LAST_ATTRIB_LOC_LB
+
   setAXY8
+  LDA VMAIN_CONTROL_STATE
+  STA VMAIN
+
+  LDA PPU_CONTROL_STATE
+  STA NMITIMEN
+
   PLA
   PLY  
   PLX
@@ -361,9 +373,15 @@ write_data_to_ppu:
 	BNE nexttile    
 
 exit_ppu_copy:
-	lda #$0f
-	sta INIDISP
+
   setAXY8
+  
+  LDA VMAIN_CONTROL_STATE
+  STA VMAIN
+
+  LDA PPU_CONTROL_STATE
+  STA NMITIMEN
+
   PLA
   PLY  
   PLX

@@ -17,10 +17,5 @@ nmi:
     setAXY8 
     JSL snes_nmi
     JML $A1C866
-    setAXY16
-    PLY
-    PLX
-    PLA
-    setAXY8
 _rti:
     rti
