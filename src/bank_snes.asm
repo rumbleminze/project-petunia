@@ -205,7 +205,7 @@ sprite_loop:
 	; byte 1, Tile index
 	LDA $201, Y
 	STA SNES_OAM_START + 2, y
-	beq empty_sprite
+	; beq empty_sprite
 
 	; byte 0, Tile Y position
 	LDA $200,Y
@@ -228,14 +228,14 @@ sprite_loop:
 	; LDA #%00010010
 
 	STA SNES_OAM_START + 3, y
-	bra next_sprite
+	; bra next_sprite
 
-	empty_sprite:
-	sta SNES_OAM_START, y
-	lda #$f8 
-	sta SNES_OAM_START + 1, y
-	lda #$38
-	sta SNES_OAM_START + 3, y
+	; empty_sprite:
+	; sta SNES_OAM_START, y
+	; lda #$f8 
+	; sta SNES_OAM_START + 1, y
+	; lda #$38
+	; sta SNES_OAM_START + 3, y
 
 	next_sprite:
 	INY
@@ -466,7 +466,13 @@ write_palette_data:
   PHY
   PHA
   
+  
+
   setAXY8
+  LDA #$A0
+  
+  PHA
+  PLB
   LDY #$00
   STZ CGADD
   ; Kid Icarus stores the current palettes at 0x0390
@@ -479,9 +485,9 @@ palette_entry:
   LDA $0390, Y
   ASL A
   TAX
-  LDA $BE00, X
+  LDA palette_lookup, X
   STA CGDATA
-  LDA $BE01, X
+  LDA palette_lookup + 1, X
   STA CGDATA
   INY
   ; every 4 we need to write a bunch of empty palette entries
@@ -504,6 +510,13 @@ skip_writing_three_rows:
 skip_writing_four_empties:
   CPY #$20
   BNE palette_entry
+
+  LDA $B6
+  INC A
+  ORA #$A0
+  PHA
+  PLB
+
 
   PLA
   PLY  
@@ -531,7 +544,7 @@ write_empty_palette_row:
 
 palette_lookup:
 .byte $8C, $31 ; $00 dark grey
-.byte $00, $00 ; $01 nyi
+.byte $A0, $44 ; $01 nyi
 .byte $42, $50 ; $02 dark blue
 .byte $00, $00 ; $03 nyi
 .byte $00, $00 ; $04 nyi
@@ -551,12 +564,12 @@ palette_lookup:
 .byte $62, $6D ; $11 blue
 .byte $08, $7D ; $12 light dark blue
 .byte $00, $00 ; $13 nyi
-.byte $00, $00 ; $14 nyi
+.byte $74, $64 ; $14 nyi
 .byte $76, $3C ; $15 dark pink
 .byte $D6, $10 ; $16 red
 .byte $33, $01 ; $17 Brown 0133
 .byte $00, $00 ; $18 nyi
-.byte $00, $00 ; $19 nyi
+.byte $07, $02 ; $19 nyi
 .byte $00, $00 ; $1A nyi
 .byte $00, $00 ; $1B nyi
 .byte $E0, $45 ; $1C teal
@@ -567,12 +580,12 @@ palette_lookup:
 .byte $FF, $7F ; $20 white
 .byte $00, $00 ; $21 nyi
 .byte $52, $7E ; $22 light purple
-.byte $00, $00 ; $23 nyi
+.byte $D8, $7D ; $23 nyi
 .byte $BE, $7D ; $24 pink
-.byte $00, $00 ; $25 nyi
+.byte $BF, $65 ; $25 nyi
 .byte $1F, $3A ; $26 peach
 .byte $7D, $12 ; $27 orange
-.byte $00, $00 ; $28 nyi
+.byte $F7, $02 ; $28 nyi
 .byte $00, $00 ; $29 nyi
 .byte $8B, $1B ; $2A bright green
 .byte $00, $00 ; $2B nyi

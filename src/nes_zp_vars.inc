@@ -42,11 +42,10 @@ SPRITE_LOOP_JUNK    = $E2
 
 ; REPLC_
 
-; 7F00 Replacement
-REPLC_7F00          = $1000
-REPLC_6F00          = $0900
-REPLC_6000          = $1100 ; we use 0x100 bytes at a time
-REPLC_6100          = $1600 ; we use 0x100 bytes at a time
+; ; 7F00 Replacement
+
+JMP_REDIRECT_LB     = $d0
+
 
 PPU_CURR_VRAM_ADDR  = $0912
 PPU_TILE_COUNT      = $0914

@@ -1,4 +1,4 @@
-; this is the 5th bank in the NES Rom
+; this is the 7th bank in the NES Rom
 ; from 18010 to 1C00F
 .segment "PRGA7"
 

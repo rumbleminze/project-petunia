@@ -2,17 +2,17 @@
 ; in the NES version.  This gets copied into every bank
 ; so that it's available to all the a1: - a6: banks.
   setAXY8
-  LDA #.lobyte(REPLC_7F00 + 3) ; originally #$03         
-  STA REPLC_6F00 + 250         ; originally $6FFA            
-  LDA #.hibyte(REPLC_7F00)     ; originally #$7F                 
-  STA REPLC_6F00 + 251         ; originally $6FFB
+  LDA #$03
+  STA $6FFA        ; originally $6FFA            
+  LDA #$7F    ; originally #$7F                 
+  STA $6FFB         ; originally $6FFB
 
   JSR @set_up_bank_switching   
 
   ; copy data from F081 to 6000 for... something
   LDX #$00                 
 : LDA $F081,X              
-  STA REPLC_6000,X              
+  STA $6000,X              
   INX                      
   BNE :-
 
@@ -80,7 +80,7 @@
   lda #$81
   STA NMITIMEN
 
-  JMP REPLC_7F00                
+  JMP $7F00                
 
   .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00  
   .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00 
@@ -359,8 +359,13 @@
 .byte $4C, $08, $C8, $98, $38, $E5, $00, $A8, $98, $9D, $07, $02, $A9, $02, $9D, $02
 .byte $02, $9D, $06, $02, $A0, $8C, $A5, $14, $29, $08, $D0, $02, $A0, $8D, $98, $9D
 .byte $01, $02, $38, $E9, $02, $9D, $05, $02, $BD, $02, $07, $29, $0F, $C9, $08, $B0
-.byte $0B, $BD, $02, $02, $09, $40, $9D, $02, $02, $9D, $06, $02, $60, $20, $39, $EF
-.byte $20, $06, $7F, $4C, $C9, $EB
+.byte $0B, $BD, $02, $02, $09, $40, $9D, $02, $02, $9D, $06, $02, $60
+
+
+  JSR $EF39                
+  JSR $7F06              
+  JMP $EBC9                
+
 
 @nes_c846:
   LDA $B6                  
@@ -2070,7 +2075,8 @@ JMP @nes_e861_replacement
   
   JSR @switch_bank
   LDA $A0                  
-  BNE :+                
+  BNE :+   
+  STZ $00                
   LDA #$A0                 
   STA $01 
   STA $03
@@ -2080,7 +2086,8 @@ JMP @nes_e861_replacement
   ; first set of tiles       
   JSR @copy_tile_data_banks                
   BEQ @c120                
-: LDA #$80             
+: LDA #$80 
+  STZ $00            
   STA $01
   STA $03  
   LDA #$08
@@ -2092,8 +2099,13 @@ JMP @nes_e861_replacement
   LDA @c152,X              
   CMP #$80                 
   BEQ @c120             
-  AND #$BF                 
-  STA $01                  
+  AND #$BF 
+
+  STZ $00                   
+  STA $01 
+  STA $03
+  LDA #$08
+  STA $02                 
   LDA #$01                 
   JSR @switch_bank   
 
@@ -2131,7 +2143,7 @@ JMP @nes_e861_replacement
   STA $00                  
   LDY #$59                 
 : LDA ($00),Y              
-  STA REPLC_7F00,Y              
+  STA $7F00,Y              
   DEY                      
   BPL :-
   LDA #$10               
@@ -2341,8 +2353,7 @@ JMP @nes_e861_replacement
   BNE :-                
   RTS   
 ; F300-something
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
 ; F400
@@ -2366,16 +2377,23 @@ JMP @nes_e861_replacement
 ; F500
 @nes_nmi_replacement:
   PHA                      
-  LDA $B6                  
-  PHA                      
+  LDA $B6                 
+  PHA       
+  INC A
+  ORA #$A0
+  STA JMP_REDIRECT_LB + 2               
   LDA #.hibyte(@post_jump_loc - 1)                 
   PHA                      
   LDA #.lobyte(@post_jump_loc - 1)                
   PHA                      
   LDA $BE                  
   JSR @switch_bank  
-             
-  JMP ($09FA)   
+
+  LDA $6FFA
+  STA JMP_REDIRECT_LB
+  LDA $6FFB
+  STA JMP_REDIRECT_LB + 1
+  JML (JMP_REDIRECT_LB)
 
   @post_jump_loc:           
   LDA $0100                
@@ -2408,8 +2426,7 @@ JMP @nes_e861_replacement
   PLP          
   RTI  
      
-.byte $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.byte $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00

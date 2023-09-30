@@ -526,7 +526,7 @@ a000:
 a05a:
   LDX #$00
 : LDA $F081,X
-  STA REPLC_6000,X
+  STA $6000,X
   INX 
   BNE :-
   JSR $A553
@@ -616,7 +616,7 @@ a109:
   LDA #$05                 
   ADC $A16E,X              
   STA $08                  
-  LDA #$11 ; LDA #$60                 
+  LDA #$60 
   ADC #$00                 
   STA $09                  
   LDY #$07                 
@@ -628,7 +628,7 @@ a109:
   LDA #$0D                 
   ADC $A16E,X              
   STA $08                  
-  LDA #$11   ; LDA #$60                  
+  LDA #$60
   ADC #$00                 
   STA $09                  
   LDY #$1C                 
@@ -669,7 +669,7 @@ a171:
   LDA $B2                  
   SEC                      
   SBC #$03                 
-  STA REPLC_6100                
+  STA $6100                
   JSR $A826                
   LDA #$02                 
   STA $B1                  
@@ -967,7 +967,7 @@ a800:
 .byte $20, $F9, $E3, $20, $67, $A8, $60
 
 a867:
-  LDA REPLC_6100               
+  LDA $6100               
   BNE :++
   LDX #$00                 
 : LDA $AA79,X              
