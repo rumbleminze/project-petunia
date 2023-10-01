@@ -900,11 +900,40 @@
 .byte $85, $DF, $60, $A9, $01, $D0, $ED, $A5, $3A, $29, $F0, $C9, $10, $D0, $1C, $A5
 .byte $38, $C9, $02, $D0, $16, $4C, $66, $E2, $A5, $AB, $29, $C0, $D0, $0D, $A5, $38
 .byte $C9, $01, $F0, $0E, $C9, $03, $D0, $03, $4C, $2E, $E2, $60, $4C, $71, $E3, $4C
-.byte $90, $E3, $20, $F0, $EE, $A9, $02, $85, $38, $85, $DF, $20, $5B, $E2, $A5, $3A
-.byte $C9, $10, $B0, $2C, $20, $AC, $E1, $A0, $1F, $B9, $0E, $E2, $99, $90, $03, $88
-.byte $10, $F7, $20, $F6, $E1, $20, $42, $EE, $AD, $02, $20, $A9, $00, $8D, $05, $20
-.byte $8D, $05, $20, $AD, $00, $01, $29, $FC, $8D, $00, $01, $68, $68, $4C, $24, $7F
-.byte $20, $AF, $E1, $4C, $C7, $E1, $A5, $3A, $C9, $10, $B0, $0C, $A9, $0F, $8D, $95
+.byte $90, $E3
+
+;0xE1B2
+  JSR $EEF0                
+  LDA #$02                 
+  STA $38                  
+  STA $DF                  
+  JSR $E25B                
+  LDA $3A                  
+  CMP #$10                 
+  BCS :++        
+  JSR $E1AC                
+  LDY #$1F                 
+: LDA $E20E,Y              
+  STA $0390,Y              
+  DEY                      
+  BPL :-                
+  JSR $E1F6                
+  JSR $EE42
+  NOP ; LDA PpuStatus_2002       
+  NOP
+  NOP
+  LDA #$00                 
+  STA BG1VOFS ; PpuScroll_2005       
+  STA BG1VOFS ; PpuScroll_2005       
+  LDA $0100                
+  AND #$FC                 
+  STA $0100                
+  PLA                      
+  PLA                      
+  JMP $7F24                
+: JSR $E1AF                
+
+.byte $4C, $C7, $E1, $A5, $3A, $C9, $10, $B0, $0C, $A9, $0F, $8D, $95
 
 ; 0xE200
 .byte $03, $8D, $96, $03, $8D, $97, $03, $60, $AD, $3D, $01, $F0, $EF, $60, $0F, $20
@@ -1222,44 +1251,17 @@
 
 .byte $A8, $A0, $AA, $0A, $0A, $0A, $0A, $0A, $0A, $0A, $0A
 
-; 0xE7CB
-  LDY #$00                 
-: JSR $EA4B                
-  BNE :+              
-  
-  NOP ; LDA PpuStatus_2002       
-  NOP
-  NOP
+; 0xE7CB - E7E0
+JMP @nesE7CB_replc    
+JMP @nesE7CB_replc + 2
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00           
+.byte $00
 
-  ; LDA $0100                
-  NOP
-  NOP
-  NOP
-  ; AND #$FB                 
-  NOP
-  NOP
-  ; STA $0100   
-  NOP
-  NOP
-  NOP            
-  STZ VMAIN ; STA PpuControl_2000      ; set the increment to write on low address write
-
-  RTS               
-       
-: BMI :--             
-  SEC                      
-  SBC #$01                 
-  ASL A                    
-  TAX                      
-  LDA $E7FB,X              
-  STA $0A                  
-  LDA $E7FC,X              
-  STA $0B                  
-  LDA #$E7                 
-  PHA                      
-  LDA #$CC                 
-  PHA                      
-  JMP ($000A)              
+; 0xE7E1 - E7FB
+JMP @nesE7E1_replc
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00  
+          
 
 ; 0xE7FB
  .byte $1B, $E8, $68, $E8, $72
@@ -1282,25 +1284,28 @@
   ; e861 - write A to VM Data X Times
 JMP @nes_e861_replacement
 .byte $00, $00, $00, $00          
-         
+
+  ; e868 - e871  
   JSR $E93D                
   JSR $EA4B                
   STA VMDATAL ; PpuData_2007         
   RTS             
          
+  ; e872-e88b
   JSR $E93D                
   JSR $E951                
   JSR $E96E                
   STY $01                  
   LDY #$00                 
-  LDA ($0C),Y              
-: STA VMDATAL ; PpuData_2007         
+: LDA ($0C),Y              
+  STA VMDATAL ; PpuData_2007         
   INY                      
   DEC $02                  
   BNE :-             
   LDY $01                  
   RTS            
-          
+
+  ; e88c - e89c  
   JSR $E93D                
   JSR $E951                
   TAX                      
@@ -1310,6 +1315,7 @@ JMP @nes_e861_replacement
   BNE :-              
   RTS             
           
+  ; e89d - e8ad
   JSR $E93D                
   JSR $E951                
   TAX                      
@@ -1319,6 +1325,7 @@ JMP @nes_e861_replacement
   BNE :-
   RTS            
           
+  ;e8ae - e8cc
   JSR $E93D                
   JSR $E951                
   TAX                      
@@ -1332,8 +1339,9 @@ JMP @nes_e861_replacement
   STA VMDATAL ; PpuData_2007         
   DEX                      
   BNE :-
-  RTS              
-        
+  RTS          
+
+  ; e8cd - e8e0      
   JSR $E93D                
   JSR $E951                
   TAX                      
@@ -1371,7 +1379,7 @@ JMP @nes_e861_replacement
 
 
 
-; 0xe93d  
+; 0xe93d  - Load the PPU Address to write next group (from 0x08), write it after adding $00
   NOP ; LDA PpuStatus_2002    
   NOP
   NOP   
@@ -1384,20 +1392,19 @@ JMP @nes_e861_replacement
   STX VMADDL         
   RTS                      
 
-; 0xe951
+; 0xe951 - Load # of tiles and control V or H write, 
   JSR $EA4B                
   TAX                      
   AND #$80                 
   PHP                      
              
-  .byte $ea, $ea     ; LDA $0100    
   LDA VMAIN_CONTROL_STATE          ; AND #$FB    
-
+  AND #$FE
   PLP                      
   BEQ :+  
   ; change the increment to add 32 instead of 1, inc on VMADDH    
   ORA #$01 ; ORA #$04                 
-: .byte $ea, $ea, $ea ; STA $0100 ; since we're not working with Ppu controle don't store it
+: STA VMAIN_CONTROL_STATE ; we store in VMAIN instead of PPU Control since that's what controls V vs. H write
   STA VMAIN ; PpuControl_2000 
 
   TXA                      
@@ -1525,7 +1532,8 @@ JMP @nes_e861_replacement
   DEX                      
   BNE :-
 
-; 0xEA4B:
+; 0xEA4B: Read ($08),Y, then, if incrementing Y would roll back to 00 bump $09
+@read_next_value_from_08_addr_and_inc:
   LDA ($08),Y              
   PHP                      
   INY                      
@@ -2289,6 +2297,38 @@ JMP @nes_e861_replacement
 
   RTS
 
+
+@nesE7CB_replc:
+; disable video while we do stuff
+  LDA INIDISP_STATE
+  ORA #$80
+  STA INIDISP 
+
+  LDY #$00  
+@nesE7CD_replc:               
+  JSR $EA4B                
+  BNE @nesE7E1_replc             
+  STZ VMAIN ; STA PpuControl_2000      ; set the increment to write on low address write and horizontal
+
+  RTS
+
+@nesE7E1_replc:
+  BMI @nesE7CD_replc         
+  SEC                      
+  SBC #$01                 
+  ASL A                    
+  TAX                      
+  LDA $E7FB,X              
+  STA $0A                  
+  LDA $E7FC,X              
+  STA $0B                  
+  LDA #.hibyte(@nesE7CD_replc - 1)                 
+  PHA                      
+  LDA #.lobyte(@nesE7CD_replc - 1)
+  PHA                      
+  JMP ($000A)        
+
+
 @nes_e81b_replacement:
              
   JSR $EA4B   
@@ -2313,48 +2353,54 @@ JMP @nes_e861_replacement
   JSR @nes_e83b               
   JSR $EA4B                
   TAX                      
-  JSR $EA4B                
-  JMP @nes_e84b             
+  JSR $EA4B         
+
+  JMP @nes_e84b     
+
  @nes_e83b: 
   LDX #$00                 
-  JSR $E861                
-  JSR $E861                
-  JSR $E861               
- @nes_e84b:                
+  JSR @nes_e861_replacement                
+  JSR @nes_e861_replacement                
+  JSR @nes_e861_replacement                 
   LDX #$C0                 
-  JMP $E861
+  JMP @nes_e861_replacement       
+
+ @nes_e84b:  
   ; loads attributes 
   ; we use this location to store where
   ; attributes are for the next tiles whenever they change
   ; and load them with the tiles                
-  STX LAST_ATTRIB_LOC_LB ; $0C                  
-  STA LAST_ATTRIB_LOC_HB ; $0D                  
+  STX $0C                  
+  STA $0D                  
   STY $01              
-  ; LDX #$40                 
-  ; LDY #$00                 
-  ;:LDA ($0C),Y              
-  ; STA PpuData_2007 
-  ; INY                      
-  ; DEX                      
-  ; BNE :-                
+  LDX #$40                 
+  LDY #$00                 
+: LDA ($0C),Y              
+  STA VMDATAL ; STA PpuData_2007 
+  INY                      
+  DEX                      
+  BNE :-                
+  
   LDY $01    
-  LDA INIDISP_STATE
-  STA INIDISP   
+  
+  ; LDA INIDISP_STATE
+  ; STA INIDISP   
 
-  LDA VMAIN_CONTROL_STATE
-  STA VMAIN 
+  ; LDA VMAIN_CONTROL_STATE
+  ; STA VMAIN 
 
   RTS             
 
-@nes_e861_replacement:        
-  ; LDY #$01    
+@nes_e861_replacement:   
 : STA VMDATAL ; PpuData_2007  
   DEX                      
   BNE :-                
   RTS   
+
+      
+
 ; F300-something
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.byte  $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
 ; F400
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $EE, $FF, $FF
@@ -2417,7 +2463,10 @@ JMP @nes_e861_replacement
 @bank_switch_jump2:
   LDA $0100                
   STA NMITIMEN  
-  PLA       
+  PLA      
+
+  JSL translate_nes_sprites_to_oam
+
   setAXY16
   PLY
   PLX
@@ -2425,10 +2474,7 @@ JMP @nes_e861_replacement
   setAXY8    
   PLP          
   RTI  
-     
-.byte $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $10, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00

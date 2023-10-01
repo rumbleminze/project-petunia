@@ -1,4 +1,4 @@
-; this is the 5th bank in the NES Rom
+; this is the 6th bank in the NES Rom
 ; from 14010 to 1800F
 .segment "PRGA6"
 

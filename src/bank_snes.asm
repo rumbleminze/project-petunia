@@ -154,7 +154,6 @@ initialize_registers:
 snes_nmi:
   LDA RDNMI
   JSR dma_oam_table
-  JSR translate_nes_sprites_to_oam
   RTL
 
 clearvm:
@@ -246,7 +245,7 @@ sprite_loop:
 	BNE sprite_loop
 
   setAXY8
-	rts
+	rtl
 
 dma_oam_table:
   setXY16

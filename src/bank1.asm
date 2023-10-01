@@ -693,14 +693,14 @@ a171:
   CLC                      
   ADC $A16E,X              
   TAX                      
-  LDA $1128,X              
+  LDA $6028,X              
   CMP #$02                 
   BNE :++                
-  LDA $1129,X              
+  LDA $6029,X              
   BNE :++              
   LDA #$00                 
   TAY                      
-: STA $110D,X              
+: STA $600D,X              
   INX                      
   INY                      
   CPY #$1A                 
@@ -1003,7 +1003,7 @@ a867:
   ADC $0702                
   TAY                      
   LDA $0703                
-  STA $1131, Y              ; normally at 6031
+  STA $6031, Y             
   LDX $0703                
   LDA $CA50,X              
   RTS                      
@@ -1082,32 +1082,32 @@ a867:
 ; abd0
   LDX #$23                 
   LDA #$00                 
-: STA $110D,X              
+: STA $600D,X              
   DEX                      
   BPL :-              
   LDX #$11                 
   LDA #$00                 
-: STA $1161,X              
+: STA $6061,X              
   DEX                      
   BPL :-               
   LDA #$00                 
   TAY                      
-: LDA $1131,Y              
+: LDA $6031,Y              
   JSR $AC1D                
   INY                      
   CPY #$18                 
   BCS rts_from_abd0               
-  LDA $1131,Y              
+  LDA $6031,Y              
   JSR $AC1D                
   INY                      
   CPY #$18                 
   BCS rts_from_abd0               
-  LDA $1131,Y              
+  LDA $6031,Y              
   JSR $AC1D                
   INY                      
   CPY #$18                 
   BCS rts_from_abd0           
-  LDA $1131,Y              
+  LDA $6031,Y              
   JSR $AC1D                
   INY                      
   CPY #$18                 
@@ -1117,7 +1117,7 @@ rts_from_abd0:
 
 ; ac14
   LDX #$11                 
-: ROR $1161,X              
+: ROR $6061,X              
   DEX                      
   BPL :-                
   RTS   
@@ -1142,12 +1142,12 @@ rts_from_abd0:
   STX $00                  
 : LDA $00                  
   CLC                      
-  ADC $1161,X              
+  ADC $6061,X              
   STA $00                  
   INX                      
   CPX #$11                 
   BCC :-              
-  LDA $1161,X              
+  LDA $6061,X              
   CMP $00                  
   RTS                      
 
