@@ -151,9 +151,9 @@
 
 @c24a:
   LDA #$10                 
-  STA $0100                
-  LDA #$1E                 
-  STA $FF                  
+  STA PPU_CONTROL_STATE                
+  LDA #$11                 
+  STA PPU_MASK_STATE               
   RTS                      
 
 .byte $85, $00, $C6, $00, $A5, $00, $0A, $0A, $18, $65, $00, $AA
@@ -1659,9 +1659,8 @@ JMP @nes_e861_replacement
   STY $02                  
   
   ;LDA PpuStatus_2002       
-  NOP
-  NOP
-  NOP
+  LDA #$8F
+  STA INIDISP
 
   ; Set VRAM increments to increment on HB
   LDA VMAIN_CONTROL_STATE             ; AND #$FB                 
@@ -1700,7 +1699,7 @@ JMP @nes_e861_replacement
 ; .byte $EA, $EA      ;  LDY $02                  
 ; .byte $EA, $EA      ;  LDA $00                  
 ; .byte $EA, $EA      ;  CMP #$20                 
-.byte $EA, $EA      ;  BCC :+
+; .byte $EA, $EA      ;  BCC :+
 .byte $EA, $EA      ;  ADC #$02                   
 .byte $EA, $EA, $EA ;  STA PpuAddr_2006           
 .byte $EA, $EA      ;  LDA #$C0                   
@@ -1722,14 +1721,19 @@ JMP @nes_e861_replacement
   NOP
   LDA $FD                  
   STA BG1VOFS ; STA PpuScroll_2005       
-  LDA $FE          
-  STA BG1VOFS ; STA PpuScroll_2005       
+  LDA $1B          
+  ; NES stores the Horizontal Offset now, but uh.. I don't scroll right yet
+
   LDA $1B                  
-  AND #$01                 
+  AND #$01         
+  ; this will move us to the 2nd BG   
+        
   STA $00                  
   LDA $1A                  
   EOR #$FF                 
-  AND #$01                 
+  AND #$01   
+  STA BG1VOFS ; STA PpuScroll_2005                    
+
   ASL A                    
   ORA $00                  
   STA $00                  
@@ -2285,10 +2289,23 @@ JMP @nes_e861_replacement
   LDA PPU_CONTROL_STATE                
   ORA #$80       
   STA NMITIMEN            ; STA PpuControl_2000
+  STA NMITIMEN            ; STA PpuControl_2000
+  
+  STA NMITIMEN            ; STA PpuControl_2000  
   
   STA PPU_CONTROL_STATE               
-  LDA #%00010001                  
-  ; STA TM ;STA PpuMask_2001      
+
+  
+  ; STA TM ;STA PpuMask_2001    
+  ; PHA
+  ; AND #$0E
+  ; LSR A
+  ; STA $5001
+  ; PLA
+  ; AND #$F0
+  ; ORA $5001
+
+  LDA PPU_MASK_STATE 
   STA TM
 
   LDA #$7F
@@ -2376,7 +2393,8 @@ JMP @nes_e861_replacement
   LDX #$40                 
   LDY #$00                 
 : LDA ($0C),Y              
-  STA VMDATAL ; STA PpuData_2007 
+  STA VMDATAL ; STA PpuData_2007
+  STA ATTRIBUTE_HOLDING, Y 
   INY                      
   DEX                      
   BNE :-                
@@ -2399,10 +2417,8 @@ JMP @nes_e861_replacement
 
       
 
-; F300-something
-.byte  $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-
-; F400
+; F41b-something
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $EE, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $EC, $F7, $FF, $AA, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FB, $F7, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $F6, $FF, $FF

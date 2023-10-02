@@ -677,14 +677,46 @@ a171:
   BPL :-             
   JSR $EE42
 
+  JSR $EF01                
+: LDA $00                  
+  LDA $B1                  
+  BNE :-
+  JSR $EEF0                
+  JSR $ABC6                
+  BNE :+                
+  JMP $A109                
+: JSR $AC4D                
+  LDA #$00                 
+  STA $14                  
+  STA $15                  
+  STA $85                  
+  LDA #$08                 
+  STA $0384                
+  LDA #$00                 
+  STA $1A                  
+  LDA #$01 ; #$08                  
+  STA PPU_MASK_STATE                  
+  JSR $EBC9                
+  JSR $EF01                
+: LDA $14                  
+  CMP #$80                 
+  BCC :-               
+  JSR $EEF0                
+  ; set Base name table to 0
+  LDA PPU_CONTROL_STATE              
+  AND #$FC                 
+  STA PPU_CONTROL_STATE             
+  LDA #$11 ; #$1E                 
+  STA PPU_MASK_STATE                  
+  LDA #$20                 
+  STA $85                  
+  LDA #$01                 
+  STA $1A                  
+  JMP $A180                
 
-.byte $20, $01, $EF, $A5
-.byte $00, $A5, $B1, $D0, $FA, $20, $F0, $EE, $20, $C6, $AB, $D0, $03, $4C, $09, $A1
-.byte $20, $4D, $AC, $A9, $00, $85, $14, $85, $15, $85, $85, $A9, $08, $8D, $84, $03
-.byte $A9, $00, $85, $1A, $A9, $08, $85, $FF, $20, $C9, $EB, $20, $01, $EF, $A5, $14
 
-.byte $C9, $80, $90, $FA, $20, $F0, $EE, $AD, $00, $01, $29, $FC, $8D, $00, $01, $A9
-.byte $1E, $85, $FF, $A9, $20, $85, $85, $A9, $01, $85, $1A, $4C, $80, $A1, $A0, $44
+; A1DE
+.byte $A0, $44
 .byte $88, $D0, $FD, $CA, $D0, $F8, $60
 
 ; a1e7
@@ -1151,10 +1183,26 @@ rts_from_abd0:
   CMP $00                  
   RTS                      
 
-.byte $A9, $28, $A2
-.byte $12, $A0, $00, $20, $76, $EB, $AD, $02, $20, $A9, $2A, $8D, $06, $20, $A9, $08
-.byte $8D, $06, $20, $A2, $00, $BD, $74, $AC, $8D, $07, $20, $E8, $E0, $0F, $90, $F5
-.byte $20, $C9, $EB, $60, $1A, $27, $27, $24, $27, $0E, $29, $27, $2E, $12, $16, $1C
+; AC4D - AC73
+  LDA #$24 ; #$28                 
+  LDX #$12                 
+  LDY #$00                 
+  JSR $EB76                
+  .byte $ea, $ea, $ea ; LDA PpuStatus_2002       
+  LDA #$26                 
+  STA VMADDH ; PpuAddr_2006         
+  LDA #$08                 
+  STA VMADDL ; PpuAddr_2006         
+  LDX #$00                 
+: LDA $AC74,X              
+  STA VMDATAL ; PpuData_2007         
+  INX                      
+  CPX #$0F                 
+  BCC :-              
+  JSR $EBC9                
+  RTS                      
+
+.byte $1A, $27, $27, $24, $27, $0E, $29, $27, $2E, $12, $16, $1C
 .byte $16, $1E, $23, $A0, $00, $A2, $00, $E8, $D0, $FD, $C8, $D0, $F8, $38, $E9, $01
 .byte $D0, $F1, $60, $A0, $02, $B9, $61, $60, $48, $29, $F3, $99, $0D, $60, $68, $29
 .byte $0C, $4A, $4A, $99, $10, $60, $88, $10, $EC, $AD, $64, $60, $8D, $13, $60, $AD

@@ -248,21 +248,42 @@ sprite_loop:
 	rtl
 
 dma_oam_table:
-  setXY16
-	lda #%00000000
-	sta DMAP1
-	lda #<OAMDATA
-	sta BBAD1
-	ldx #.loword(SNES_OAM_START)
-	stx A1T1L
-	lda #^SNES_OAM_START
-	sta A1B1
-	ldx #$220
-	stx DAS1L
-	lda #%00000010
-	sta MDMAEN
-  setAXY8
+  ; setXY16
+	; lda #%00000000
+	; sta DMAP1
+	; lda #<OAMDATA
+	; sta BBAD1
+	; ldx #.loword(SNES_OAM_START)
+	; stx A1T1L
+	; lda #^SNES_OAM_START
+	; sta A1B1
+	; ldx #$220
+	; stx DAS1L
+	; lda #%00000010
+	; sta MDMAEN
+  ; setAXY8
+
+  STZ OAMADDL
+  STZ OAMADDH
+  LDA #<OAMDATA
+  STA BBAD0
+  LDA #$7E
+  STA A1B0
+
+  STZ DMAP0
+  LDA #>SNES_OAM_START
+  STA A1T0H
+  LDA #<SNES_OAM_START
+  STA A1T0L
+  LDA #$02
+  STA DAS0H
+  LDA #$20
+  STA DAS0L
+  LDA #$01
+  STA MDMAEN
+
 	RTS
+
 
 ; $45 - number of bytes to copy
 ; $43 $44 - Source tiles address
