@@ -701,8 +701,10 @@ a171:
 : LDA $14                  
   CMP #$80                 
   BCC :-               
-  JSR $EEF0                
-  ; set Base name table to 0
+  JSR $EEF0            
+
+  ; set Base name table
+  ; for
   LDA PPU_CONTROL_STATE              
   AND #$FC                 
   STA PPU_CONTROL_STATE             

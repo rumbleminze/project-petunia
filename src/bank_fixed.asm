@@ -55,7 +55,7 @@
   ; IT IS IMPORTANT THIS IS AT EXACTLY C06D
   @nes_c06d:
   LDA #$00        ; LDA #$00             
-  STZ TM          ; STA PpuControl_2000       
+  STZ INIDISP          ; STA PpuControl_2000       
   STZ NMITIMEN    ; STA PpuMask_2001         
   STZ $0100                
   
@@ -434,61 +434,11 @@
 .byte $3C, $3D, $3E, $3F, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $0A, $0E
 ; ca90
 @ca90:
-  PHA        
-
-  LDA $0100                
-  ;ORA $80                 
-  ; STA INIDISP ; STA PpuControl_2000    
-  ;NOP
-  ;NOP
-  ;NOP
-
-  PLA                      
-  STA $BC                  
-  LDA $B6   
-
-  PHA                      
-  LDA #.hibyte(@cac6 - 1) 
-
-  PHA                      
-  LDA #.lobyte(@cac6 - 1) 
-
-  PHA                      
-  LDA #$80                 
-  STA $BD      
-
-  LDA #$06                 
-  STA $B6  
-
-  ; STA $FFFF                
-  ; LSR A                    
-  ; STA $FFFF                
-  ; LSR A                    
-  ; STA $FFFF                
-  ; LSR A                    
-  ; STA $FFFF                
-  ; LSR A                    
-  ; STA $FFFF
-  INC A
-  AND #$0F
-  ORA #$A0
-  STA $0802
-  ;STA $BE
-  ; NOP
-  ; NOP
-  
-  PHA
-  PLB
-  LDA #.lobyte(:+)
-  STA $0800
-  LDA #.hibyte(:+)
-  STA $0801
-  JML ($0800)
-
-: LDA #$6C    
-             
-  STA $BB   
-  JMP $98D0 
+  JMP @ca90_replacement
+  .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+  .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+  .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+  .byte $00, $00, $00, $00, $00, $00
 
 @cac6:
   PHA                      
@@ -2000,8 +1950,8 @@ JMP @nes_e861_replacement
   STA NMITIMEN            ; STA PpuControl_2000
   
   ; hide sprites and BG
-  LDA #$00                              
-  STA TM                  ;STA PpuMask_2001   
+  LDA #$80                              
+  STA INIDISP                  ;STA PpuMask_2001   
   
   RTS  
 
@@ -2305,6 +2255,7 @@ JMP @nes_e861_replacement
   ; AND #$F0
   ; ORA $5001
 
+; this should maybe just mess with inidisp.
   LDA PPU_MASK_STATE 
   STA TM
 
@@ -2313,6 +2264,61 @@ JMP @nes_e861_replacement
   STA INIDISP_STATE
 
   RTS
+
+@ca90_replacement:
+  ; PHA 
+  ; .byte $ea ; LDA $0100                
+  ;ORA $80                 
+  ; STA INIDISP ; STA PpuControl_2000    
+  ; PLA                      
+  STA $BC                  
+  LDA $B6   
+
+  PHA                      
+  LDA #.hibyte(@cac6 - 1) 
+
+  PHA                      
+  LDA #.lobyte(@cac6 - 1) 
+
+  PHA                      
+  LDA #$80                 
+  STA $BD      
+
+  LDA #$06                 
+  STA $B6  
+
+  ; STA $FFFF                
+  ; LSR A                    
+  ; STA $FFFF                
+  ; LSR A                    
+  ; STA $FFFF                
+  ; LSR A                    
+  ; STA $FFFF                
+  ; LSR A                    
+  ; STA $FFFF
+  INC A
+  AND #$0F
+  ORA #$A0
+  STA $0802
+  STA JMP_REDIRECT_LB + 2
+  ; NOP
+  ; NOP
+  
+  PHA
+  PLB
+  LDA #.lobyte(:+)
+  STA $0800
+  LDA #.hibyte(:+)
+  STA $0801
+  JML ($0800)
+
+: LDY #$00
+  LDA ($00BC), Y
+  STA JMP_REDIRECT_LB
+  INY
+  LDA ($00BC), Y
+  STA JMP_REDIRECT_LB + 1
+  JML (JMP_REDIRECT_LB)
 
 
 @nesE7CB_replc:
@@ -2418,11 +2424,7 @@ JMP @nes_e861_replacement
       
 
 ; F41b-something
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $EE, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $EC, $F7, $FF, $AA, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FB, $F7, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $F6, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FD, $FF, $FF, $FE, $2F, $31, $4D, $FF, $AE, $FF, $FF
+.byte $FF, $FF, $FF, $FF, $FF, $FD, $FF, $FF, $FE, $2F, $31, $4D, $FF, $AE, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $7F, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $7F, $F4, $ED, $DF, $FF, $BB, $FF, $FF
 .byte $FF, $FF, $FF, $FB, $FF, $FF, $FF, $FB, $FF, $FF, $FF, $F7, $FF, $FE, $FF, $FF
