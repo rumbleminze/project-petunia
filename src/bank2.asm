@@ -976,11 +976,55 @@ nes9736:
 ; 9800
 .byte $4C, $BF, $97, $60, $A5, $4E, $0A, $A8, $A5, $3A, $C9, $10, $B0, $0B, $B9, $7C
 .byte $7C, $85, $51, $B9, $7D, $7C, $85, $52, $60, $B9, $7C, $7C, $85, $51, $B9, $7D
-.byte $7C, $85, $52, $60, $A5, $5F, $0A, $0A, $0A, $0A, $85, $5D, $A5, $53, $29, $F0
-.byte $4A, $4A, $4A, $4A, $18, $65, $5D, $85, $5D, $18, $A5, $4D, $65, $5D, $85, $5D
-.byte $A5, $53, $29, $0F, $AA, $18, $A5, $62, $65, $5D, $85, $5D, $A9, $00, $65, $63
-.byte $85, $5E, $A0, $00, $B9, $54, $00, $91, $5D, $98, $18, $65, $5D, $29, $0F, $C9
-.byte $0F, $B0, $04, $C8, $CA, $D0, $ED, $60, $A0, $00, $98, $91, $62, $C8, $C0, $F0
+.byte $7C, $85, $52, $60
+
+; 9824 - 9867
+; copy background tile section
+  LDA $5F                  
+  ASL A                    
+  ASL A                    
+  ASL A                    
+  ASL A                    
+  STA $5D                  
+  LDA $53                  
+  AND #$F0                 
+  LSR A                    
+  LSR A                    
+  LSR A                    
+  LSR A                    
+  CLC                      
+  ADC $5D                  
+  STA $5D                  
+  CLC                      
+  LDA $4D                  
+  ADC $5D                  
+  STA $5D                  
+  LDA $53                  
+  AND #$0F                 
+  TAX                      
+  CLC                      
+  LDA $62                  
+  ADC $5D                  
+  STA $5D                  
+  LDA #$00                 
+  ADC $63                  
+  STA $5E                  
+  LDY #$00                 
+: LDA $0054,Y              
+  STA ($5D),Y              
+  TYA                      
+  CLC                      
+  ADC $5D                  
+  AND #$0F                 
+  CMP #$0F                 
+  BCS :+              
+  INY                      
+  DEX                      
+  BNE :-          
+: RTS                      
+
+
+.byte $A0, $00, $98, $91, $62, $C8, $C0, $F0
 .byte $90, $F9, $60, $29, $03, $A8, $B9, $81, $98, $A0, $40, $91, $64, $88, $10, $FB
 .byte $60, $00, $55, $AA, $FF, $A5, $53, $29, $F0, $4A, $4A, $4A, $4A, $8D, $D0, $04
 .byte $A5, $53, $29, $0F, $18, $6D, $D0, $04, $8D, $D0, $04, $A5, $4D, $29, $0F, $8D

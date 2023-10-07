@@ -562,6 +562,86 @@ write_empty_palette_row:
   STZ CGDATA
   RTS
 
+disable_nmi_force_vblank:
+  ; STZ INIDISP
+  ; STZ NMITIMEN
+  ; STZ PPU_CONTROL_STATE
+  
+  LDA PPU_CONTROL_STATE
+  AND #$7E
+  STA PPU_CONTROL_STATE
+  STA NMITIMEN
+
+  LDA #$80                              
+  STA INIDISP                  ;STA PpuMask_2001  
+  
+  BRA infidelitys_scroll_handling
+              
+store_to_ppu_control:
+  ; A contains a specific value to be set to control state, rather than flipping a few bits
+  ; generally NES would do:
+  ;     LDA #$10
+  ;     STA PPU_CONTROL_STATE
+  ;     STA PpuControl_2000
+  ; but we need to do a few extra things
+  STA PPU_CONTROL_STATE
+  ; now fall through to the ppu control handling
+  ; this will update the proper NMITIMEN, VMAIN, and V/H OFS
+    
+infidelitys_scroll_handling:
+  LDA PPU_CONTROL_STATE
+  PHA 
+  AND #$80
+  BNE :+
+  LDA #$01
+  BRA :++
+: LDA #$81
+: STA NMITIMEN
+  PLA        
+  PHA 
+  AND #$04
+  ; A now has the BG table address
+  BNE :+
+  LDA #$00
+  BRA :++
+: LDA #$01   
+: STA VMAIN 
+  PLA 
+  AND #$03
+  BEQ :+
+  CMP #$01
+  BEQ :++
+  CMP #$02
+  BEQ :+++
+  CMP #$03
+  BEQ :++++
+: STZ HOFS_HB
+  STZ VOFS_HB
+  BRA :++++   ; RTL
+: LDA #$01
+  STA HOFS_HB
+  STZ VOFS_HB
+  BRA :+++    ; RTL
+: STZ HOFS_HB
+  LDA #$01
+  STA VOFS_HB
+  BRA :++     ; RTL
+: LDA #$01
+  STA HOFS_HB
+  STA VOFS_HB
+: RTL 
+
+handle_scroll_values:
+  LDA HOFS_LB
+  STA BG1HOFS
+  LDA HOFS_HB
+  STA BG1HOFS
+  LDA VOFS_LB
+  STA BG1VOFS
+  LDA VOFS_HB
+  STA BG1VOFS
+  RTL 
+
 palette_lookup:
 .byte $8C, $31 ; $00 dark grey
 .byte $A0, $44 ; $01 nyi

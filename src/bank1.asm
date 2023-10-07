@@ -756,11 +756,11 @@ a210:
   LDA $FD          
   CMP #$00                 
   BNE :+                 
-  STZ $14       
-  STZ $15 
-  INC $FE      
+  LDA #$00                 
+  STA $14                  
+  STA $15                  
   LDA $1A                  
-  EOR #$01                 
+  EOR #$01
   STA $1A                  
   LDA #$00                 
   STA $FD  

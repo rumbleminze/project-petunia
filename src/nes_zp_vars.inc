@@ -33,13 +33,14 @@ VMAIN_CONTROL_STATE = $102
 INIDISP_STATE       = $1704
 BANK_SWITCH_JMP     = $0800
 
+HOFS_LB             = $FE
+HOFS_HB             = $0804
+VOFS_LB             = $FD
+VOFS_HB             = $0805
+
 LAST_ATTRIB_LOC_LB  = $E0
 LAST_ATTRIB_LOC_HB  = $E1
-
 SPRITE_LOOP_JUNK    = $E2
-
-; LAST_ATTRIB_LOC_LB  = $0910
-; LAST_ATTRIB_LOC_HB  = $0911
 
 ; REPLC_
 
