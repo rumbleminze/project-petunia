@@ -52,19 +52,84 @@
   JMP $8068                
   RTS   
 
-.byte $20, $9B, $EE, $20, $0E, $EE, $20, $B8, $EE, $4C
-.byte $1E, $81, $4C, $34, $81, $8A, $48, $98, $48, $A5, $45, $D0, $F5, $E6, $45, $AD
-.byte $02, $20, $20, $2E, $EB, $A5, $38, $D0, $DD, $A5, $37, $D0, $4C, $8D, $01, $20
-.byte $20, $6A, $94, $20, $C9, $EB, $A5, $FF, $8D, $01, $20, $20, $6D, $95, $20, $3E
-;8100
-.byte $96, $20, $9B, $EE, $20, $75, $81, $20, $D9, $EC, $20, $B8, $EE, $20, $F0, $94
-.byte $A5, $5C, $10, $0A, $A9, $00, $85, $3F, $85, $40, $85, $41, $85, $42, $20, $5D
-.byte $E1, $20, $E0, $C3, $20, $53, $C4, $20, $6A, $EE, $20, $94, $EE, $20, $56, $C8
-.byte $A9, $00, $85, $45, $68, $A8, $68, $AA, $60, $4A, $B0, $E2, $4A, $B0, $06, $20
+; 80C6 - 8138
+: JSR $EE9B                
+  JSR $EE0E                
+  JSR $EEB8                
+  JMP $811E                
+: JMP $8134                
+  TXA                      
+  PHA                      
+  TYA                      
+  PHA                      
+  LDA $45                  
+  BNE :-                
+  INC $45                  
+  .byte $ea, $ea, $ea ; LDA PpuStatus_2002       
+  JSR $EB2E                
+  LDA $38                  
+  BNE :--            
+  LDA $37                  
+  BNE nes8139  
 
-.byte $42, $EE, $4C, $F3, $80, $A9, $0A, $20, $90, $CA, $A9, $0C, $20, $90, $CA, $20
-.byte $C9, $EB, $20, $9B, $EE, $A9, $02, $20, $90, $CA, $20, $D9, $EC, $20, $B8, $EE
-.byte $4C, $1E, $81, $20, $96, $81, $20, $43, $D3, $20, $F3, $91, $20, $BB, $8E, $20
+  .byte $ea, $ea, $ea ; STA PpuMask_2001         
+  JSR $946A                
+  JSR $EBC9  
+
+  LDA $FF                  
+  .byte $ea, $ea, $ea ; STA PpuMask_2001         
+  JSR $956D                
+  JSR $963E                
+  JSR $EE9B                
+  JSR $8175                
+  JSR $ECD9                
+  JSR $EEB8                
+  JSR $94F0                
+  LDA $5C                  
+  BPL nes811e             
+  LDA #$00                 
+  STA $3F                  
+  STA $40                  
+  STA $41                  
+  STA $42  
+
+nes811e:
+  JSR $E15D                
+  JSR $C3E0                
+  JSR $C453                
+  JSR $EE6A                
+  JSR $EE94                
+  JSR $C856                
+  LDA #$00                 
+  STA $45                  
+  PLA                      
+  TAY                      
+  PLA                      
+  TAX                      
+  RTS                      
+
+; 8139
+nes8139:
+  LSR A                    
+  BCS nes811e            
+  LSR A                    
+  BCS :+                
+  JSR $EE42                
+  JMP $80F3                
+: LDA #$0A                 
+  JSR $CA90                
+  LDA #$0C                 
+  JSR $CA90                
+  JSR $EBC9                
+  JSR $EE9B                
+  LDA #$02                 
+  JSR $CA90                
+  JSR $ECD9                
+  JSR $EEB8                
+  JMP $811E                
+
+; 8163
+.byte $20, $96, $81, $20, $43, $D3, $20, $F3, $91, $20, $BB, $8E, $20
 .byte $29, $86, $4C, $26, $84, $20, $B6, $CB, $20, $D9, $C3, $AD, $21, $07, $29, $70
 
 .byte $D0, $B6, $20, $A2, $D4, $20, $F4, $91, $20, $BC, $8E, $20, $2A, $86, $20, $34
@@ -576,9 +641,9 @@ nes93CA:
 
 .byte $42, $EE, $9A, $94
 
-; 9494
-: JMP $951D                
-: JMP $9537                
+; 9494             
+: JMP $9537  
+: JMP $951D                 
 
 .byte $20, $B2, $94, $A5, $69, $18
 .byte $69, $20, $85, $69, $A5, $6A, $69, $00, $85, $6A, $20, $B2, $94, $A9, $00, $85
@@ -638,46 +703,57 @@ nes93CA:
   RTS                      
 
 ; 951d
-  LDA $0482                
-  STA VMADDH ; STA PpuAddr_2006         
-  LDA $0481                
-  STA VMADDL ; PpuAddr_2006         
-  LDY #$00                 
-: LDA $0483,Y              
-  STA VMDATAL ; PpuData_2007         
-  INY                      
-  CPY #$40                 
-  BCC :-          
+  JSL nes_951d_copy
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea, $ea, $ea, $ea
+
+;   LDA $0482                
+;   STA VMADDH ; STA PpuAddr_2006         
+;   LDA $0481                
+;   STA VMADDL ; PpuAddr_2006         
+;   LDY #$00                 
+; : LDA $0483,Y              
+;   STA VMDATAL ; PpuData_2007         
+;   INY                      
+;   CPY #$40                 
+;   BCC :-          
   RTS                      
 
-; 9537
-  JSR $96C6                
-  LDA $00                  
-  CLC                      
-  ADC #$C0                 
-  STA $01                  
-  LDA #$23                 
-  STA $02                  
-  LDA $1A                  
-  AND #$01                 
-  BNE :+        
-  LDA #$27   ; LDA #$2B                 
-  STA $02                  
-: NOP        ; LDA PpuStatus_2002       
-  NOP
-  NOP
-  LDA $02                  
-  STA VMADDH ; PpuAddr_2006         
-  LDA $01                  
-  STA VMADDL ; PpuAddr_2006         
-  JSR $96C6                
-  TAX                      
-  LDY #$07                 
-: LDA $03B0,X              
-  STA VMDATAL ; PpuData_2007         
-  INX                      
-  DEY                      
-  BPL :-              
+; 9537 - populates attributes
+  JSL nes_9537_copy
+  .byte $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+;   JSR $96C6                
+;   LDA $00                  
+;   CLC                      
+;   ADC #$C0                 
+;   STA $01                  
+;   LDA #$23                 
+;   STA $02                  
+;   LDA $1A                  
+;   AND #$01                 
+;   BNE :+        
+;   LDA #$27   ; LDA #$2B                 
+;   STA $02                  
+; : NOP        ; LDA PpuStatus_2002       
+;   NOP
+;   NOP
+;   LDA $02                  
+;   STA VMADDH ; PpuAddr_2006         
+;   LDA $01                  
+;   STA VMADDL ; PpuAddr_2006         
+;   JSR $96C6                
+;   TAX                      
+;   LDY #$07                 
+; : LDA $03B0,X              
+;   STA VMDATAL ; PpuData_2007         
+;   INX                      
+;   DEY                      
+;   BPL :-              
+                   
+
   RTS 
 
 ; 956D - 95C1
@@ -896,9 +972,12 @@ nes9689:
   LDA #$EE                 
   STA $FD                  
 : JSR $956D                
-  JSR $963E                
-  JSR $951D                
+  JSR $963E  
+
+  ; I've switched these two so attributes are written before tiles              
   JSR $9537                
+  JSR $951D  
+
   LDA $FD                  
   SEC                      
   SBC #$10                 
@@ -979,7 +1058,14 @@ nes9736:
 .byte $7C, $85, $52, $60
 
 ; 9824 - 9867
-; copy background tile section
+; copy background tile section 
+; calculates where to store the tiles into $5D/E
+; $53 - left bit holds X screen offset, right bit holds # of tiles
+; $54 - $5B - holds the tiles to write
+; $5D - 
+; $62 ?
+; $63 - hold HB of target write, stored to $5E
+; X holds how many tiles are the same
   LDA $5F                  
   ASL A                    
   ASL A                    
@@ -1008,7 +1094,8 @@ nes9736:
   STA $5D                  
   LDA #$00                 
   ADC $63                  
-  STA $5E                  
+  STA $5E       
+
   LDY #$00                 
 : LDA $0054,Y              
   STA ($5D),Y              
@@ -1017,13 +1104,13 @@ nes9736:
   ADC $5D                  
   AND #$0F                 
   CMP #$0F                 
-  BCS :+              
+  BCS :+     ; if we are off the screen short cicuit and exit         
   INY                      
   DEX                      
   BNE :-          
 : RTS                      
 
-
+; 9868
 .byte $A0, $00, $98, $91, $62, $C8, $C0, $F0
 .byte $90, $F9, $60, $29, $03, $A8, $B9, $81, $98, $A0, $40, $91, $64, $88, $10, $FB
 .byte $60, $00, $55, $AA, $FF, $A5, $53, $29, $F0, $4A, $4A, $4A, $4A, $8D, $D0, $04
@@ -1034,14 +1121,44 @@ nes9736:
 .byte $0F, $4A, $18, $65, $66, $18, $65, $64, $85, $66, $A9, $00, $65, $65, $85, $67
 .byte $A5, $60, $29, $10, $4A, $4A, $4A, $8D, $CE, $04, $A5, $60, $29, $01, $0D, $CE
 .byte $04, $F0, $0E, $AA, $A9, $03, $0A, $0A, $CA, $8D, $CE, $04, $F0, $08, $4C, $F6
+
+; 9900
 .byte $98, $A9, $03, $8D, $CE, $04, $AD, $CE, $04, $49, $FF, $A0, $00, $31, $66, $8D
 .byte $CF, $04, $A5, $4F, $29, $02, $F0, $0B, $A9, $AA, $2D, $CE, $04, $0D, $CF, $04
 .byte $8D, $CF, $04, $A5, $4F, $29, $01, $F0, $0B, $A9, $55, $2D, $CE, $04, $0D, $CF
 .byte $04, $8D, $CF, $04, $AD, $CF, $04, $91, $66, $EE, $CD, $04, $AD, $CD, $04, $CD
-.byte $D0, $04, $B0, $03, $4C, $B8, $98, $60, $A9, $10, $85, $0A, $E6, $1A, $20, $6D
-.byte $95, $20, $3E, $96, $20, $1D, $95, $20, $37, $95, $A5, $FD, $38, $E9, $10, $85
-.byte $FD, $A5, $1A, $E9, $00, $85, $1A, $C6, $0A, $10, $E3, $A5, $FD, $18, $69, $10
-.byte $85, $FD, $A5, $1A, $69, $00, $85, $1A, $60, $00, $00, $00, $00, $00, $00, $00
+.byte $D0, $04, $B0, $03, $4C, $B8, $98, $60
+
+; 9948 - 9978
+  LDA #$10                 
+  STA $0A                  
+  INC $1A                  
+: JSR $956D                
+  JSR $963E   
+
+  ; swapped order so we load attributes first 
+  JSR $9537              
+  JSR $951D                 
+  
+  LDA $FD                  
+  SEC                      
+  SBC #$10                 
+  STA $FD                  
+  LDA $1A                  
+  SBC #$00                 
+  STA $1A                  
+  DEC $0A                  
+  BPL :-            
+  LDA $FD                  
+  CLC                      
+  ADC #$10                 
+  STA $FD                  
+  LDA $1A                  
+  ADC #$00                 
+  STA $1A                  
+  RTS                      
+
+.byte $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $4C, $FA, $99, $4C, $78, $9A, $4C, $BB, $AD, $4C, $40, $DF, $4C, $3E, $AB, $4C

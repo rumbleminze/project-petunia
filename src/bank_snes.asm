@@ -409,9 +409,13 @@ exit_ppu_copy:
   RTL
 
 ; in mode AXY16
-; A should be the address of the NES PpuData we're writing
 calculate_attributes_from_address:	
+
+  PHY
+  PHX
+
   setAXY16
+  LDA PPU_CURR_VRAM_ADDR
 	; chop off unnecessary address part
 	AND #$001F
 	LSR A
@@ -438,12 +442,12 @@ calculate_attributes_from_address:
 	ASL A
 	ADC PPU_COL_OFFSET
 	TAY
-  ; LAST_ATTRIB_LOC is where the attributes for the 
+  ; LAST_ATTRIB_LOC is where the attributes for the tile are
   LDA (LAST_ATTRIB_LOC_LB), Y
 	AND #$00FF
 	STA PPU_TILE_ATTR
 
-  	; now figure out which half nibble we need
+  ; now figure out which half nibble we need
 	; if vram add is odd we want right
 	LDA PPU_CURR_VRAM_ADDR
 	AND #$007F
@@ -478,7 +482,8 @@ calculate_attributes_from_address:
 	ASL A
 	ASL A	
 	STA PPU_TILE_ATTR
-
+  PLX
+  PLY
   RTS
 
 write_palette_data:
@@ -641,6 +646,85 @@ handle_scroll_values:
   LDA VOFS_HB
   STA BG1VOFS
   RTL 
+
+nes_951d_copy:
+  LDA VMAIN_CONTROL_STATE
+  ORA #$F0
+  STA VMAIN
+
+  setAXY16
+
+
+  LDA $0481
+  STA VMADDL ; STA PpuAddr_2006         
+  STA PPU_CURR_VRAM_ADDR
+  CMP #$2400
+  LDA #(ATTRIBUTE_HOLDING)
+  BCC :+
+  CLC
+  ADC #$0040
+: STA LAST_ATTRIB_LOC_LB ; maybe 0x40 if 2nd page
+  LDY #$0000                 
+: 
+  JSR calculate_attributes_from_address
+  
+  LDA $0483,Y 
+  AND #$00FF
+  CLC
+  ADC #$0100
+  ADC PPU_TILE_ATTR
+  STA VMDATAL ; PpuData_2007         
+  INY       
+  INC PPU_CURR_VRAM_ADDR                 
+  CPY #$40                 
+  BCC :-
+    
+  setAXY8
+  LDA VMAIN_CONTROL_STATE
+  STA VMAIN
+  RTL
+
+nes_9537_copy:
+         
+  LDA #.hibyte(ATTRIBUTE_HOLDING)                 
+  STA $02 
+
+  JSR nes96c6_copy              
+  LDA $00
+  STA $01
+
+  LDA $1A                  
+  AND #$01                 
+  BNE :+ 
+  ; add 40 to the attribute if we're on the 2nd
+  ; bg       
+  LDA #$40
+  ADC $01
+  STA $01  
+  ; $01.w now contains the address to start 
+  ; writing the next 8 attributes                
+: JSR nes96c6_copy
+
+  TAX
+  LDY #$00
+: LDA $03B0,X
+  STA ($01),Y
+  INX
+  INY
+
+  CPY #$08
+  BNE :-
+          
+  RTL 
+
+
+nes96c6_copy:
+  LDA VOFS_LB          
+  AND #$E0                 
+  LSR A                    
+  LSR A                    
+  STA $00                  
+  RTS 
 
 palette_lookup:
 .byte $8C, $31 ; $00 dark grey
