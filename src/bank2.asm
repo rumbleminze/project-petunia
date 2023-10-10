@@ -654,10 +654,12 @@ nes93CA:
 : RTS
 ; 94c8 - 94eF
   LDA $5C                  
-  BPL :-             
-  LDA $0100                
-  AND #$7F                 
-  STA $0100                
+  BPL :-    
+  JSL disable_and_store_nmi         
+  NOP
+  NOP
+  NOP
+  NOP
   NOP ; STA PpuControl_2000      
   NOP
   NOP
@@ -665,12 +667,14 @@ nes93CA:
   LDA $5C                  
   AND #$7F                 
   STA $5C                  
-  LDA $0100                
-  ORA #$80                 
-  STA $0100                
+  JSL enable_and_store_nmi   
   NOP ; STA PpuControl_2000      
   NOP
-  NOP  
+  NOP     
+  NOP
+  NOP
+  NOP
+  NOP
   PLA                      
   PLA                      
   JMP $8095  

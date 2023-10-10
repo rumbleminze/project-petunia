@@ -178,8 +178,8 @@
   ; Set to BG 0, no NMI     
   LDA #$10                 
   ; STA PPU_CONTROL_STATE             
-  ;  STA PpuControl_2000        
-   JSL store_to_ppu_control   
+  ; STA PpuControl_2000        
+  JSL store_to_ppu_control   
   .byte $ea, $ea
 
   LDA #$03                 
@@ -206,7 +206,7 @@
 @c24a:
   LDA #$10                 
   STA PPU_CONTROL_STATE                
-  LDA #$11                 
+  LDA #$1E
   STA PPU_MASK_STATE               
   RTS                      
 
@@ -515,9 +515,9 @@
 
 @cac7:
   PHA                      
-  LDA PPU_CONTROL_STATE              
-  .byte $ea ; AND #$7F                
-  STZ NMITIMEN ; STA PpuControl_2000      
+  JSL just_disable_nmi        
+  .byte $ea, $ea, $ea
+
   PLA                      
   STA $B8                  
   PLA                      
@@ -535,19 +535,20 @@
   JML ($0800)
 : LDA $B8                
   PHA                      
-  ; LDA PpuStatus_2002       
-  LDA PPU_CONTROL_STATE               
-  STA NMITIMEN      
+  ; LDA PpuStatus_2002  
+  JSL load_nmitimen_from_state     
+  NOP
+  NOP
+     
   PLA                      
   RTS                      
 
 
 ; CAF7 - CB48
   PHA         
-  ; turn off NMI             
-  LDA PPU_CONTROL_STATE               
-  .byte $ea ; AND #$7F                 
-  STZ NMITIMEN ; PpuControl_2000     
+  ; turn off NMI        
+  JSL just_disable_nmi        
+  .byte $ea, $ea, $ea ; AND #$7F                 
 
   PLA                      
   STA $B8                  
@@ -601,9 +602,9 @@
 
 : LDA $B8      
   PHA                      
-  ; LDA $2002 ; PpuStatus_2002       
-  LDA PPU_CONTROL_STATE              
-  STA NMITIMEN    
+  ; LDA $2002 ; PpuStatus_2002   
+  JSL load_nmitimen_from_state      
+  .byte $ea, $ea    
 
   PLA                      
   RTS                      
@@ -1003,15 +1004,10 @@
   BPL :-                
   JSR $E1F6                
   JSR $EE42
-  NOP ; LDA PpuStatus_2002       
-  NOP
-  NOP
-  LDA #$00                 
-  STA BG1VOFS ; PpuScroll_2005       
-  STA BG1VOFS ; PpuScroll_2005       
-  LDA $0100                
-  AND #$FC                 
-  STA $0100                
+
+  JSL no_scroll_screen_enable
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+
   PLA                      
   PLA                      
   JMP $7F24                
@@ -1371,7 +1367,8 @@ JMP @nes_e861_replacement
 
   ; e868 - e871  
   JSR $E93D                
-  JSR $EA4B                
+  JSR $EA4B  
+  ; also not writing attributes correctly                
   STA VMDATAL ; PpuData_2007         
   RTS             
          
@@ -1381,7 +1378,8 @@ JMP @nes_e861_replacement
   JSR $E96E                
   STY $01                  
   LDY #$00                 
-: LDA ($0C),Y              
+: LDA ($0C),Y     
+  ; also not writing attributes correctly      
   STA VMDATAL ; PpuData_2007         
   INY                      
   DEC $02                  
@@ -1393,7 +1391,8 @@ JMP @nes_e861_replacement
   JSR $E93D                
   JSR $E951                
   TAX                      
-: JSR $EA4B                
+: JSR $EA4B        
+  ; also not writing attributes correctly      
   STA VMDATAL ; PpuData_2007         
   DEX                      
   BNE :-              
@@ -1403,7 +1402,8 @@ JMP @nes_e861_replacement
   JSR $E93D                
   JSR $E951                
   TAX                      
-  JSR $EA4B                
+  JSR $EA4B          
+  ; also not writing attributes correctly      
 : STA VMDATAL ; PpuData_2007         
   DEX                      
   BNE :-
@@ -1417,7 +1417,8 @@ JMP @nes_e861_replacement
   STA $04                  
   JSR $EA4B                
   STA $05                  
-: LDA $04                  
+: LDA $04               
+  ; problem, this is not writing attributes correctly   
   STA VMDATAL ; PpuData_2007         
   LDA $05                  
   STA VMDATAL ; PpuData_2007         
@@ -1429,7 +1430,8 @@ JMP @nes_e861_replacement
   JSR $E93D                
   JSR $E951                
   TAX                      
-  JSR $EA4B                
+  JSR $EA4B       
+  ; also not writing attributes correctly               
 : STA VMDATAL ; PpuData_2007         
   CLC                      
   ADC #$01                 
@@ -1745,6 +1747,7 @@ JMP @nes_e861_replacement
   ;LDA PpuStatus_2002       
   LDA #$8F
   STA INIDISP
+  STA INIDISP_STATE
 
   ; Set VRAM increments to increment on HB
   LDA VMAIN_CONTROL_STATE             ; AND #$FB                 
@@ -1785,7 +1788,7 @@ JMP @nes_e861_replacement
 ; .byte $EA, $EA      ;  CMP #$20                 
 ; .byte $EA, $EA      ;  BCC :+
 .byte $EA, $EA      ;  ADC #$02                   
-.byte $EA, $EA, $EA ;  STA PpuAddr_2006           
+; .byte $EA, $EA, $EA ;  STA PpuAddr_2006           
 .byte $EA, $EA      ;  LDA #$C0                   
 .byte $EA, $EA, $EA ;  STA PpuAddr_2006         
 .byte $EA, $EA      ;  LDX #$40                 
@@ -1812,8 +1815,9 @@ JMP @nes_e861_replacement
   STA $00                  
   LDA PPU_CONTROL_STATE                
   AND #$FC                 
-  ORA $00                       
+  ORA $00    
 
+  STZ PAUSE_HDMA
   JSL store_to_ppu_control
   JSL handle_scroll_values   
   
@@ -1846,7 +1850,6 @@ JMP @nes_e861_replacement
   ; STA PPU_CONTROL_STATE
   
 .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
-.byte $ea, $ea, $ea
 
   RTS                      
 
@@ -2108,12 +2111,15 @@ JMP @nes_e861_replacement
   RTS  
 
 ; 0xEF01 enable vblank
-  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
-  JSR @enable_vblank     
-  RTS                      
+  JSL enable_nmi
+  
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea
 
-; 0xEF17
-.byte $01, $60, $E6, $02, $D0, $02, $E6, $03, $60
+  RTS                
+
+; 0xEF12
+.byte $E6, $00, $D0, $02, $E6, $01, $60, $E6, $02, $D0, $02, $E6, $03, $60
 .byte $A9, $20, $20, $27, $EF, $A9, $24, $A2, $12, $A0, $00, $4C, $76, $EB, $A0, $7F
 .byte $A9, $00, $99, $B0, $03, $88, $10, $FA, $60, $A9, $23, $20, $5A, $EF, $BD, $B0
 .byte $03, $8D, $07, $20, $E8, $E0, $40, $90, $F5, $A9, $2B, $20, $5A, $EF, $BD, $F0
@@ -2377,45 +2383,46 @@ JMP @nes_e861_replacement
   JML ($0800)
 @bank_switch_jump:
 ;  re-enable video
-  ;  LDA PpuStatus_2002       
-  LDA $0100                
-  STA NMITIMEN     
+  ;  LDA PpuStatus_2002  
+  JSL load_nmitimen_from_state     
+  NOP
+  NOP    
   RTS    
 
 
-@enable_vblank:
-  LDA INIDISP_STATE
-  ORA #$80
-  STA INIDISP 
+; @enable_vblank:
+;   LDA INIDISP_STATE
+;   ORA #$80
+;   STA INIDISP 
   
-  LDA PPU_CONTROL_STATE                
-  ORA #$80       
-  STA NMITIMEN            ; STA PpuControl_2000
-  STA NMITIMEN            ; STA PpuControl_2000
+;   LDA PPU_CONTROL_STATE                
+;   ORA #$80       
+;   STA NMITIMEN            ; STA PpuControl_2000
+;   STA NMITIMEN            ; STA PpuControl_2000
   
-  STA NMITIMEN            ; STA PpuControl_2000  
+;   STA NMITIMEN            ; STA PpuControl_2000  
   
-  STA PPU_CONTROL_STATE               
+;   STA PPU_CONTROL_STATE               
 
   
-  ; STA TM ;STA PpuMask_2001    
-  ; PHA
-  ; AND #$0E
-  ; LSR A
-  ; STA $5001
-  ; PLA
-  ; AND #$F0
-  ; ORA $5001
+;   ; STA TM ;STA PpuMask_2001    
+;   ; PHA
+;   ; AND #$0E
+;   ; LSR A
+;   ; STA $5001
+;   ; PLA
+;   ; AND #$F0
+;   ; ORA $5001
 
-; this should maybe just mess with inidisp.
-  LDA PPU_MASK_STATE 
-  STA TM
+; ; this should maybe just mess with inidisp.
+;   LDA PPU_MASK_STATE 
+;   STA TM
 
-  LDA #$7F
-  STA INIDISP
-  STA INIDISP_STATE
+;   LDA #$7F
+;   STA INIDISP
+;   STA INIDISP_STATE
 
-  RTS
+;   RTS
 
 @ca90_replacement:
   ; PHA 
@@ -2524,9 +2531,17 @@ JMP @nes_e861_replacement
   STA VMAIN
 
   LDA $00
-  STA VMADDH ; PpuAddr_2006         
+  STA VMADDH ; PpuAddr_2006    
   LDA #$00                 
   STA VMADDL ; PpuAddr_2006  
+
+  STZ BG1VOFS
+  LDA $00
+  CMP #$24
+  LDA #$00
+  BCC :+
+  INC A
+: STA BG1VOFS 
 
   JSR $EA4B                
   JSR @nes_e83b               
@@ -2579,8 +2594,8 @@ JMP @nes_e861_replacement
 
       
 
-; F41b-something
-.byte $FF, $FF, $FF, $FF, $FF, $FD, $FF, $FF, $FE, $2F, $31, $4D, $FF, $AE, $FF
+; F42x-something
+
 .byte $FF, $FF, $FF, $FF, $FF, $7F, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $7F, $F4, $ED, $DF, $FF, $BB, $FF, $FF
 .byte $FF, $FF, $FF, $FB, $FF, $FF, $FF, $FB, $FF, $FF, $FF, $F7, $FF, $FE, $FF, $FF

@@ -42,10 +42,6 @@ LAST_ATTRIB_LOC_LB  = $E0
 LAST_ATTRIB_LOC_HB  = $E1
 SPRITE_LOOP_JUNK    = $E2
 
-; REPLC_
-
-; ; 7F00 Replacement
-
 JMP_REDIRECT_LB     = $d0
 
 
@@ -57,6 +53,8 @@ PPU_ROW_OFFSET      = $091A
 TILES_TO_WRITE      = $091C
 TILES_TO_WRITE_HB   = $091D
 JML_BANK_STORE      = $0920
+
+PAUSE_HDMA          = $0930
 
 SNES_OAM_START      = $1300
 
