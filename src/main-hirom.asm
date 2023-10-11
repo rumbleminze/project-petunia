@@ -9,6 +9,7 @@
 
 .segment "CODE"
 .include "resetvector.asm"
+
 .include "bank_snes.asm"
 .include "bank0.asm"
 .include "bank1.asm"

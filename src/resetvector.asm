@@ -6,7 +6,10 @@ XCE
 REP #$10
 LDX #$01FF
 TXS
-JML init_routine
+LDA #$A0
+PHA
+PLB
+JML $A08000
 
 nmi:
     php
