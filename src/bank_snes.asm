@@ -598,7 +598,9 @@ disable_nmi_force_vblank:
 
   LDA INIDISP_STATE
   ORA #$80                              
-  STA INIDISP                  ;STA PpuMask_2001  
+  STA INIDISP                 
+
+  STZ TM
   
   BRA infidelitys_scroll_handling
   
@@ -647,8 +649,16 @@ enable_nmi:
   STA INIDISP_STATE
 
   LDA $FF                  
-  STA PPU_MASK_STATE  
-  BRA infidelitys_scroll_handling
+  AND #$10
+  BEQ :+
+  
+  LDA #$11
+  STA TM
+  BRA :++
+: STZ TM
+
+  ; STA PPU_MASK_STATE  
+: BRA infidelitys_scroll_handling
 
 
 store_to_ppu_control:
@@ -715,7 +725,37 @@ handle_scroll_values:
   STA BG1VOFS
   LDA VOFS_HB
   STA BG1VOFS
-  RTL 
+
+setup_hdma:
+  LDX VOFS_LB
+  LDA $A0A080,X
+  STA $0900
+  LDA $A0A170,X
+  STA $0903
+  LDA $A0A260,X
+  STA $0905
+  LDA $A0A350,X
+  STA $0908
+  LDA $A0A440,X
+  STA $090A
+  LDA $A0A520,X
+  STA $090D
+  LDA HOFS_LB
+  STA $0901
+  STA $0906
+  LDA PPU_CONTROL_STATE
+  STA $0902
+  STA $0907
+  STA $090C
+  LDX PPU_CONTROL_STATE
+  LDA $A0A610,X
+  STA $0904
+  STA $0909
+  STA $090E
+  STZ $090B
+  STZ $090F
+
+  RTL
 
 nes_951d_copy:
   ; LDA INIDISP_STATE
@@ -826,28 +866,28 @@ palette_lookup:
 .byte $62, $6D ; $11 blue
 .byte $08, $7D ; $12 light dark blue
 .byte $00, $00 ; $13 nyi
-.byte $74, $64 ; $14 nyi
+.byte $74, $64 ; $14 
 .byte $76, $3C ; $15 dark pink
 .byte $D6, $10 ; $16 red
 .byte $33, $01 ; $17 Brown 0133
 .byte $00, $00 ; $18 nyi
-.byte $07, $02 ; $19 nyi
-.byte $00, $00 ; $1A nyi
-.byte $00, $00 ; $1B nyi
+.byte $07, $02 ; $19 
+.byte $41, $02 ; $1A green
+.byte $20, $1A ; $1B green
 .byte $E0, $45 ; $1C teal
 .byte $00, $00 ; $1D nyi
 .byte $00, $00 ; $1E nyi
 .byte $00, $00 ; $1F Black
 
 .byte $FF, $7F ; $20 white
-.byte $00, $00 ; $21 nyi
+.byte $CC, $7E ; $21 sky blue
 .byte $52, $7E ; $22 light purple
-.byte $D8, $7D ; $23 nyi
+.byte $D8, $7D ; $23 
 .byte $BE, $7D ; $24 pink
-.byte $BF, $65 ; $25 nyi
+.byte $BF, $65 ; $25 
 .byte $1F, $3A ; $26 peach
 .byte $7D, $12 ; $27 orange
-.byte $F7, $02 ; $28 nyi
+.byte $F7, $02 ; $28 
 .byte $00, $00 ; $29 nyi
 .byte $8B, $1B ; $2A bright green
 .byte $00, $00 ; $2B nyi
@@ -862,12 +902,12 @@ palette_lookup:
 .byte $00, $00 ; $33 nyi
 .byte $00, $00 ; $34 nyi
 .byte $00, $00 ; $35 nyi
-.byte $00, $00 ; $36 nyi
-.byte $7E, $53 ; $37 nyi
+.byte $3F, $63 ; $36 
+.byte $7E, $53 ; $37 
 .byte $9C, $4B ; $38 nyi
 .byte $B9, $4B ; $39 nyi
 .byte $00, $00 ; $3A nyi
-.byte $00, $00 ; $3B nyi
+.byte $D6, $67 ; $3B light greenish blue
 .byte $00, $00 ; $3C nyi
 .byte $00, $00 ; $3D nyi
 .byte $00, $00 ; $3E nyi

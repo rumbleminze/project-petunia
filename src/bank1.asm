@@ -708,7 +708,7 @@ a171:
   STA $0384                
   LDA #$00                 
   STA $1A                  
-  LDA #$01 ; #$08                  
+  LDA #$08                  
   STA PPU_MASK_STATE                  
   JSR $EBC9                
   JSR $EF01                

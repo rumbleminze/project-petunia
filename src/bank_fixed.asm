@@ -1646,44 +1646,34 @@ JMP @nes_e861_replacement
 
 @set_up_bank_switching:
 @nes_eb07:
-  ; sets horizontal mirroring 
+  ; sets horizontal or vertical mirroring, 
+  ; vertical mirroring is set via eb1d below
   ; and fix last bank at $C000 and switch 16 KB bank at $8000
-  ; LDA #$0F                 
-  NOP
-  NOP
+  LDA #$0F    
   ; STA $9FFF                
+  ; #$0F = Horizontal mirroring (for vertical levels)
+  ; #$0E = Vertical mirroring (for horizontal levels)
+@set_mirroring:
+  AND #$01
+  BEQ :+
+  LDA #$22
+  BRA :++
+: LDA #$21
+: STA BG1SC
   NOP
   NOP
   NOP
-  ; LSR A                    
-  NOP
-  ; STA $9FFF                
   NOP
   NOP
   NOP
-  ; LSR A                    
-  NOP                   
-  ; STA $9FFF                
-  NOP
-  NOP
-  NOP
-  ; LSR A                    
-  NOP                   
-  ; STA $9FFF                
-  NOP
-  NOP
-  NOP
-  ; LSR A                    
-  NOP                   
-    ; STA $9FFF                
-  NOP
-  NOP
-  NOP                  
   RTS  
 
 ; 0xeb1d
-.byte $A9, $0E, $D0
-.byte $E8, $A5, $26, $6A, $6A, $18, $69, $03, $18, $69, $20, $85, $26, $60
+  ; Set Vertical instead of Horizontal Mirroring
+  LDA #$0E
+  BNE @set_mirroring
+
+.byte $A5, $26, $6A, $6A, $18, $69, $03, $18, $69, $20, $85, $26, $60
 
 ; 0xeb2e
 ; Appears to kick off the OAM DMA.  We'll likely need to jml to some SNES specific code
@@ -1817,7 +1807,9 @@ JMP @nes_e861_replacement
   AND #$FC                 
   ORA $00    
 
-  STZ PAUSE_HDMA
+  NOP
+  NOP
+  NOP
   JSL store_to_ppu_control
   JSL handle_scroll_values   
   
@@ -2121,10 +2113,35 @@ JMP @nes_e861_replacement
 ; 0xEF12
 .byte $E6, $00, $D0, $02, $E6, $01, $60, $E6, $02, $D0, $02, $E6, $03, $60
 .byte $A9, $20, $20, $27, $EF, $A9, $24, $A2, $12, $A0, $00, $4C, $76, $EB, $A0, $7F
-.byte $A9, $00, $99, $B0, $03, $88, $10, $FA, $60, $A9, $23, $20, $5A, $EF, $BD, $B0
-.byte $03, $8D, $07, $20, $E8, $E0, $40, $90, $F5, $A9, $2B, $20, $5A, $EF, $BD, $F0
-.byte $03, $8D, $07, $20, $E8, $E0, $40, $90, $F5, $60, $8D, $06, $20, $A9, $C0, $8D
-.byte $06, $20, $A2, $00, $60, $A5, $00, $18, $69, $20, $85, $00, $A5, $01, $69, $00
+.byte $A9, $00, $99, $B0, $03, $88, $10, $FA, $60
+
+; 0xEF39 - EF4D (properties)
+  LDA #$23
+  JSR $EF5A
+: LDA $03B0,X
+  STA VMDATAL
+  INX
+  CPX #$40
+  BCC :-
+  LDA #$2B  ; prob needs adjusting
+  JSR $EF5A
+: LDA $03F0,X
+  STA VMDATAL
+  INX
+  CPX #$40
+  BCC :-
+  RTS
+
+; 0xEF5A - EF64
+  STA VMADDH
+  LDA #$C0
+  STA VMADDL
+  LDX #$00
+  RTS
+
+
+; EF65
+.byte $A5, $00, $18, $69, $20, $85, $00, $A5, $01, $69, $00
 .byte $85, $01, $60
 
 

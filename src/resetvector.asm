@@ -19,33 +19,16 @@ nmi:
     PHY
 
     setAXY8 
-    LDX VOFS_LB
-    LDA $A0A080,X
-    STA $0900
-    LDA $A0A170,X
-    STA $0903
-    LDA $A0A260,X
-    STA $0905
-    LDA $A0A350,X
-    STA $0908
-    LDA $A0A440,X
-    STA $090A
-    LDA $A0A520,X
-    STA $090D
-    LDA HOFS_LB
-    STA $0901
-    STA $0906
-    LDA PPU_CONTROL_STATE
-    STA $0902
-    STA $0907
-    STA $090C
-    LDX PPU_CONTROL_STATE
-    LDA $A0A610,X
-    STA $0904
-    STA $0909
-    STA $090E
-    STZ $090B
-    STZ $090F
+    LDA PPU_MASK_STATE
+    AND #$10
+    BEQ :+
+    
+    LDA #$11
+    STA TM
+    BRA :++
+ :  STZ TM
+
+ :  JSL setup_hdma    
     LDA #$7E
     STA A1B1
     LDA #$09
