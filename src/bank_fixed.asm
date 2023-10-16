@@ -1807,9 +1807,7 @@ JMP @nes_e861_replacement
   AND #$FC                 
   ORA $00    
 
-  NOP
-  NOP
-  NOP
+  STZ PAUSE_HDMA
   JSL store_to_ppu_control
   JSL handle_scroll_values   
   
@@ -2379,8 +2377,8 @@ JMP @nes_e861_replacement
 
   @switch_bank:
   PHA                      
-  ; disable video while we bank switch
-  LDA $0100                
+  ; disable NMI
+  LDA PPU_CONTROL_STATE               
   AND #$7F
   STA NMITIMEN     
 
@@ -2399,7 +2397,7 @@ JMP @nes_e861_replacement
   STA $0801
   JML ($0800)
 @bank_switch_jump:
-;  re-enable video
+;  re-enable NMI
   ;  LDA PpuStatus_2002  
   JSL load_nmitimen_from_state     
   NOP
@@ -2649,7 +2647,7 @@ JMP @nes_e861_replacement
 
   @post_jump_loc:           
   LDA $0100                
-  ORA #$80               
+  AND #$7F             
   STA NMITIMEN
   
   ; bank switch to wherever we were  
@@ -2667,8 +2665,9 @@ JMP @nes_e861_replacement
   STA $0801
   JML ($0800)
 @bank_switch_jump2:
-  LDA $0100                
-  STA NMITIMEN  
+  JSL load_nmitimen_from_state ; LDA $0100                
+  NOP                          ; STA NMITIMEN  
+  NOP
   PLA      
 
   JSL translate_nes_sprites_to_oam

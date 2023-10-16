@@ -1478,10 +1478,43 @@ nes9736:
 .byte $A8, $B9, $8E, $AB, $85, $00, $B9, $8F, $AB, $85, $01, $6C, $00, $00, $42, $EE
 .byte $98, $AB, $4C, $F3, $AB, $4C, $47, $AC, $AD, $02, $20, $A5, $6A, $8D, $06, $20
 .byte $A5, $69, $8D, $06, $20, $A2, $05, $A9, $12, $8D, $07, $20, $CA, $10, $FA, $A9
-.byte $00, $85, $68, $60, $A5, $5C, $10, $2D, $AD, $00, $01, $29, $7F, $8D, $00, $01
-.byte $8D, $00, $20, $20, $07, $AE, $20, $DF, $AB, $A9, $00, $85, $40, $85, $41, $68
-.byte $68, $AD, $00, $01, $09, $80, $8D, $00, $01, $8D, $00, $20, $4C, $38, $9A, $A5
-.byte $5C, $29, $7F, $85, $5C, $60, $E6, $FE, $D0, $08, $E6, $1B, $A5, $5C, $09, $80
+.byte $00, $85, $68, $60
+
+; ABB4 - ABE6
+  LDA $5C
+  BPL :+
+
+  JSL disable_and_store_nmi  
+  .byte $EA, $EA, $EA, $EA, $EA, $EA, $EA
+  ; LDA PPU_CONTROL_STATE
+  ; AND #$7F
+  ; STA PPU_CONTROL_STATE
+  ; STA $2000
+
+  JSR $AE07
+  JSR $ABDF
+  LDA #$00
+  STA $40
+  STA $41
+  PLA
+  PLA
+
+
+  JSL enable_and_store_nmi
+  .byte $EA, $EA, $EA, $EA, $EA, $EA, $EA
+  ; LDA PPU_CONTROL_STATE
+  ; ORA #$80
+  ; STA PPU_CONTROL_STATE
+  ; STA $2000
+
+  JMP $9A38
+  LDA $5C
+  AND #$7F
+  STA $5C
+: RTS
+
+; ABE6
+.byte $E6, $FE, $D0, $08, $E6, $1B, $A5, $5C, $09, $80
 .byte $85, $5C, $60
 
 ; ABF3 - AC46
