@@ -1803,13 +1803,21 @@ JMP @nes_e861_replacement
   ASL A                    
   ORA $00                  
   STA $00                  
-  LDA PPU_CONTROL_STATE                
-  AND #$FC                 
-  ORA $00    
+      
 
-  STZ PAUSE_HDMA
+  ; STZ PAUSE_HDMA
+
+  
+.byte $ea, $ea
+  LDA STORED_OFFSETS_SET
+  BEQ :+
+  JSL reset_to_stored_screen_offsets
+: LDA PPU_CONTROL_STATE                
+  AND #$FC                 
+  ORA $00
   JSL store_to_ppu_control
-  JSL handle_scroll_values   
+  JSL setup_hdma   
+ 
   
   ; NOP
   ; NOP
@@ -1839,7 +1847,6 @@ JMP @nes_e861_replacement
   ; STA NMITIMEN
   ; STA PPU_CONTROL_STATE
   
-.byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
 
   RTS                      
 

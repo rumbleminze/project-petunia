@@ -39,12 +39,8 @@ nmi:
     LDA #$03
     STA DMAP1
 
-    LDA PAUSE_HDMA
-    BEQ :+
-    LDA #$00
-    BRA :++
-:   LDA #$02
-:   STA HDMAEN
+    LDA #$02
+    STA HDMAEN
 
     JSL snes_nmi
     JML $A1C866
