@@ -111,7 +111,7 @@ initialize_registers:
   STZ UNPAUSE_BG1_VOFS_HB
   STZ UNPAUSE_BG1_HOFS_LB
   STZ UNPAUSE_BG1_HOFS_HB
-  
+
   setAXY8
   LDA #$00
   LDY #$40
@@ -579,6 +579,8 @@ write_empty_palette_row:
   RTS
 
 reset_to_stored_screen_offsets:
+  LDA STORED_OFFSETS_SET
+  BEQ :+
   LDA UNPAUSE_BG1_HOFS_LB
   STA HOFS_LB
   LDA UNPAUSE_BG1_HOFS_HB
@@ -589,7 +591,7 @@ reset_to_stored_screen_offsets:
   STA VOFS_HB
 
   STZ STORED_OFFSETS_SET
-  RTL
+: RTL
 
 no_scroll_screen_enable:
   LDA HOFS_LB
@@ -610,9 +612,6 @@ no_scroll_screen_enable:
   LDA PPU_CONTROL_STATE               
   AND #$FC                 
   STA PPU_CONTROL_STATE
-  LDA #$01
-  ;STA PAUSE_HDMA
-  ;STZ HDMAEN
   RTL 
 
 disable_nmi_force_vblank:
