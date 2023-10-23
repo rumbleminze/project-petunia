@@ -1696,10 +1696,12 @@ JMP @nes_e861_replacement
 
 ; 0xeb2e
 ; Appears to kick off the OAM DMA.  We'll likely need to jml to some SNES specific code
-  NOP ; LDA #$00                 
-  NOP
-  NOP ; STA OamAddr_2003         
-  NOP
+  JSL convert_attributes
+  
+  ; NOP ; LDA #$00                 
+  ; NOP
+  ; NOP ; STA OamAddr_2003         
+  ; NOP
   NOP
   NOP ; LDA #$02                 
   NOP

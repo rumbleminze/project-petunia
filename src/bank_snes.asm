@@ -114,12 +114,16 @@ initialize_registers:
 
   setAXY8
   LDA #$00
+  LDY #$0F
+: STA ATTRIBUTE_DMA, Y
+  DEY
+  BNE :-
+
   LDY #$40
 : DEY
   STA $0900, y
   BNE :-
 
-  LDA #$00
   STA OBSEL
   LDA #$11
   STA BG12NBA
@@ -166,6 +170,7 @@ initialize_registers:
 snes_nmi:
   LDA RDNMI
   JSR dma_oam_table
+  JSR copy_prepped_attributes_to_vram
   RTL
 
 clearvm:
@@ -385,7 +390,8 @@ write_data_to_ppu:
 	STA PPU_TILE_ATTR
 	BRA write_tile_to_vram
 
-:	JSR calculate_attributes_from_address
+:	NOP
+  ;JSR calculate_attributes_from_address
 
 	write_tile_to_vram:
 	LDY PPU_TILE_COUNT
@@ -420,8 +426,8 @@ exit_ppu_copy:
   RTL
 
 ; in mode AXY16
-calculate_attributes_from_address:	
-  RTS
+calculate_attributes_from_address:	  
+  rts
   PHY
   PHX
 
@@ -454,7 +460,7 @@ calculate_attributes_from_address:
 	ADC PPU_COL_OFFSET
 	TAY
   ; LAST_ATTRIB_LOC is where the attributes for the tile are
-  LDA (LAST_ATTRIB_LOC_LB), Y
+  LDA ATTRIBUTE_HOLDING, Y
 	AND #$00FF
 	STA PPU_TILE_ATTR
 
@@ -492,6 +498,8 @@ calculate_attributes_from_address:
 	ASL A
 	ASL A
 	ASL A	
+  CLC
+  ADC #$0100
 	STA PPU_TILE_ATTR
   PLX
   PLY
@@ -798,7 +806,7 @@ nes_951d_copy:
 : STA LAST_ATTRIB_LOC_LB ; maybe 0x40 if 2nd page
   LDY #$0000                 
 : 
-  JSR calculate_attributes_from_address
+  ; JSR calculate_attributes_from_address
   
   LDA $0483,Y 
   AND #$00FF
@@ -830,7 +838,7 @@ nes_9537_copy:
   LDA $1A                  
   AND #$01                 
   BNE :+ 
-  ; add 40 to the attribute if we're on the 2nd
+  ; add 40 to the attribute addr if we're on the 2nd
   ; bg       
   LDA #$40
   ADC $01
@@ -860,6 +868,337 @@ nes96c6_copy:
   STA $00                  
   RTS 
 
+convert_attributes:
+  PHY
+  PHX
+
+  setAXY16
+  LDA #$2000
+  LDY #$0000
+  STA PPU_CURR_VRAM_ADDR
+: JSR calculate_attributes_from_address
+
+  LDA PPU_TILE_ATTR
+  AND #$FF00
+  LSR
+  LSR
+  LSR
+  LSR
+  LSR
+  LSR
+  LSR
+  LSR
+  STA ATTRIBUTE_CACHE, Y  
+
+  INC PPU_CURR_VRAM_ADDR
+  INY
+  CPY #$0200
+  BNE :-
+
+  setAXY8
+  PLX
+  PLY
+  RTL
+
+copy_prepped_attributes_to_vram:
+  STZ ATTRIBUTE_DMA
+  LDA #$80
+  STA VMAIN
+  STZ DMAP0
+  LDA #$19
+  STA BBAD0
+: LDX ATTRIBUTE_DMA + 1
+  LDA #$7E
+  STA A1B0
+  LDA ATTRIBUTE_DMA + 2,X
+  STA A1T0H
+  LDA ATTRIBUTE_DMA + 4,X
+  STA A1T0L
+  LDA ATTRIBUTE_DMA + 6,X
+  STA DAS0L
+  LDA ATTRIBUTE_DMA + 8,X
+  STA DAS0H
+  LDA ATTRIBUTE_DMA + 10,X
+  STA VMADDH
+  LDA ATTRIBUTE_DMA + 12,X
+  STA VMADDL
+  LDA #$01
+  STA MDMAEN
+  DEC ATTRIBUTE_DMA + 1
+  LDA ATTRIBUTE_DMA + 1
+  BPL :-
+  LDY #$0F
+  LDA #$00
+: STA ATTRIBUTE_DMA,Y
+  DEY
+  BPL :-
+  LDA #$FF
+  STA ATTRIBUTE_DMA + 1
+  RTS
+
+attr_lookup_table_1_inf_9450:
+.byte $00, $04, $08, $0C, $10, $14, $18, $1C, $80, $84, $88, $8C, $90, $94, $98, $9C
+
+inf_95AE:
+.byte $EA, $A1 
+inf_95B0:
+.byte $00, $D0, $06, $A9, $FF, $8D, $F0, $17, $6B, $4C, $20, $97, $00, $00, $01, $01
+attr_lookup_table_2_inf_95C0:
+.byte $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $02, $00
+.byte $10, $20, $30, $40, $50, $60, $70, $80, $90, $A0, $B0, $C0, $D0, $E0, $F0, $00
+.byte $10, $20, $30, $40, $50, $60, $70, $80, $90, $A0, $B0, $C0, $D0, $E0, $F0, $00
+
+
+; converts attributes stored at 9A0 - A07 to attribute cache
+; When we write to VRAM 23C0 - 23FF or 27C0 - 27FF we also must write it to 9A4 - 9E3 
+; and 9e8 - a27
+inf_9470:
+  LDA $09A1
+  BNE convert_attributes_inf
+  RTL
+convert_attributes_inf:
+  PHK
+  PLB
+  LDX #$00
+  JSR disable_attribute_hdma
+  LDA #$A1
+  STA $00
+  LDA #$09
+  STA $01
+  STZ ATTRIBUTE_DMA + 4
+  STZ ATTRIBUTE_DMA + 5
+  LDA #$18
+  STA ATTRIBUTE_DMA + 2
+  LDA #$1A
+  STA ATTRIBUTE_DMA + 3
+  LDY #$00  
+inf_9497:
+  LDA ($00),Y
+  BEQ inf_9470 + 5
+  AND #$03
+  CMP #$03
+  BEQ :+
+  JMP inf_9700
+: INY
+  LDA ($00),Y
+  AND #$F0
+  CMP #$C0
+  BEQ :+
+  CMP #$D0
+  BEQ :+
+  CMP #$E0
+  BEQ :+
+  CMP #$F0
+  BEQ :+
+  JMP inf_9700 + 1
+: JSR inc_attribute_hdma_store_to_x
+  PHY
+  AND #$0F
+  TAY
+  LDA attr_lookup_table_1_inf_9450,Y
+  PLY
+  STA ATTRIBUTE_DMA + 12,X
+  LDA ($00),Y
+  AND #$30
+  LSR
+  LSR
+  LSR
+  LSR
+  ORA #$20
+  XBA
+  DEY
+  LDA ($00),Y
+  CMP #$24
+  BMI :+
+  LDA #$00
+  XBA
+  INC
+  INC
+  INC
+  INC
+  STA ATTRIBUTE_DMA + 10,X
+  BRA :++
+: LDA #$00
+  XBA
+  STA ATTRIBUTE_DMA + 10,X
+: INY
+  INY
+  LDA ($00),Y
+  AND #$3F
+  PHX
+  TAX
+  LDA attr_lookup_table_2_inf_95C0 + 15,X
+  PLX
+  STA ATTRIBUTE_DMA + 8,X
+  LDA ($00),Y
+  AND #$3F
+  PHX
+  TAX
+  LDA $95AE,X
+  PLX
+  STA ATTRIBUTE_DMA + 8,X
+  LDA ($00),Y
+  AND #$3F
+  STA ATTRIBUTE_DMA + 14
+  STA ATTRIBUTE_DMA + 15
+  LDA ATTRIBUTE_DMA + 2,X
+  STA $03
+  LDA ATTRIBUTE_DMA + 4,X
+  STA $02
+  INY
+  INY
+  TYX
+  LDA #$A0
+  STA $00
+  TYA
+  CLC
+  ADC $00
+  STA $00
+  BRA :+
+inf_952D:  
+  INC $00
+: JSR inf_9680
+  NOP
+  LDA ($00,X)
+  PHA
+  AND #$03
+  TAX
+  LDA attr_lookup_table_1_inf_9450,X
+  STA ($02),Y
+  INY
+  STA ($02),Y
+  LDY #$20
+  STA ($02),Y
+  INY
+  STA ($02),Y
+  LDY #$02
+  PLA
+  PHA
+  AND #$0C
+  STA ($02),Y
+  INY
+  STA ($02),Y
+  LDY #$22
+  STA ($02),Y
+  INY
+  STA ($02),Y
+  LDY #$40
+  PLA
+  PHA
+  AND #$30
+  LSR
+  LSR
+  LSR
+  LSR
+  TAX
+  LDA attr_lookup_table_1_inf_9450,X
+  STA ($02),Y
+  INY
+  STA ($02),Y
+  LDY #$60
+  STA ($02),Y
+  INY
+  STA ($02),Y
+  LDY #$42
+  PLA
+  AND #$C0
+  LSR
+  LSR
+  LSR
+  LSR
+  STA ($02),Y
+  INY
+  STA ($02),Y
+  LDY #$62
+  STA ($02),Y
+  INY
+  STA ($02),Y
+  LDA $02
+  CLC
+  ADC #$04
+  STA $02
+  CMP #$20
+  BEQ :+
+  CMP #$A0
+  BNE :++
+: CLC
+  ADC #$60
+  STA $02
+  BNE :+
+  INC $03
+: DEC ATTRIBUTE_DMA + 14
+  LDA ATTRIBUTE_DMA + 14
+  BEQ :+
+  BRA inf_952D
+: JSR inf_9690
+  NOP
+  LDA ($00,X)
+  BNE inf_95b9
+  LDA #$FF
+  STA ATTRIBUTE_DMA
+  RTL
+
+inf_95b9:
+  ; i can't find this getting called, and 9720 looks non-sensical to me
+  JMP $9720
+
+inc_attribute_hdma_store_to_x:
+  INC ATTRIBUTE_DMA + 1
+  LDX ATTRIBUTE_DMA + 1
+  RTS
+
+
+disable_attribute_hdma:
+  LDA #$FF
+  STA ATTRIBUTE_DMA + 1
+  RTS
+
+inf_9680:
+  LDA $00
+  BNE :+
+  INC $01
+: LDX #$00
+  LDY #$00
+  RTS
+
+
+inf_9690:
+  LDA #$FF
+  STA ATTRIBUTE_DMA
+  INC $00
+  LDX #$00
+  RTS
+
+inf_9700:
+  INY
+  INY
+  LDA $02
+  PHA
+  STY $02
+  LDA ($00),Y
+  AND #$3F
+  CLC
+  ADC $02
+  INC
+  TAY
+  PLA
+  STA $02
+  JMP inf_9497
+
+inf_9720:
+  LDA $02
+  PHA
+  STZ $02
+: LDA $00
+  CMP #$A1
+  BEQ :+
+  DEC $00
+  INC $02
+  BRA :-
+: LDY $02
+  PLA
+  STA $02
+  JMP inf_9497
 
 
 palette_lookup:
