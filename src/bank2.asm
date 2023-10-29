@@ -10,7 +10,7 @@
 .byte $85, $85, $67, $C5, $E7, $C5, $AA, $81, $EA, $81, $12, $82, $2A, $82, $4A, $82
 .byte $56, $82, $56, $82, $56, $83, $C9, $EF, $40, $7E
 
-; 805a
+; 805a - main level loop resides here at a3:8095
   JSR $EB07                
   JSR $EEF0                
   JSR $EEE5                
@@ -31,7 +31,8 @@
   JSR $CB70                
   LDA #$60                 
   STA $43                  
-  JSR $EF01                
+  JSR $EF01   
+main_loop:             
   JSR $EB21                
   BIT $AB                  
   BVS :++                
@@ -39,7 +40,7 @@
   JSR $E198                
   JSR $EAD7                
   JSR $94C8                
-  JMP $8095                
+  JMP main_loop                
 : INC $A0                  
   JMP $C06D             
 : JMP $C0A0                
@@ -642,9 +643,9 @@ nes93CA:
 
 .byte $42, $EE, $9A, $94
 
-; 9494             
-: JMP $9537  
+; 9494 
 : JMP $951D                 
+: JMP $9537              
 
 ; 949A - 94B1
   JSR $94B2
@@ -999,9 +1000,13 @@ nes9689:
 : JSR $956D                
   JSR $963E  
 
-  ; I've switched these two so attributes are written before tiles              
-  JSR $9537                
-  JSR $951D  
+  ; I've switched these two so attributes are written before tiles   
+  JSR level_load_tile_and_attributes   
+  NOP
+  NOP
+  NOP          
+  ; JSR $9537                
+  ; JSR $951D  
 
   LDA $FD                  
   SEC                      
@@ -1162,9 +1167,13 @@ nes9736:
 : JSR $956D                
   JSR $963E   
 
-  ; swapped order so we load attributes first 
-  JSR $9537              
-  JSR $951D                 
+  JSR level_load_tile_and_attributes
+  NOP
+  NOP
+  NOP 
+
+  ;JSR $951D          
+  ;JSR $9537               
   
   LDA $FD                  
   SEC                      
@@ -1308,6 +1317,7 @@ nes9736:
 .byte $0A, $0A, $9D, $00, $07, $A9, $F0, $9D, $03, $07, $60, $A2, $60, $20, $EC, $A0
 .byte $A2, $70, $20, $EC, $A0, $A2, $80, $20, $EC, $A0, $A2, $90, $BD, $01, $07, $29
 .byte $F8, $C9, $38, $D0, $37, $20, $17, $9F, $20, $08, $DD, $BD, $01, $07, $29, $07
+; A100
 .byte $F0, $34, $C9, $01, $D0, $2D, $20, $87, $E0, $20, $90, $D9, $90, $1F, $20, $E7
 .byte $D9, $90, $1F, $A0, $20, $20, $86, $D9, $B0, $03, $20, $6B, $A1, $20, $3D, $A4
 .byte $20, $DA, $DB, $20, $C9, $DB, $20, $10, $A2, $20, $DE, $DC, $60, $A9, $F8, $99
@@ -1324,6 +1334,7 @@ nes9736:
 .byte $22, $AD, $D5, $04, $C9, $40, $B0, $1B, $A9, $02, $9D, $02, $07, $60, $BD, $03
 .byte $07, $C9, $08, $90, $F3, $AD, $D4, $04, $C9, $40, $90, $EC, $AD, $D6, $04, $C9
 .byte $40, $B0, $E5, $A9, $0D, $9D, $02, $07, $60, $BD, $02, $07, $48, $29, $F0, $9D
+; A200
 .byte $05, $07, $68, $0A, $0A, $0A, $0A, $9D, $04, $07, $20, $DA, $DB, $4C, $C9, $DB
 .byte $A0, $64, $BD, $04, $07, $30, $01, $C8, $A5, $14, $29, $10, $D0, $02, $C8, $C8
 .byte $98, $4C, $CD, $C4, $A2, $F0, $A9, $00, $9D, $01, $07, $60, $A2, $C0, $20, $33
@@ -1896,7 +1907,14 @@ nes9736:
 
 ; spare space, starts at $BED0
 
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+level_load_tile_and_attributes:
+                       
+  JSR $951D  
+  JSR $9537   
+  JSL convert_nes_attributes_and_immediately_dma_them
+  RTS
+
+.byte $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $DF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00

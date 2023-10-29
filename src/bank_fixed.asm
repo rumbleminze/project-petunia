@@ -3,9 +3,9 @@
 ; so that it's available to all the a1: - a6: banks.
   setAXY8
   LDA #$03
-  STA $6FFA        ; originally $6FFA            
-  LDA #$7F    ; originally #$7F                 
-  STA $6FFB         ; originally $6FFB
+  STA $6FFA   
+  LDA #$7F    
+  STA $6FFB   
 
   JSR @set_up_bank_switching   
 
@@ -220,34 +220,21 @@
 
 ; c2b3
 @copy_data_to_ppu:
-  NOP            ;LDA PpuStatus_2002       
+  NOP ; LDA PpuStatus_2002
   NOP
   NOP
-  NOP            ; LDA $42                  
-  NOP
-  NOP
-  NOP            ; STA PpuAddr_2006         
-  NOP
-  NOP
-  NOP            ; LDA $41
-  NOP
-  NOP            ; STA PpuAddr_2006         
-  NOP
-  NOP
-  NOP            ; LDY #$00                 
-  NOP
-  NOP            ; LDA ($43),Y              
-  NOP
-  NOP            ; STA VMDATAL         
-  NOP
-  NOP            ; INY                      
-  ;NOP            ; CPY $45                  
-  ;NOP
-  ;NOP            ; BNE :-
-  ;NOP
-
-  JSL write_data_to_ppu
-  RTS                      
+  LDA $42
+  STA VMADDH
+  LDA $41
+  STA VMADDL
+  LDY #$00
+: LDA ($43),Y
+  STA VMDATAL
+  INY
+  CPY $45
+  BNE :-
+  RTS
+                  
 
 @c2cd:
 .byte $A0, $00, $A2
@@ -1692,16 +1679,19 @@ JMP @nes_e861_replacement
   LDA #$0E
   BNE @set_mirroring
 
-.byte $A5, $26, $6A, $6A, $18, $69, $03, $18, $69, $20, $85, $26, $60
+; EB21 - eb2e , we hijack this to do stuff in the main game loop
+  JSL nes_eb21_replacement
+  .byte $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA
+  RTS
 
 ; 0xeb2e
 ; Appears to kick off the OAM DMA.  We'll likely need to jml to some SNES specific code
-  JSL convert_attributes
+  ; JSL convert_attributes
   
-  ; NOP ; LDA #$00                 
-  ; NOP
-  ; NOP ; STA OamAddr_2003         
-  ; NOP
+  NOP ; LDA #$00                 
+  NOP
+  NOP ; STA OamAddr_2003         
+  NOP
   NOP
   NOP ; LDA #$02                 
   NOP
@@ -1779,7 +1769,7 @@ JMP @nes_e861_replacement
 : LDA $01
   STA VMDATAL
   ; we set #$01 here to use the 2nd page of tiles, which are our background tiles
-  LDA #$01                    
+  LDA #$00                    
   STA VMDATAH  
 
   DEY                      

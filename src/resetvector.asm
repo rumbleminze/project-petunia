@@ -43,6 +43,7 @@ nmi:
     STA HDMAEN
 
     JSL snes_nmi
+    
     JML $A1C866
 _rti:
     rti

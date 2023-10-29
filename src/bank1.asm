@@ -787,24 +787,14 @@ a236:
   NOP
   NOP
   LDA #$23                 
-  NOP           ; STA PpuAddr_2006
-  NOP
-  NOP
+  STA VMADDH
   LDA #$C0               
-  NOP           ; STA PpuAddr_2006 
-    
-  NOP
-  NOP    
+  STA VMADDL
   LDY #$3F                 
   LDA #$AA
-
-  NOP           ; STA PpuData_2007
-  NOP
-  NOP
-
+: STA VMDATAL
   DEY                      
-  NOP ; BPL stappudata2007 up there
-  NOP
+  BPL :-
 
   LDA #$00                 
   STA $46                  
@@ -813,7 +803,9 @@ a236:
   INC $46                  
   LDA $46                  
   CMP #$16                 
-  BNE :-                
+  BNE :-  
+  
+  ; JSL handle_title_screen_a236_attributes              
   RTS
 
 a263:
@@ -832,14 +824,39 @@ a263:
   BNE :-              
   RTS                      
 
-.byte $E7, $21, $E8, $A2, $12, $C0
-.byte $2B, $FA, $A2, $40, $35, $28, $3A, $A3, $04, $53, $28, $3E, $A3, $08, $72, $28
-.byte $4B, $A3, $0E, $80, $28, $59, $A3, $20, $A0, $28, $79, $A3, $20, $C0, $28, $99
-.byte $A3, $05, $E0, $28, $9E, $A3, $04, $00, $29, $A2, $A3, $80, $80, $29, $22, $A4
-.byte $80, $0A, $2A, $A2, $A4, $13, $2A, $2A, $B5, $A4, $13, $58, $2A, $C8, $A4, $05
-.byte $79, $2A, $CD, $A4, $03, $89, $2A, $D0, $A4, $0C, $B7, $2A, $DC, $A4, $03, $C6
-.byte $2A, $DF, $A4, $16, $E3, $2A, $F5, $A4, $19, $01, $2B, $0E, $A5, $0B, $21, $2B
-.byte $19, $A5, $0B, $43, $2B, $24, $A5, $05, $31, $5D, $C0, $64, $12, $C0, $C3, $A7
+; Title Screen Graphics in sets of 5 bytes
+; 00 - LB of VM ADDR
+; 01 - HB of VM ADDR
+; 02 - LB of source data
+; 03 - HB of source data
+; 04 - # of bytes
+; I've subtracted 0x400 from anything with a VMH addr > 23, since
+; our 2nd BG page is 2400 instead of 2800
+.byte $E7, $21, $E8, $A2, $12
+.byte $C0, $2B, $FA, $A2, $40 ; attributes
+.byte $35, $24, $3A, $A3, $04
+.byte $53, $24, $3E, $A3, $08
+.byte $72, $24, $4B, $A3, $0E
+.byte $80, $24, $59, $A3, $20
+.byte $A0, $24, $79, $A3, $20
+.byte $C0, $24, $99, $A3, $05 ; also attributes, but smaller because it's just 'push start button'
+.byte $E0, $24, $9E, $A3, $04
+.byte $00, $25, $A2, $A3, $80
+.byte $80, $25, $22, $A4, $80
+.byte $0A, $26, $A2, $A4, $13
+.byte $2A, $26, $B5, $A4, $13
+.byte $58, $26, $C8, $A4, $05
+.byte $79, $26, $CD, $A4, $03
+.byte $89, $26, $D0, $A4, $0C
+.byte $B7, $26, $DC, $A4, $03
+.byte $C6, $26, $DF, $A4, $16
+.byte $E3, $26, $F5, $A4, $19
+.byte $01, $27, $0E, $A5, $0B
+.byte $21, $27, $19, $A5, $0B
+.byte $43, $27, $24, $A5, $05
+
+; a2e8 - actual attribute and tile data for above starts here
+.byte $31, $5D, $C0, $64, $12, $C0, $C3, $A7
 .byte $B6, $C3, $12, $65, $5D, $C3, $C3, $B7, $A6, $12, $00, $00, $00, $00, $80, $AA
 
 a300:

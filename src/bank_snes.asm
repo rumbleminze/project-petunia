@@ -30,7 +30,7 @@ initialize_registers:
   STZ BG2SC   
   STZ BG3SC   
   STZ BG4SC   
-  STZ BG12NBA 
+  ; STZ BG12NBA 
   STZ BG34NBA 
   STZ BG1HOFS 
   STZ BG1HOFS
@@ -151,16 +151,24 @@ initialize_registers:
   STA TM
   LDA #$01
   STA MEMSEL
-  LDA #$00
+  LDA #$04
   STA SETINI
 
-  lda #0000
-	sta BG12NBA
+  ; lda #0000
+	; sta BG12NBA
   JSR clearvm
   JSR zero_oam
 
 	lda #%0000000
 	sta OBSEL
+
+  JSR zero_attribute_buffer
+
+  STZ ATTR_NES_HAS_VALUES
+  STZ ATTR_NES_VM_ADDR_HB
+  STZ ATTR_NES_VM_ADDR_LB
+  STZ ATTR_NES_VM_ATTR_START
+  STZ ATTRIBUTE_DMA
 
   LDA #$A1
   PHA
@@ -170,7 +178,8 @@ initialize_registers:
 snes_nmi:
   LDA RDNMI
   JSR dma_oam_table
-  JSR copy_prepped_attributes_to_vram
+  JSR disable_attribute_buffer_copy
+  JSR check_and_copy_attribute_buffer
   RTL
 
 clearvm:
@@ -178,7 +187,7 @@ clearvm:
   ldx #$2000
   stx VMADDL 
 	
-	lda #$0112
+	lda #$0012
 	
 	LDY #$0000
 	clear_loop:
@@ -189,6 +198,17 @@ clearvm:
   
   setAXY8
 	RTS
+
+zero_attribute_buffer:
+  LDY #$00
+  LDA #$00
+
+: STA ATTRIBUTE_CACHE, Y
+  STA ATTRIBUTE_CACHE + 256, Y
+  INY
+  BNE :-
+
+  RTS
 
 zero_oam:
 
@@ -322,7 +342,7 @@ write_data_to_ppu:
   STZ TILES_TO_WRITE_HB
 
   ; if this is writing attributes, assume they'll be used by the next group of tiles
-  ; Kid Icarus always writes those first, maybe?
+  ; Kid Icarus always writes those first, maybe?  nope.
   LDA PPU_DEST_LB
   AND #$C0
   CMP #$C0
@@ -399,7 +419,7 @@ write_data_to_ppu:
 	AND #$00FF
 	CLC
   ; add #$0100 to use BG tiles instead of sprite tiles
-	ADC #$0100
+	; ADC #$0100
 	ADC PPU_TILE_ATTR
         
 	STA VMDATAL
@@ -499,7 +519,7 @@ calculate_attributes_from_address:
 	ASL A
 	ASL A	
   CLC
-  ADC #$0100
+  ; ADC #$0100
 	STA PPU_TILE_ATTR
   PLX
   PLY
@@ -811,7 +831,7 @@ nes_951d_copy:
   LDA $0483,Y 
   AND #$00FF
   CLC
-  ADC #$0100
+  ; ADC #$0100
   ADC PPU_TILE_ATTR
   STA VMDATAL ; PpuData_2007         
   INY       
@@ -828,35 +848,45 @@ nes_951d_copy:
 
 nes_9537_copy:
          
-  LDA #.hibyte(ATTRIBUTE_HOLDING)                 
-  STA $02 
-
-  JSR nes96c6_copy              
-  LDA $00
-  STA $01
-
+  JSR nes96c6_copy        
+  LDA $00                  
+  CLC                      
+  ADC #$C0                 
+  STA $01                  
+  LDA #$23                 
+  STA $02                  
   LDA $1A                  
   AND #$01                 
-  BNE :+ 
-  ; add 40 to the attribute addr if we're on the 2nd
-  ; bg       
-  LDA #$40
-  ADC $01
-  STA $01  
-  ; $01.w now contains the address to start 
-  ; writing the next 8 attributes                
-: JSR nes96c6_copy
-
-  TAX
+  BNE :+        
+  LDA #$27   ; LDA #$2B                 
+  STA $02                  
+; : NOP        ; LDA PpuStatus_2002       
+;   NOP
+;   NOP
+: LDA $02                  
+  STA ATTR_NES_VM_ADDR_HB ; PpuAddr_2006         
+  LDA $01                  
+  STA ATTR_NES_VM_ADDR_LB ; PpuAddr_2006         
+  JSR nes96c6_copy              
+  TAX                     
   LDY #$00
-: LDA $03B0,X
-  STA ($01),Y
-  INX
-  INY
+  ; STY ATTR_NES_VM_COUNT 
+  ; INC ATTR_NES_VM_COUNT  
+  
+: LDA $03B0,X              
+  STA ATTR_NES_VM_ATTR_START, Y; PpuData_2007         
+  INX                      
+  INY     
+  CPY #$08                 
+  BNE :-         
 
-  CPY #$08
-  BNE :-
+  STY ATTR_NES_VM_COUNT
+
+  LDA #$00
+  STA ATTR_NES_VM_ATTR_START, Y
           
+  INC ATTR_NES_HAS_VALUES
+
   RTL 
 
 
@@ -867,6 +897,38 @@ nes96c6_copy:
   LSR A                    
   STA $00                  
   RTS 
+
+handle_title_screen_a236_attributes:
+  LDA #$23
+  STA ATTR_NES_VM_ADDR_HB
+  LDA #$C0
+  STA ATTR_NES_VM_ADDR_LB
+  
+  LDX #$02
+
+: LDY #$00
+  LDA #$AA
+: STA ATTR_NES_VM_ATTR_START, Y
+  INY
+  CPY #$20
+  BNE :-
+  LDA #$00
+  STA ATTR_NES_VM_ATTR_START, Y
+  LDA #$20
+  STA ATTR_NES_VM_COUNT
+  PHX
+  INC ATTR_NES_HAS_VALUES
+  JSL convert_nes_attributes_and_immediately_dma_them
+  PLX
+  DEX
+  BEQ :+
+  LDA ATTR_NES_VM_ADDR_LB
+  CLC
+  ADC #$20
+  STA ATTR_NES_VM_ADDR_LB
+  BRA :--
+: RTL
+
 
 convert_attributes:
   PHY
@@ -900,6 +962,11 @@ convert_attributes:
   PLY
   RTL
 
+check_and_copy_attribute_buffer:
+  LDA ATTRIBUTE_DMA
+  BNE copy_prepped_attributes_to_vram
+  RTS
+
 copy_prepped_attributes_to_vram:
   STZ ATTRIBUTE_DMA
   LDA #$80
@@ -910,17 +977,17 @@ copy_prepped_attributes_to_vram:
 : LDX ATTRIBUTE_DMA + 1
   LDA #$7E
   STA A1B0
-  LDA ATTRIBUTE_DMA + 2,X
+  LDA ATTR_DMA_SRC_HB,X
   STA A1T0H
-  LDA ATTRIBUTE_DMA + 4,X
+  LDA ATTR_DMA_SRC_DB,X
   STA A1T0L
-  LDA ATTRIBUTE_DMA + 6,X
+  LDA ATTR_DMA_SIZE_LB,X
   STA DAS0L
-  LDA ATTRIBUTE_DMA + 8,X
+  LDA ATTR_DMA_SIZE_HB,X
   STA DAS0H
-  LDA ATTRIBUTE_DMA + 10,X
+  LDA ATTR_DMA_VMADDH,X
   STA VMADDH
-  LDA ATTRIBUTE_DMA + 12,X
+  LDA ATTR_DMA_VMADDL,X
   STA VMADDL
   LDA #$01
   STA MDMAEN
@@ -936,6 +1003,13 @@ copy_prepped_attributes_to_vram:
   STA ATTRIBUTE_DMA + 1
   RTS
 
+disable_attribute_buffer_copy:
+  STZ ATTR_NES_VM_ADDR_HB
+  STZ ATTR_NES_HAS_VALUES
+  ; STZ ATTR_DMA_SIZE_LB
+  RTS
+
+
 attr_lookup_table_1_inf_9450:
 .byte $00, $04, $08, $0C, $10, $14, $18, $1C, $80, $84, $88, $8C, $90, $94, $98, $9C
 
@@ -949,13 +1023,18 @@ attr_lookup_table_2_inf_95C0:
 .byte $10, $20, $30, $40, $50, $60, $70, $80, $90, $A0, $B0, $C0, $D0, $E0, $F0, $00
 
 
+convert_nes_attributes_and_immediately_dma_them:
+  JSR check_and_copy_nes_attributes_to_buffer
+  JSR copy_prepped_attributes_to_vram
+  RTL
+
 ; converts attributes stored at 9A0 - A07 to attribute cache
 ; When we write to VRAM 23C0 - 23FF or 27C0 - 27FF we also must write it to 9A4 - 9E3 
 ; and 9e8 - a27
-inf_9470:
-  LDA $09A1
+check_and_copy_nes_attributes_to_buffer:
+  LDA ATTR_NES_HAS_VALUES
   BNE convert_attributes_inf
-  RTL
+  RTS
 convert_attributes_inf:
   PHK
   PLB
@@ -965,16 +1044,17 @@ convert_attributes_inf:
   STA $00
   LDA #$09
   STA $01
-  STZ ATTRIBUTE_DMA + 4
-  STZ ATTRIBUTE_DMA + 5
+  STZ ATTR_DMA_SRC_DB
+  STZ ATTR_DMA_SRC_DB + 1
   LDA #$18
-  STA ATTRIBUTE_DMA + 2
+  STA ATTR_DMA_SRC_HB
   LDA #$1A
-  STA ATTRIBUTE_DMA + 3
+  STA ATTR_DMA_SRC_HB + 1
   LDY #$00  
 inf_9497:
   LDA ($00),Y
-  BEQ inf_9470 + 5
+  ; early rtl
+  BEQ check_and_copy_nes_attributes_to_buffer + 5
   AND #$03
   CMP #$03
   BEQ :+
@@ -997,7 +1077,13 @@ inf_9497:
   TAY
   LDA attr_lookup_table_1_inf_9450,Y
   PLY
-  STA ATTRIBUTE_DMA + 12,X
+  LDA ($00),Y
+  AND #$0F
+  ASL A
+  ASL a
+  ASL a
+  ASL A
+  STA ATTR_DMA_VMADDL,X
   LDA ($00),Y
   AND #$30
   LSR
@@ -1016,11 +1102,11 @@ inf_9497:
   INC
   INC
   INC
-  STA ATTRIBUTE_DMA + 10,X
+  STA ATTR_DMA_VMADDH,X
   BRA :++
 : LDA #$00
   XBA
-  STA ATTRIBUTE_DMA + 10,X
+  STA ATTR_DMA_VMADDH,X
 : INY
   INY
   LDA ($00),Y
@@ -1029,16 +1115,22 @@ inf_9497:
   TAX
   LDA attr_lookup_table_2_inf_95C0 + 15,X
   PLX
-  STA ATTRIBUTE_DMA + 8,X
+  STA ATTR_DMA_SIZE_LB,X
   LDA ($00),Y
-  AND #$3F
-  PHX
+  AND #$3F  
+  CMP #$0F
+  BPL :+
+  LDA #$00
+  BRA :++
+: PHX
   TAX
-  LDA $95AE,X
+  LDA inf_95AE,X
   PLX
-  STA ATTRIBUTE_DMA + 8,X
+: STA ATTR_DMA_SIZE_HB,X
+  ; LDA #$80
+  ; STA ATTR_DMA_SIZE_LB
+  ; STZ ATTR_DMA_SIZE_HB
   LDA ($00),Y
-  AND #$3F
   STA ATTRIBUTE_DMA + 14
   STA ATTRIBUTE_DMA + 15
   LDA ATTRIBUTE_DMA + 2,X
@@ -1134,13 +1226,16 @@ inf_952D:
   NOP
   LDA ($00,X)
   BNE inf_95b9
+
+
+  STZ ATTR_NES_HAS_VALUES
   LDA #$FF
   STA ATTRIBUTE_DMA
-  RTL
+  RTS
 
 inf_95b9:
   ; i can't find this getting called, and 9720 looks non-sensical to me
-  JMP $9720
+  JMP inf_9720
 
 inc_attribute_hdma_store_to_x:
   INC ATTRIBUTE_DMA + 1
@@ -1199,6 +1294,26 @@ inf_9720:
   PLA
   STA $02
   JMP inf_9497
+
+; this replaces EB21 in bank 2 so we can do more stuff in the main loop
+nes_eb21_replacement:
+  LDA $26
+  ROR
+  ROR
+  CLC
+  ADC #$03
+  CLC
+  ADC #$20
+  STA $26
+
+  ; do my own stuff now
+  ; would like to do this here too, but need to find the right spot everywhere
+  ; so for now i'm doing it at the end of NMI
+  ; JSR translate_nes_sprites_to_oam
+  JSR check_and_copy_nes_attributes_to_buffer
+
+  RTL
+  
 
 
 palette_lookup:
