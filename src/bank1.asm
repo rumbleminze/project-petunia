@@ -783,9 +783,9 @@ a210:
 
 a236:
   JSR $EF77
-  NOP           ; LDA PpuStatus_2002       
-  NOP
-  NOP
+  ; NOP           ; LDA PpuStatus_2002       
+  ; NOP
+  ; NOP
   LDA #$23                 
   STA VMADDH
   LDA #$C0               
@@ -805,7 +805,7 @@ a236:
   CMP #$16                 
   BNE :-  
   
-  ; JSL handle_title_screen_a236_attributes              
+  JSR jsr_to_handle_title_screen_a236_attributes              
   RTS
 
 a263:
@@ -1262,7 +1262,13 @@ rts_from_abd0:
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
 a2ae00:
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+jsr_to_handle_title_screen_a236_attributes:
+  JSL handle_title_screen_a236_attributes
+  LDA #$A2
+  PHA
+  PLB
+  RTS
+.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF

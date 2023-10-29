@@ -1339,7 +1339,7 @@
 
 ; 0xE7CB - E7E0
 JMP @nesE7CB_replc    
-JMP @nesE7CB_replc + 2
+JMP @nesE7CD_replc
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00           
 .byte $00
 
@@ -2519,6 +2519,8 @@ JMP @nes_e861_replacement
 
 @nesE7CB_replc:
 ; disable video while we do stuff
+  PHK
+  PLB
   LDA INIDISP_STATE
   ORA #$80
   STA INIDISP 
@@ -2610,7 +2612,8 @@ JMP @nes_e861_replacement
   STA $01
   PLA
   STA $00
-  
+  PHK
+  PLB
   ; LDA INIDISP_STATE
   ; STA INIDISP   
 

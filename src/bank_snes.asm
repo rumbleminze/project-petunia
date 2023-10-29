@@ -530,8 +530,6 @@ write_palette_data:
   PHY
   PHA
   
-  
-
   setAXY8
   LDA #$A0
   
@@ -899,6 +897,10 @@ nes96c6_copy:
   RTS 
 
 handle_title_screen_a236_attributes:
+  LDA $A0
+  PHA
+  PLB
+  ; PUSH START BUTTON, this whole screen is just $AA
   LDA #$23
   STA ATTR_NES_VM_ADDR_HB
   LDA #$C0
@@ -908,27 +910,83 @@ handle_title_screen_a236_attributes:
 
 : LDY #$00
   LDA #$AA
+
 : STA ATTR_NES_VM_ATTR_START, Y
   INY
   CPY #$20
   BNE :-
+
   LDA #$00
   STA ATTR_NES_VM_ATTR_START, Y
+
   LDA #$20
   STA ATTR_NES_VM_COUNT
-  PHX
+  
   LDA #$01
   STA ATTR_NES_HAS_VALUES
+
+  PHX
   JSL convert_nes_attributes_and_immediately_dma_them
   PLX
+
   DEX
   BEQ :+
-  LDA ATTR_NES_VM_ADDR_LB
-  CLC
-  ADC #$20
+
+  LDA #$E0
   STA ATTR_NES_VM_ADDR_LB
+  LDA #$23
+  STA ATTR_NES_VM_ADDR_HB  
   BRA :--
+
+  ; Now for title graphics
+: LDA #$00
+  STA $46
+
+  LDA #$27
+  STA ATTR_NES_VM_ADDR_HB
+  LDA #$C0
+  STA ATTR_NES_VM_ADDR_LB
+  LDY #$00
+
+: LDX #$00
+: LDA title_screen_attributes, Y
+  STA ATTR_NES_VM_ATTR_START, X
+  INY
+  INX
+  CPX #$20
+  BNE :-
+
+  LDA #$00
+  STA ATTR_NES_VM_ATTR_START, X
+
+  LDA #$20
+  STA ATTR_NES_VM_COUNT
+  
+  LDA #$01
+  STA ATTR_NES_HAS_VALUES
+
+  PHX
+  PHY
+  JSL convert_nes_attributes_and_immediately_dma_them
+  PLY
+  PLX
+
+  CPY #$40
+  BEQ :+
+
+  LDA #$E0
+  STA ATTR_NES_VM_ADDR_LB
+  LDA #$27
+  STA ATTR_NES_VM_ADDR_HB  
+  BRA :--
+
 : RTL
+
+title_screen_attributes:
+.byte $00, $00, $00, $00, $80, $AA, $A2, $A0, $AA, $22, $00, $00, $08, $0A, $0A, $0A
+.byte $CE, $FF, $FC, $F0, $55, $55, $55, $00, $CC, $FF, $FF, $FF, $FF, $FF, $FF, $03
+.byte $00, $00, $0C, $0F, $0F, $0F, $FF, $33, $80, $A0, $20, $00, $00, $88, $A2, $00
+.byte $8A, $AA, $0A, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
 
 convert_attributes:
