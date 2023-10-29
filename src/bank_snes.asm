@@ -917,7 +917,8 @@ handle_title_screen_a236_attributes:
   LDA #$20
   STA ATTR_NES_VM_COUNT
   PHX
-  INC ATTR_NES_HAS_VALUES
+  LDA #$01
+  STA ATTR_NES_HAS_VALUES
   JSL convert_nes_attributes_and_immediately_dma_them
   PLX
   DEX
@@ -1021,6 +1022,40 @@ attr_lookup_table_2_inf_95C0:
 .byte $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $02, $00
 .byte $10, $20, $30, $40, $50, $60, $70, $80, $90, $A0, $B0, $C0, $D0, $E0, $F0, $00
 .byte $10, $20, $30, $40, $50, $60, $70, $80, $90, $A0, $B0, $C0, $D0, $E0, $F0, $00
+
+; $0C $0D contains address to load 40 attributes
+; we always load it as if it's coming from 23C0 - 23FF
+load_0x40_attributes_from_ram_for_pause:
+  ; 20 at a time
+  LDX #$00
+  LDY #$00
+  LDA #$C0
+: STA ATTR_NES_VM_ADDR_LB
+  LDA #$23
+  STA ATTR_NES_VM_ADDR_HB
+  LDA #$20
+  STA ATTR_NES_VM_COUNT
+
+: LDA ($0C), Y
+  STA ATTR_NES_VM_ATTR_START, X
+  INY
+  INX
+  CPX #$20
+  BNE :-
+
+  LDA #$00
+  STA ATTR_NES_VM_ATTR_START, X
+  LDA #$01
+  STA ATTR_NES_HAS_VALUES
+  PHY
+  JSL convert_nes_attributes_and_immediately_dma_them
+  PLY
+  LDA #$E0
+  LDX #$00
+  CPY #$40
+  BNE:--
+
+  RTL
 
 
 convert_nes_attributes_and_immediately_dma_them:
@@ -1226,7 +1261,6 @@ inf_952D:
   NOP
   LDA ($00,X)
   BNE inf_95b9
-
 
   STZ ATTR_NES_HAS_VALUES
   LDA #$FF

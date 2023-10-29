@@ -2598,18 +2598,18 @@ JMP @nes_e861_replacement
   ; attributes are for the next tiles whenever they change
   ; and load them with the tiles                
   STX $0C                  
-  STA $0D                  
-  STY $01              
-  LDX #$40                 
-  LDY #$00                 
-: LDA ($0C),Y              
-  STA VMDATAL ; STA PpuData_2007
-  STA ATTRIBUTE_HOLDING, Y 
-  INY                      
-  DEX                      
-  BNE :-                
-  
-  LDY $01    
+  STA $0D 
+  LDA $00
+  PHA
+  LDA $01
+  PHA                 
+  PHY             
+  jsl load_0x40_attributes_from_ram_for_pause              
+  PLY
+  PLA
+  STA $01
+  PLA
+  STA $00
   
   ; LDA INIDISP_STATE
   ; STA INIDISP   
