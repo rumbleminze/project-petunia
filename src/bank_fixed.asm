@@ -594,18 +594,71 @@
   .byte $ea, $ea    
 
   PLA                      
-  RTS                      
+  RTS    
 
+  LDA $BE
+  JMP $C17F
 
-; cb49
-.byte $A5, $BE, $4C, $7F, $C1, $A5, $BE
-.byte $20, $7F, $C1, $20, $33, $7F, $20, $36, $7F, $20, $39, $7F, $20, $3C, $7F, $A9
-.byte $06, $4C, $7F, $C1, $A9, $02, $D0, $20, $A9, $04, $D0, $1C, $A9, $08, $D0, $18
-.byte $A5, $3A, $F0, $1F, $C9, $10, $90, $2E, $AC, $2F, $01, $A5, $46, $D9, $90, $CB
-.byte $F0, $0A, $C9, $1B, $D0, $05, $A9, $40, $8D, $85, $03, $60, $A9, $20, $D0, $F8
-.byte $37, $2E, $07, $AD, $2F, $01, $C9, $01, $F0, $CA, $C9, $02, $F0, $CA, $C9, $03
-.byte $F0, $CA, $A9, $01, $D0, $E2, $A4, $3B, $C0, $22, $F0, $E0, $C0, $23, $F0, $DC
-.byte $A9, $01, $8D, $80, $03, $60, $20, $09, $7F, $A2, $20, $BD, $01, $07, $10, $7A
+; cb49 - load info for room switch
+  JMP @nes_cb49_replacement
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea, $ea
+  ; LDA $BE
+  ; JSR $C17F
+  ; JSR $007F33
+  ; JSR $007F36
+  ; JSR $007F39
+  ; JSR $007F3C
+  ; LDA #$06
+  ; JMP $C17F
+@fixedCB64:
+  LDA #$02
+  BNE :+
+  LDA #$04
+  BNE :+
+  LDA #$08
+  BNE :+
+  LDA $3A
+  BEQ @fixedCB93
+  CMP #$10
+  BCC @fixedCBA6
+  LDY $012F
+  LDA $46
+  CMP $CB90,Y
+  BEQ @fixedCB8C
+  CMP #$1B
+  BNE :++
+  LDA #$40
+: STA $0385
+: RTS
+
+; cb8c
+@fixedCB8C:
+  LDA #$20
+  BNE :--
+@fixedCB90:
+  .byte $37, $2E, $07
+@fixedCB93:
+  LDA $012F
+  CMP #$01
+  BEQ @fixedCB64
+  CMP #$02
+  BEQ @fixedCB64 + 4
+  CMP #$03
+  BEQ @fixedCB64 + 8
+  LDA #$01
+  BNE :--
+@fixedCBA6:
+  LDY $3B
+  CPY #$22
+  BEQ @fixedCB8C
+  CPY #$23
+  BEQ @fixedCB8C
+  LDA #$01
+  STA $0380
+  RTS
+
+.byte $20, $09, $7F, $A2, $20, $BD, $01, $07, $10, $7A
 .byte $29, $70, $F0, $03, $4C, $54, $CC, $BD, $00, $07, $C9, $E8, $90, $03, $4C, $7B
 .byte $CC, $C9, $10, $B0, $05, $A9, $10, $9D, $00, $07, $20, $B8, $DF, $20, $AB, $E0
 .byte $20, $B3, $CC, $BD, $01, $07, $29, $0F, $20, $2B, $EE, $F9, $CC, $F9, $CC, $F9
@@ -1804,7 +1857,6 @@ JMP @nes_e861_replacement
 
 ; 0xEBC9
   ; LDA PpuStatus_2002   
-
   LDA $1B                  
   AND #$01                 
   STA $00                  
@@ -1813,12 +1865,8 @@ JMP @nes_e861_replacement
   AND #$01                 
   ASL A                    
   ORA $00                  
-  STA $00                  
-      
-
-  ; STZ PAUSE_HDMA
-
-  
+  STA $00
+  ; STZ PAUSE_HDMA  
 .byte $ea, $ea
   LDA STORED_OFFSETS_SET
   BEQ :+
@@ -1828,8 +1876,7 @@ JMP @nes_e861_replacement
   ORA $00
   JSL store_to_ppu_control
   JSL setup_hdma   
- 
-  
+
   ; NOP
   ; NOP
   ; NOP
@@ -2628,7 +2675,16 @@ JMP @nes_e861_replacement
   BNE :-                
   RTS   
 
-      
+@nes_cb49_replacement:
+  LDA $BE
+  JSR $C17F
+  JSR $007F33
+  JSR $007F36
+  JSR $007F39
+  JSR $007F3C
+  JSL convert_nes_attributes_and_immediately_dma_them
+  LDA #$06
+  JMP $C17F    
 
 ; F42x-something
 

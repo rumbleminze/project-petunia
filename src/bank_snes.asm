@@ -849,7 +849,7 @@ nes_9537_copy:
   JSR nes96c6_copy        
   LDA $00                  
   CLC                      
-  ADC #$C0                 
+  ADC #$C0
   STA $01                  
   LDA #$23                 
   STA $02                  
@@ -881,10 +881,8 @@ nes_9537_copy:
   STY ATTR_NES_VM_COUNT
 
   LDA #$00
-  STA ATTR_NES_VM_ATTR_START, Y
-          
+  STA ATTR_NES_VM_ATTR_START, Y          
   INC ATTR_NES_HAS_VALUES
-
   RTL 
 
 

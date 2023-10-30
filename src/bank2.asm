@@ -716,12 +716,15 @@ nes93CA:
   STA $27                  
   LDA $FD          
   CMP #$F0                 
-  BCC :+       
-  LDA #$EF                 
-  STA $FD          
-  LDA $5C                  
-  ORA #$80                 
-  STA $5C                  
+  BCC :+  
+
+  JSR handle_scroll_wrap     
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  ; LDA #$EF                 
+  ; STA $FD        
+  ; LDA $5C                  
+  ; ORA #$80                 
+  ; STA $5C                  
 : RTS               
 
 : LDA #$00                 
@@ -1914,9 +1917,19 @@ level_load_tile_and_attributes:
   JSL convert_nes_attributes_and_immediately_dma_them
   RTS
 
-.byte $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $DF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+handle_scroll_wrap:
+  LDA #$EF                 
+  STA $FD    
+  LDA PPU_CONTROL_STATE
+  EOR #$02    
+  JSL store_to_ppu_control
+  JSL setup_hdma
+  LDA $5C                  
+  ORA #$80                 
+  STA $5C  
+  RTS
+  
+.byte $FF, $FF, $FF, $FF, $FF, $FF, $DF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
