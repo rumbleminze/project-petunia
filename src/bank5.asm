@@ -242,33 +242,19 @@
 
 
 ; 8C12 - 8C47
-    JSR $8DA1
-    LDA $00
-    CLC
-    ADC #$C0
-    STA $01
-    LDA #$23
-    STA $02
-    LDA $1A
-    AND #$01
-    BNE :+
-    LDA #$27
-    STA $02
-:   NOP
-    NOP
-    NOP
-    LDA $02
-    STA VMADDH
-    LDA $01
-    STA VMADDL
-    JSR $8DA1
-    TAX
-    LDY #$07
-:   LDA $03B0,X
-    STA VMDATAL
-    INX
-    DEY
-    BPL :-
+    JSL nes_9537_copy
+    JSL convert_nes_attributes_and_immediately_dma_them
+    ; converting attributes leaves us with VMAIN incrementing on 2119, but we
+    ; need to increment on 2118
+    STZ VMAIN
+    LDA #$A6
+    PHA
+    PLB
+    ; 8C1D - 8C46
+    .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+    .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+    .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea 
+
     RTS
 
 ; 8C48

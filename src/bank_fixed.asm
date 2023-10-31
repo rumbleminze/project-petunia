@@ -2683,12 +2683,13 @@ JMP @nes_e861_replacement
   JSR $007F39
   JSR $007F3C
   JSL convert_nes_attributes_and_immediately_dma_them
+  STZ VMAIN
   LDA #$06
   JMP $C17F    
 
 ; F42x-something
 
-.byte $FF, $FF, $FF, $FF, $FF, $7F, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $FF, $FF, $FF, $FF, $FF, $7F, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $7F, $F4, $ED, $DF, $FF, $BB, $FF, $FF
 .byte $FF, $FF, $FF, $FB, $FF, $FF, $FF, $FB, $FF, $FF, $FF, $F7, $FF, $FE, $FF, $FF
 .byte $FF, $FF, $EF, $FF, $FF, $FE, $FF, $FF, $9B, $3D, $E1, $50, $FF, $AA, $FF, $FF
