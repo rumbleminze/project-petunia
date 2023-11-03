@@ -844,6 +844,7 @@ nes_951d_copy:
   ; STA VMAIN
   RTL
 
+veritcal_scroll_attribute_handle:
 nes_9537_copy:
          
   JSR nes96c6_copy        
@@ -856,23 +857,17 @@ nes_9537_copy:
   LDA $1A                  
   AND #$01                 
   BNE :+        
-  LDA #$27   ; LDA #$2B                 
-  STA $02                  
-; : NOP        ; LDA PpuStatus_2002       
-;   NOP
-;   NOP
+  LDA #$27         
+  STA $02        
 : LDA $02                  
-  STA ATTR_NES_VM_ADDR_HB ; PpuAddr_2006         
-  LDA $01                  
-  STA ATTR_NES_VM_ADDR_LB ; PpuAddr_2006         
+  STA ATTR_NES_VM_ADDR_HB      
+  LDA $01                 
+  STA ATTR_NES_VM_ADDR_LB      
   JSR nes96c6_copy              
   TAX                     
-  LDY #$00
-  ; STY ATTR_NES_VM_COUNT 
-  ; INC ATTR_NES_VM_COUNT  
-  
+  LDY #$00  
 : LDA $03B0,X              
-  STA ATTR_NES_VM_ATTR_START, Y; PpuData_2007         
+  STA ATTR_NES_VM_ATTR_START, Y     
   INX                      
   INY     
   CPY #$08                 
@@ -893,6 +888,79 @@ nes96c6_copy:
   LSR A                    
   STA $00                  
   RTS 
+
+; copy of 02:AC47
+horizontal_attribute_scroll_handle:
+  JSR nes_02_ada9_copy
+  LDY #$00
+  STZ ATTR_NES_VM_COUNT
+
+: INC ATTR_NES_VM_COUNT
+  TYA
+  ASL A
+  ASL A
+  ASL A
+  CLC
+  ADC $00
+  STA $03
+  CLC
+  ADC #$C0
+  PHA
+  LDA $1B
+  EOR #$01
+  AND #$01
+  ASL A
+  ASL A
+  ORA #$23  
+  STA ATTR_NES_VM_ADDR_HB
+  PLA
+  STA ATTR_NES_VM_ADDR_LB
+  
+  LDX $03
+  LDA $03B0,X
+  STA ATTR_NES_VM_ATTR_START, Y
+  INY
+  CPY #$08
+  BCC :-
+  LDA #$00
+
+  STA ATTR_NES_VM_ATTR_START, Y
+  INC ATTR_NES_HAS_VALUES
+
+  RTL
+
+nes_02_ada9_copy:
+  LDA #$00
+  STA $00
+  LDA $FE
+  AND #$E0
+  ASL A
+  ROL $00
+  ASL A
+  ROL $00
+  ASL A
+  ROL $00
+  RTS
+
+full_attribute_calculations:
+  LDA #$23
+  STA ATTR_NES_VM_ADDR_HB
+  LDA #$C0
+  STA ATTR_NES_VM_ADDR_LB
+
+  LDY #$00
+: LDA $3B0, Y
+  STA ATTR_NES_VM_ATTR_START, Y
+  INY
+  CPY #$40
+  BCC :-
+
+  LDA #$40
+  STA ATTR_NES_VM_COUNT
+  INC ATTR_NES_HAS_VALUES
+
+  JSL convert_nes_attributes_and_immediately_dma_them
+
 
 handle_title_screen_a236_attributes:
   LDA $A0
@@ -1112,6 +1180,39 @@ load_0x40_attributes_from_ram_for_pause:
   BNE:--
 
   RTL
+
+load_0x40_attributes_for_lvl3:
+  ; 20 at a time
+  LDX #$00
+  LDY #$00
+  LDA $0481
+: STA ATTR_NES_VM_ADDR_LB
+  LDA $0482
+  STA ATTR_NES_VM_ADDR_HB
+  LDA #$20
+  STA ATTR_NES_VM_COUNT
+
+: LDA $0483, Y
+  STA ATTR_NES_VM_ATTR_START, X
+  INY
+  INX
+  CPX #$20
+  BNE :-
+
+  LDA #$00
+  STA ATTR_NES_VM_ATTR_START, X
+  LDA #$01
+  STA ATTR_NES_HAS_VALUES
+  PHY
+  JSL convert_nes_attributes_and_immediately_dma_them
+  PLY
+  LDA #$E0
+  LDX #$00
+  CPY #$40
+  BNE:--
+
+  RTL
+
 
 
 convert_nes_attributes_and_immediately_dma_them:
@@ -1404,7 +1505,55 @@ nes_eb21_replacement:
 
   RTL
   
+nes_ef39_load_3b0_to_3ff_to_attributes:
+  LDA #$23
+  STA FULL_ATTRIBUTE_COPY_HB
+  LDA #$B0
+  STA FULL_ATTRIBUTE_COPY_SRC_LB
+  LDA #$03
+  STA FULL_ATTRIBUTE_COPY_SRC_HB
+  JSR copy_full_screen_attributes
 
+  LDA #$27
+  STA FULL_ATTRIBUTE_COPY_HB
+  LDA #$F0
+  STA FULL_ATTRIBUTE_COPY_SRC_LB
+  LDA #$03
+  STA FULL_ATTRIBUTE_COPY_SRC_HB
+  JSR copy_full_screen_attributes
+
+  RTL 
+  
+copy_full_screen_attributes:
+  LDX #$00
+  LDY #$00
+  LDA #$C0
+: STA ATTR_NES_VM_ADDR_LB
+  LDA FULL_ATTRIBUTE_COPY_HB
+  STA ATTR_NES_VM_ADDR_HB
+
+  LDA #$20
+  STA ATTR_NES_VM_COUNT
+
+: LDA (FULL_ATTRIBUTE_COPY_SRC_LB), Y
+  STA ATTR_NES_VM_ATTR_START, X
+  INY
+  INX
+  CPX #$20
+  BNE :-
+
+  LDA #$00
+  STA ATTR_NES_VM_ATTR_START, X
+  LDA #$01
+  STA ATTR_NES_HAS_VALUES
+  PHY
+  JSL convert_nes_attributes_and_immediately_dma_them
+  PLY
+  LDA #$E0
+  LDX #$00
+  CPY #$40
+  BNE:--
+  RTS
 
 palette_lookup:
 .byte $8C, $31 ; $00 dark grey

@@ -418,13 +418,32 @@
   PLA
   JMP $8095
 
+  ; a4:9787
+  LDA $F3
+  AND #$80
+  BEQ :++
+  LDA $FD
+  SEC
+  SBC #$01
+  STA $FD
+  LDA $1A
+  SBC #$00
+  STA $1A
+  LDA #$01
+  STA $27
+  LDA $FD
+  CMP #$F0
+  BCC :+
+  JSR handle_world_3_vertical_wrap
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea
+: RTS
 
-.byte $A5, $F3, $29, $80, $F0, $22, $A5, $FD, $38
-.byte $E9, $01, $85, $FD, $A5, $1A, $E9, $00, $85, $1A, $A9, $01, $85, $27, $A5, $FD
-.byte $C9, $F0, $90, $0A, $A9, $EF, $85, $FD, $A5, $5C, $09, $80, $85, $5C, $60, $A9
-.byte $00, $85, $27, $60
+: LDA #$00
+  STA $27
+  RTS
 
-; 97B4 - 94CD
+
+; 97B4 - 97CD
   LDA $0482
   STA VMADDH
   LDA $0481
@@ -437,36 +456,19 @@
   BCC :-
   RTS
 
-; 97CE - 9803
+; 97CE - 9803 - attribute copy
+  JSL veritcal_scroll_attribute_handle
+  STZ VMAIN
+  LDA #$A4
+  PHA
+  PLB
 
-  JSR $995D
-  LDA $00
-  CLC
-  ADC #$C0
-  STA $01
-  LDA #$23
-  STA $02
-  LDA $1A
-  AND #$01
-  BNE :+
-  LDA #$27 ;   LDA #$2B
-  STA $02
-  ; LDA PPU_STATUS
-: NOP
-  NOP
-  NOP
-  LDA $02
-  STA VMADDH
-  LDA $01
-  STA VMADDL
-  JSR $995D
-  TAX
-  LDY #$07
-: LDA $03B0,X
-  STA VMDATAL
-  INX
-  DEY
-  BPL :-
+  ; 97DA
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea
+
   RTS
 
 
@@ -523,22 +525,67 @@
 .byte $85, $01, $4C, $BC, $98, $20, $4E, $98, $20, $4B, $99, $20, $5D, $99, $A2, $00
 .byte $18, $8A, $65, $00, $A8, $B1, $64, $9D, $F0, $03, $E8, $E0, $08, $90, $F1, $A5
 .byte $FD, $29, $10, $F0, $2B, $A0, $00, $18, $98, $65, $00, $85, $01, $98, $AA, $BD
+;9900
 .byte $F0, $03, $29, $F0, $85, $02, $A5, $01, $AA, $BD, $B0, $03, $29, $0F, $05, $02
 .byte $85, $02, $A5, $01, $AA, $A5, $02, $9D, $B0, $03, $C8, $C0, $08, $90, $D8, $60
 .byte $A0, $00, $18, $98, $65, $00, $85, $01, $98, $AA, $BD, $F0, $03, $29, $0F, $85
 .byte $02, $A5, $01, $AA, $BD, $B0, $03, $29, $F0, $05, $02, $85, $02, $A5, $01, $AA
 .byte $A5, $02, $9D, $B0, $03, $C8, $C0, $08, $90, $D8, $60, $AD, $D1, $04, $29, $01
 .byte $0A, $A8, $B9, $23, $77, $85, $64, $B9, $24, $77, $85, $65, $60, $A5, $FD, $29
-.byte $E0, $4A, $4A, $85, $00, $60, $20, $4E, $98, $A9, $00, $85, $5C, $8D, $D2, $04
-.byte $20, $D6, $99, $A9, $06, $20, $90, $CA, $A9, $00, $8D, $D2, $04, $EE, $D1, $04
-.byte $20, $D9, $99, $A9, $06, $20, $90, $CA, $20, $C1, $99, $A9, $FF, $85, $1A, $A9
-.byte $EE, $85, $FD, $20, $04, $98, $20, $D5, $98, $20, $B4, $97, $20, $CE, $97, $A5
-.byte $FD, $38, $E9, $10, $85, $FD, $A5, $1A, $E9, $00, $85, $1A, $C9, $FE, $B0, $E3
-.byte $A9, $FF, $85, $1A, $A9, $EE, $85, $FD, $60, $20, $D6, $99, $A9, $06, $20, $90
+.byte $E0, $4A, $4A, $85, $00, $60
+
+;9966
+  JSR $984E
+  LDA #$00
+  STA $5C
+  STA $04D2
+  JSR $99D6
+  LDA #$06
+  JSR $CA90
+  LDA #$00
+  STA $04D2
+  INC $04D1
+  JSR $99D9
+  LDA #$06
+  JSR $CA90
+  JSR $99C1
+  LDA #$FF
+  STA $1A
+  LDA #$EE
+  STA $FD
+: JSR $9804
+  JSR $98D5
+
+  JSR level_3_load_tiles_and_attributes
+  NOP
+  NOP
+  NOP
+  ; JSR $97B4
+  ; JSR $97CE
+
+  LDA $FD
+  SEC
+  SBC #$10
+  STA $FD
+  LDA $1A
+  SBC #$00
+  STA $1A
+  CMP #$FE
+  BCS :-
+  LDA #$FF
+  STA $1A
+  LDA #$EE
+  STA $FD
+  RTS
+
+; 99b8
+.byte $20, $D6, $99, $A9, $06, $20, $90
 .byte $CA, $A0, $0F, $B9, $00, $05, $99, $E0, $06, $88, $10, $F7, $60, $A5, $5C, $09
 .byte $40, $85, $5C, $68, $68, $60, $20, $4E, $98, $A9, $00, $8D, $D2, $04, $AD, $30
 .byte $01, $0A, $A8, $B9, $2B, $77, $85, $00, $B9, $2C, $77, $85, $01, $AD, $D1, $04
 .byte $0A, $A8, $B1, $00, $85, $49, $C8, $B1, $00, $C9, $FF, $F0, $D0, $85, $4A, $20
+
+; 9A00
 .byte $59, $98, $20, $4B, $99, $4C, $25, $9A, $AD, $D1, $04, $0A, $A8, $B9, $31, $77
 .byte $85, $49, $B9, $32, $77, $85, $4A, $A5, $3A, $C9, $10, $90, $E2, $A0, $00, $20
 .byte $60, $98, $20, $52, $99, $20, $FF, $9A, $A0, $00, $B1, $49, $20, $0A, $9B, $A0
@@ -555,6 +602,8 @@
 .byte $18, $A5, $4D, $65, $5D, $85, $5D, $A5, $53, $29, $0F, $AA, $18, $A5, $62, $65
 .byte $5D, $85, $5D, $A9, $00, $65, $63, $85, $5E, $A0, $00, $B9, $54, $00, $91, $5D
 .byte $98, $18, $65, $5D, $29, $0F, $C9, $0F, $B0, $04, $C8, $CA, $D0, $ED, $60, $A0
+
+; 9B00
 .byte $00, $98, $91, $62, $C8, $C0, $F0, $90, $F9, $60, $29, $03, $A8, $B9, $18, $9B
 .byte $A0, $40, $91, $64, $88, $10, $FB, $60, $00, $55, $AA, $FF, $A5, $53, $29, $F0
 .byte $4A, $4A, $4A, $4A, $8D, $D0, $04, $A5, $53, $29, $0F, $18, $6D, $D0, $04, $8D
@@ -567,11 +616,40 @@
 .byte $8D, $CE, $04, $F0, $08, $4C, $8D, $9B, $A9, $03, $8D, $CE, $04, $AD, $CE, $04
 .byte $49, $FF, $A0, $00, $31, $66, $8D, $CF, $04, $A5, $4F, $29, $02, $F0, $0B, $A9
 .byte $AA, $2D, $CE, $04, $0D, $CF, $04, $8D, $CF, $04, $A5, $4F, $29, $01, $F0, $0B
+
 .byte $A9, $55, $2D, $CE, $04, $0D, $CF, $04, $8D, $CF, $04, $AD, $CF, $04, $91, $66
-.byte $EE, $CD, $04, $AD, $CD, $04, $CD, $D0, $04, $B0, $03, $4C, $4F, $9B, $60, $A9
-.byte $10, $85, $0A, $E6, $1A, $20, $04, $98, $20, $D5, $98, $20, $B4, $97, $20, $CE
-.byte $97, $A5, $FD, $38, $E9, $10, $85, $FD, $A5, $1A, $E9, $00, $85, $1A, $C6, $0A
-.byte $10, $E3, $A5, $FD, $18, $69, $10, $85, $FD, $A5, $1A, $69, $00, $85, $1A, $60
+.byte $EE, $CD, $04, $AD, $CD, $04, $CD, $D0, $04, $B0, $03, $4C, $4F, $9B, $60
+
+; 9bdf
+  LDA #$10
+  STA $0A
+  INC $1A
+: JSR $9804
+  JSR $98D5
+  JSR level_3_load_tiles_and_attributes
+  NOP
+  NOP
+  NOP
+  LDA $FD
+  SEC
+  SBC #$10
+  STA $FD
+  LDA $1A
+  SBC #$00
+  STA $1A
+  DEC $0A
+  BPL :-
+  LDA $FD
+  CLC
+  ADC #$10
+  STA $FD
+  LDA $1A
+  ADC #$00
+  STA $1A
+  RTS
+
+
+
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $EF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FD
 .byte $4C, $8A, $9C, $4C, $0B, $9D, $4C, $FD, $B7, $4C, $40, $DF, $4C, $5E, $B5, $4C
@@ -1221,12 +1299,34 @@
 .byte $00, $0A, $00, $00, $01, $01, $01, $01, $03, $02, $03, $02, $03, $05, $03, $0A
 .byte $0A, $05, $01, $00, $01, $01, $01, $01, $03, $02, $03, $02, $03, $04, $02, $0A
 .byte $0A, $02, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+
+
+; not much free space here in bank 3
+handle_world_3_vertical_wrap:
+  LDA #$EF
+  STA $FD
+  LDA PPU_CONTROL_STATE
+  EOR #$02    
+  JSL store_to_ppu_control
+  JSL setup_hdma
+  LDA $5C
+  ORA #$80
+  STA $5C
+  RTS
+
+level_3_load_tiles_and_attributes:
+  JSR $97B4
+  JSR $97CE
+  JSL convert_nes_attributes_and_immediately_dma_them
+  STZ VMAIN
+  LDA #$A4
+  PHA
+  PLB
+  
+ RTS
+
+
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $1C, $80, $02, $04, $41, $00, $00
 

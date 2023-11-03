@@ -1529,8 +1529,11 @@ nes9736:
 : RTS
 
 ; ABE6
-.byte $E6, $FE, $D0, $08, $E6, $1B, $A5, $5C, $09, $80
-.byte $85, $5C, $60
+  INC $FE
+  BNE :+
+  JSR handle_horizontal_scroll_wrap
+  .byte $ea, $ea, $ea, $ea, $ea
+: RTS
 
 ; ABF3 - AC46
   LDA VMAIN_CONTROL_STATE ; LDA PPU_CONTROL_STATE
@@ -1578,36 +1581,16 @@ nes9736:
   RTS
 
 ; AC47 - AC7A
-  JSR $ADA9
-  LDY #$00
-: TYA
-  ASL
-  ASL
-  ASL
-  CLC
-  ADC $00
-  STA $03
-  CLC
-  ADC #$C0
+  JSL horizontal_attribute_scroll_handle
+  LDA #$A3
   PHA
-  LDA $1B
-  EOR #$01
-  AND #$01
-  ASL
-  ASL
-  ORA #$23
-  NOP           ; LDX $2002
-  NOP
-  NOP
-  STA VMADDH
-  PLA
-  STA VMADDL
-  LDX $03
-  LDA $03B0,X
-  STA VMDATAL
-  INY
-  CPY #$08
-  BCC :-
+  PLB
+
+  .byte $EA
+  .byte $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA
+  .byte $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA
+  .byte $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA
+
   RTS
 
 
@@ -1928,9 +1911,22 @@ handle_scroll_wrap:
   ORA #$80                 
   STA $5C  
   RTS
-  
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $DF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+
+handle_horizontal_scroll_wrap:
+  INC $1B
+
+  LDA PPU_CONTROL_STATE
+  EOR #$01
+  JSL store_to_ppu_control
+  JSL setup_hdma
+
+  LDA $5C
+  ORA #$80
+  STA $5C
+
+  RTS
+
+.byte $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00

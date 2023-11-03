@@ -241,7 +241,7 @@
     RTS
 
 
-; 8C12 - 8C47
+; 8C12 - 8C47 - attributes for fortress level rooms
     JSL nes_9537_copy
     JSL convert_nes_attributes_and_immediately_dma_them
     ; converting attributes leaves us with VMAIN incrementing on 2119, but we
