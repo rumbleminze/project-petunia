@@ -1158,39 +1158,18 @@
   
   RTS
 
-;b6a8
-  JSR $B7EB
-  LDY #$00
-: TYA
-  ASL
-  ASL
-  ASL
-  CLC
-  ADC $00
-  STA $03
-  CLC
-  ADC #$C0
+;b689 - b6bc
+  JSL horizontal_attribute_scroll_handle
+  LDA #$A4
   PHA
-  LDA $1B
-  EOR #$01
-  AND #$01
-  ASL
-  ASL
-  ORA #$23
-  NOP ; LDX $2002
-  NOP
-  NOP
-  STA VMADDH
-  PLA
-  STA VMADDL
-  LDX $03
-  LDA $03B0,X
-  STA VMDATAL
-  INY
-  CPY #$08
-  BCC :-
+  PLB
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+
   RTS
 
+;b6bd
 .byte $A5, $FE, $29
 .byte $F0, $4A, $4A, $4A, $85, $00, $8D, $81, $04, $A5, $1B, $49, $01, $29, $01, $0A
 .byte $0A, $09, $20, $8D, $82, $04, $20, $F1, $B6, $20, $F7, $B6, $A5, $FE, $29, $F0
@@ -1211,12 +1190,45 @@
 .byte $29, $F3, $05, $02, $9D, $B0, $03, $60, $39, $F0, $03, $85, $02, $98, $0A, $0A
 .byte $0A, $18, $65, $00, $AA, $BD, $B0, $03, $60, $AD, $D1, $04, $29, $01, $0A, $A8
 .byte $B9, $74, $BE, $85, $64, $B9, $75, $BE, $85, $65, $60, $A9, $00, $85, $00, $A5
-.byte $FE, $29, $E0, $0A, $26, $00, $0A, $26, $00, $0A, $26, $00, $60, $A9, $00, $85
-.byte $5C, $8D, $D2, $04, $20, $66, $B8, $A9, $06, $20, $90, $CA, $A9, $00, $8D, $D2
-.byte $04, $EE, $D1, $04, $20, $69, $B8, $A9, $06, $20, $90, $CA, $20, $51, $B8, $A9
-.byte $00, $85, $FE, $85, $1B, $20, $BD, $B6, $20, $6C, $B7, $20, $35, $B6, $20, $89
-.byte $B6, $A5, $FE, $18, $69, $10, $85, $FE, $A5, $1B, $69, $00, $85, $1B, $C9, $02
-.byte $90, $E3, $A9, $01, $85, $1B, $85, $FE, $60, $20, $66, $B8, $A9, $06, $20, $90
+.byte $FE, $29, $E0, $0A, $26, $00, $0A, $26, $00, $0A, $26, $00, $60
+
+;B7FD
+  LDA #$00
+  STA $5C
+  STA $04D2
+  JSR $B866
+  LDA #$06
+  JSR $CA90
+  LDA #$00
+  STA $04D2
+  INC $04D1
+  JSR $B869
+  LDA #$06
+  JSR $CA90
+  JSR $B851
+  LDA #$00
+  STA $FE
+  STA $1B
+: JSR $B6BD
+  JSR $B76C
+  JSR $B635
+  JSR attributes_from_pause_w4
+  LDA $FE
+  CLC
+  ADC #$10
+  STA $FE
+  LDA $1B
+  ADC #$00
+  STA $1B
+  CMP #$02
+  BCC :-
+  LDA #$01
+  STA $1B
+  STA $FE
+  RTS
+
+
+.byte $20, $66, $B8, $A9, $06, $20, $90
 .byte $CA, $A0, $0F, $B9, $00, $05, $99, $E0, $06, $88, $10, $F7, $60, $A5, $5C, $09
 .byte $40, $85, $5C, $68, $68, $60, $20, $F1, $B6, $A9, $00, $8D, $D2, $04, $AD, $30
 .byte $01, $0A, $A8, $B9, $7C, $BE, $85, $00, $B9, $7D, $BE, $85, $01, $AD, $D1, $04
@@ -1228,6 +1240,7 @@
 .byte $B8, $60, $20, $1D, $B9, $A9, $00, $85, $5F, $A5, $4D, $29, $F0, $85, $61, $A5
 .byte $5F, $0A, $0A, $0A, $0A, $18, $65, $61, $C9, $F0, $B0, $3F, $A0, $00, $B1, $51
 .byte $C9, $FF, $F0, $37, $85, $53, $29, $0F, $AA, $C8, $B1, $51, $99, $53, $00, $C8
+; b900
 .byte $CA, $D0, $F7, $20, $8C, $B9, $A5, $53, $29, $0F, $38, $65, $51, $85, $51, $A9
 .byte $00, $65, $52, $85, $52, $20, $2C, $B9, $E6, $5F, $4C, $D9, $B8, $A5, $4E, $0A
 .byte $A8, $B9, $C6, $BE, $85, $51, $B9, $C7, $BE, $85, $52, $60, $A5, $5F, $0A, $0A
@@ -1244,14 +1257,42 @@
 .byte $4A, $85, $66, $A5, $60, $29, $0F, $4A, $18, $65, $66, $18, $65, $64, $85, $66
 .byte $A9, $00, $65, $65, $85, $67, $A5, $60, $29, $10, $4A, $4A, $4A, $8D, $CE, $04
 .byte $A5, $60, $29, $01, $0D, $CE, $04, $F0, $0E, $AA, $A9, $03, $0A, $0A, $CA, $8D
+; ba00
 .byte $CE, $04, $F0, $08, $4C, $FC, $B9, $A9, $03, $8D, $CE, $04, $AD, $CE, $04, $49
 .byte $FF, $A0, $00, $31, $66, $8D, $CF, $04, $A5, $4F, $29, $02, $F0, $05, $A9, $AA
 .byte $20, $41, $BA, $A5, $4F, $29, $01, $F0, $05, $A9, $55, $20, $41, $BA, $AD, $CF
 .byte $04, $91, $66, $EE, $CD, $04, $AD, $CD, $04, $CD, $D0, $04, $B0, $0C, $4C, $BE
-.byte $B9, $2D, $CE, $04, $0D, $CF, $04, $8D, $CF, $04, $60, $A9, $10, $85, $0A, $C6
-.byte $1B, $20, $BD, $B6, $20, $6C, $B7, $20, $35, $B6, $20, $89, $B6, $A5, $FE, $18
-.byte $69, $10, $85, $FE, $A5, $1B, $69, $00, $85, $1B, $C6, $0A, $10, $E3, $A5, $FE
-.byte $38, $E9, $10, $85, $FE, $A5, $1B, $E9, $00, $85, $1B, $60, $01, $0C, $0E, $01
+.byte $B9, $2D, $CE, $04, $0D, $CF, $04, $8D, $CF, $04, $60
+
+; ba4b
+
+  LDA #$10
+  STA $0A
+  DEC $1B
+:
+  JSR $B6BD
+  JSR $B76C
+  JSR $b635
+  JSR attributes_from_pause_w4
+  LDA $FE
+  CLC
+  ADC #$10
+  STA $FE
+  LDA $1B
+  ADC #$00
+  STA $1B
+  DEC $0A
+  BPL :-
+  LDA $FE
+  SEC
+  SBC #$10
+  STA $FE
+  LDA $1B
+  SBC #$00
+  STA $1B
+  RTS
+
+.byte $01, $0C, $0E, $01
 .byte $10, $0D, $02, $14, $0D, $02, $18, $0D, $02, $25, $09, $01, $65, $0A, $01, $6A
 .byte $09, $01, $80, $11, $00, $81, $03, $01, $85, $0A, $01, $9C, $0E, $01, $AA, $05
 .byte $01, $B0, $0E, $00, $B5, $05, $01, $D0, $07, $01, $D8, $07, $01, $FD, $FF, $01
@@ -1382,8 +1423,16 @@ handle_4_1_scroll_wrap:
   STA $5C
   RTS
 
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+attributes_from_pause_w4:
+  JSR $B689
+  JSL convert_nes_attributes_and_immediately_dma_them
+  STZ VMAIN
+  LDA #$A4
+  PHA
+  PLB
+  RTS
+
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $1C, $80, $02, $04, $41, $00, $00
 
 .segment "PRGA4C"

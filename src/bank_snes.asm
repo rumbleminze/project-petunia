@@ -892,6 +892,53 @@ nes96c6_copy:
   STA $00                  
   RTS 
 
+nes_03_b689_copy:
+  JSR nes_03_b7eb_copy
+  LDY #$00
+: TYA
+  ASL
+  ASL
+  ASL
+  CLC
+  ADC $00
+  STA $03
+  CLC
+  ADC #$C0
+  PHA
+  LDA $1B
+  EOR #$01
+  AND #$01
+  ASL
+  ASL
+  ORA #$23
+  NOP ; LDX $2002
+  NOP
+  NOP
+  STA VMADDH
+  PLA
+  STA VMADDL
+  LDX $03
+  LDA $03B0,X
+  STA VMDATAL
+  INY
+  CPY #$08
+  BCC :-
+  RTS
+
+nes_03_b7eb_copy:
+  LDA #$00
+  STA $00
+  LDA $FE
+  AND #$E0
+  ASL A
+  ROL $00
+  ASL A
+  ROL $00
+  ASL A
+  ROL $00
+  RTS
+
+
 ; copy of 02:AC47
 horizontal_attribute_scroll_handle:
   JSR nes_02_ada9_copy
