@@ -1693,6 +1693,11 @@ dma_column_attributes:
 
   LDX #$04
 
+  LDA #.hibyte(C1_ATTRIBUTE_CACHE)
+  STA C1_ATTR_DMA_SRC_HB
+  LDA #.lobyte(C1_ATTRIBUTE_CACHE)
+  STA C1_ATTR_DMA_SRC_LB
+
 : STZ DMAP2
 
   LDA #$19
@@ -1701,9 +1706,9 @@ dma_column_attributes:
   LDA #$7E
   STA A1B2
 
-  LDA #.hibyte(C1_ATTRIBUTE_CACHE)
+  LDA C1_ATTR_DMA_SRC_HB
   STA A1T2H
-  LDA #.lobyte(C1_ATTRIBUTE_CACHE)
+  LDA C1_ATTR_DMA_SRC_LB
   STA A1T2L
 
   LDA C1_ATTR_DMA_SIZE_LB
@@ -1720,6 +1725,10 @@ dma_column_attributes:
   STA MDMAEN
 
   INC C1_ATTR_DMA_VMADDL
+  LDA C1_ATTR_DMA_SRC_LB
+  CLC
+  ADC #$20
+  STA C1_ATTR_DMA_SRC_LB
   DEX
   BNE :-
 

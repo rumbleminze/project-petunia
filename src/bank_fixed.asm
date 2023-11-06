@@ -2642,18 +2642,25 @@ JMP @nes_e861_replacement
   JMP @nes_e861_replacement       
 
  @nes_e84b:  
-  ; loads attributes 
-  ; we use this location to store where
-  ; attributes are for the next tiles whenever they change
-  ; and load them with the tiles                
+  ; loads attributes       
   STX $0C                  
   STA $0D 
   LDA $00
   PHA
   LDA $01
   PHA                 
-  PHY             
+  PHY         
+  LDA COLUMN_1_DMA 
+  PHA
+  LDA COL_ATTR_HAS_VALUES   
+  PHA
+  STZ COLUMN_1_DMA
+  STZ COL_ATTR_HAS_VALUES
   jsl load_0x40_attributes_from_ram_for_pause              
+  PLA
+  STA COL_ATTR_HAS_VALUES
+  PLA 
+  STA COLUMN_1_DMA
   PLY
   PLA
   STA $01
@@ -2689,7 +2696,7 @@ JMP @nes_e861_replacement
 
 ; F42x-something
 
-.byte $FF, $FF, $FF, $FF, $FF, $7F, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $7F, $F4, $ED, $DF, $FF, $BB, $FF, $FF
 .byte $FF, $FF, $FF, $FB, $FF, $FF, $FF, $FB, $FF, $FF, $FF, $F7, $FF, $FE, $FF, $FF
 .byte $FF, $FF, $EF, $FF, $FF, $FE, $FF, $FF, $9B, $3D, $E1, $50, $FF, $AA, $FF, $FF

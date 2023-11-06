@@ -1636,9 +1636,11 @@ nes9736:
   STA $FE
   STA $1B
 
-  JSR level_2_load
+: JSR full_screen_load_common
+  CMP #$02
+  BCC :-
 
-  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea, $ea, $ea, $ea
   .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
 
   LDA #$01
@@ -1686,17 +1688,7 @@ nes9736:
   LDA #$10
   STA $0A
   DEC $1B
-: JSR $AC7B
-  JSR $AD2A
-  JSR $ABF3
-  JSR $AC47
-  LDA $FE
-  CLC
-  ADC #$10
-  STA $FE
-  LDA $1B
-  ADC #$00
-  STA $1B
+: JSR full_screen_load_common
   DEC $0A
   BPL :-
   LDA $FE
@@ -1706,6 +1698,8 @@ nes9736:
   LDA $1B
   SBC #$00
   STA $1B
+  .byte $ea, $ea, $ea, $ea, $ea, $ea
+  .byte $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea, $ea
   RTS
 
 .byte $00, $33, $05, $00, $3E, $09
@@ -1957,9 +1951,8 @@ level_load_tile_and_attributes:
 
   RTS
 
-level_2_load:
- 
-: JSR $AC7B
+full_screen_load_common:
+  JSR $AC7B
   JSR $AD2A
   JSR $ABF3
   JSR $AC47
@@ -1976,9 +1969,6 @@ level_2_load:
   LDA $1B
   ADC #$00
   STA $1B
-  CMP #$02
-  BCC :-
-
   RTS
 
 handle_scroll_wrap:
@@ -2007,7 +1997,8 @@ handle_horizontal_scroll_wrap:
 
   RTS
 
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.byte $00
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
