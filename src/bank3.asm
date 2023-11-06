@@ -1098,11 +1098,14 @@
   STA $5C
 : RTS
 
-; B618
-.byte $E6, $FE, $D0, $18, $E6, $1B, $A5, $C9
-.byte $C9, $32, $B0, $0A, $A5, $1B, $C9, $0D, $90, $04, $A9, $01, $85, $1B, $A5, $5C
-; B630
-.byte $09, $80, $85, $5C, $60
+; B618 - horizontal scroll on World 4-1
+; checks if $c9 is > 0x32 (50)
+  INC $FE
+  BNE :+
+  JSR handle_4_1_scroll_wrap
+  .byte $EA, $EA, $EA, $EA, $EA
+  .byte $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA, $EA
+: RTS
 
 ; b635 - B688
 ; Set writes to vertical
@@ -1155,10 +1158,40 @@
   
   RTS
 
-.byte $20, $EB, $B7, $A0, $00, $98, $0A
-.byte $0A, $0A, $18, $65, $00, $85, $03, $18, $69, $C0, $48, $A5, $1B, $49, $01, $29
-.byte $01, $0A, $0A, $09, $23, $AE, $02, $20, $8D, $06, $20, $68, $8D, $06, $20, $A6
-.byte $03, $BD, $B0, $03, $8D, $07, $20, $C8, $C0, $08, $90, $D2, $60, $A5, $FE, $29
+;b6a8
+  JSR $B7EB
+  LDY #$00
+: TYA
+  ASL
+  ASL
+  ASL
+  CLC
+  ADC $00
+  STA $03
+  CLC
+  ADC #$C0
+  PHA
+  LDA $1B
+  EOR #$01
+  AND #$01
+  ASL
+  ASL
+  ORA #$23
+  NOP ; LDX $2002
+  NOP
+  NOP
+  STA VMADDH
+  PLA
+  STA VMADDL
+  LDX $03
+  LDA $03B0,X
+  STA VMDATAL
+  INY
+  CPY #$08
+  BCC :-
+  RTS
+
+.byte $A5, $FE, $29
 .byte $F0, $4A, $4A, $4A, $85, $00, $8D, $81, $04, $A5, $1B, $49, $01, $29, $01, $0A
 .byte $0A, $09, $20, $8D, $82, $04, $20, $F1, $B6, $20, $F7, $B6, $A5, $FE, $29, $F0
 .byte $4A, $4A, $4A, $4A, $65, $62, $85, $06, $A9, $00, $65, $63, $85, $07, $4C, $09
@@ -1326,7 +1359,30 @@ level_3_load_tiles_and_attributes:
  RTS
 
 
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+handle_4_1_scroll_wrap:
+  LDA PPU_CONTROL_STATE
+  EOR #$01
+  JSL store_to_ppu_control
+  JSL setup_hdma
+  LDA #$A4
+  PHA
+  PLB
+  ; original logic below
+  INC $1B
+  LDA $C9
+  CMP #$32
+  BCS :+
+  LDA $1B
+  CMP #$0D
+  BCC :+
+  LDA #$01
+  STA $1B
+: LDA $5C
+  ORA #$80
+  STA $5C
+  RTS
+
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $1C, $80, $02, $04, $41, $00, $00
 

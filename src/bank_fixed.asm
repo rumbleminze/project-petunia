@@ -2195,22 +2195,6 @@ JMP @nes_e861_replacement
   BCC :-
   RTS
 
-;   LDA #$23
-;   JSR $EF5A
-; : LDA $03B0,X
-;   STA VMDATAL
-;   INX
-;   CPX #$40
-;   BCC :-
-;   LDA #$2B  ; prob needs adjusting
-;   JSR $EF5A
-; : LDA $03F0,X
-;   STA VMDATAL
-;   INX
-;   CPX #$40
-;   BCC :-
-;   RTS
-
 ; 0xEF5A - EF64
   STA VMADDH
   LDA #$C0

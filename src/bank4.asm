@@ -34,10 +34,30 @@
 .byte $81, $85, $01, $6C, $00, $00, $FA, $81, $56, $83, $A5, $83, $BB, $83, $49, $84
 .byte $68, $84, $C2, $84, $FF, $82, $2E, $83, $55, $83, $60, $AD, $02, $20, $A2, $00
 .byte $20, $1C, $82, $E8, $20, $1C, $82, $E8, $20, $1C, $82, $E8, $20, $1C, $82, $E8
-.byte $20, $1C, $82, $E8, $20, $1C, $82, $E8, $20, $1C, $82, $60, $8A, $0A, $A8, $B9
-.byte $44, $82, $85, $00, $B9, $45, $82, $85, $01, $A0, $00, $B1, $00, $8D, $06, $20
-.byte $C8, $B1, $00, $8D, $06, $20, $C8, $B1, $00, $C9, $FF, $F0, $06, $8D, $07, $20
-.byte $4C, $36, $82, $60, $52, $82, $69, $82, $82, $82, $9C, $82, $AE, $82, $BF, $82
+.byte $20, $1C, $82, $E8, $20, $1C, $82, $E8, $20, $1C, $82, $60
+; 821c - ending message
+  TXA
+  ASL
+  TAY
+  LDA $8244,Y
+  STA $00
+  LDA $8245,Y
+  STA $01
+  LDY #$00
+  LDA ($00),Y
+  STA VMADDH
+  INY
+  LDA ($00),Y
+  STA VMADDL
+  INY
+  LDA ($00),Y
+  CMP #$FF
+  BEQ :+
+  STA VMDATAL
+  JMP $8236
+: RTS
+
+.byte $52, $82, $69, $82, $82, $82, $9C, $82, $AE, $82, $BF, $82
 .byte $D0, $82, $21, $04, $22, $1A, $19, $2A, $28, $16, $12, $2C, $16, $28, $12, $19
 .byte $1A, $28, $29, $27, $24, $2E, $1A, $19, $FF, $21, $44, $16, $23, $19, $12, $29
 .byte $1D, $1A, $12, $21, $1E, $1C, $1D, $29, $12, $24, $1B, $12, $25, $1A, $16, $18
@@ -97,6 +117,8 @@
 .byte $A5, $14, $29, $03, $D0, $06, $B5, $51, $49, $01, $95, $51, $A5, $14, $29, $01
 .byte $D0, $0C, $F6, $4D, $B5, $4D, $C9, $D8, $D0, $04, $A9, $18, $95, $4D, $60, $A2
 .byte $00, $20, $00, $86, $A2, $06, $20, $00, $86, $A2, $0C, $20, $00, $86, $A2, $12
+
+; 8600
 .byte $A5, $15, $D0, $06, $A5, $14, $C9, $40, $90, $1B, $A5, $14, $29, $3F, $D0, $12
 .byte $B5, $4E, $18, $69, $10, $9D, $36, $07, $B5, $4F, $9D, $37, $07, $A9, $01, $9D
 .byte $34, $07, $FE, $36, $07, $60, $A2, $00, $20, $37, $86, $A2, $06, $20, $37, $86
@@ -105,13 +127,60 @@
 .byte $85, $8A, $A9, $04, $85, $8C, $A9, $00, $85, $8B, $85, $8F, $4C, $6E, $87, $A9
 .byte $14, $85, $00, $A9, $8E, $85, $01, $20, $7D, $86, $60, $A9, $FF, $85, $14, $85
 .byte $15, $60, $A9, $12, $A2, $1F, $9D, $0C, $07, $CA, $10, $FA, $60, $A0, $00, $B1
-.byte $00, $99, $0C, $07, $C8, $C0, $20, $D0, $F6, $60, $AD, $02, $20, $A9, $20, $8D
-.byte $06, $20, $A9, $00, $8D, $06, $20, $AA, $BD, $F1, $89, $8D, $07, $20, $E8, $D0
-.byte $F7, $BD, $F1, $8A, $8D, $07, $20, $E8, $D0, $F7, $BD, $F1, $8B, $8D, $07, $20
-.byte $E8, $D0, $F7, $BD, $F1, $8C, $8D, $07, $20, $E8, $D0, $F7, $60, $20, $D0, $86
+.byte $00, $99, $0C, $07, $C8, $C0, $20, $D0, $F6, $60
+
+; 868A
+  NOP ; LDA $2002
+  NOP
+  NOP
+  LDA #$20
+  STA VMADDH
+  LDA #$00
+  STA VMADDL
+  TAX
+: LDA $89F1,X
+  STA VMDATAL
+  INX
+  BNE :-
+: LDA $8AF1,X
+  STA VMDATAL
+  INX
+  BNE :-
+: LDA $8BF1,X
+  STA VMDATAL
+  INX
+  BNE :-
+  JSR do_last_100_bytes_of_ending_graphics
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  RTS
+
+.byte $20, $D0, $86
 .byte $A5, $81, $C9, $07, $90, $01, $60, $A2, $04, $B5, $46, $95, $41, $CA, $10, $F9
-.byte $AD, $02, $20, $A5, $42, $8D, $06, $20, $A5, $41, $8D, $06, $20, $A0, $00, $B1
-.byte $43, $8D, $07, $20, $C8, $C4, $45, $D0, $F6, $A9, $00, $85, $86, $60, $0A, $85
+
+; 86d0
+  NOP ; LDA $2002
+  NOP
+  NOP
+  LDA $42
+  STA VMADDH
+  LDA $41
+  STA VMADDL
+  LDY #$00
+: LDA ($43),Y
+  STA VMDATAL
+  INY
+  CPY $45
+  BNE :-
+  LDA #$00
+  STA $86
+  RTS
+
+.byte $0A, $85
 .byte $00, $0A, $0A, $18, $65, $00, $AA, $A9, $0A, $85, $01, $A0, $00, $BD, $F1, $8D
 .byte $99, $41, $00, $E8, $C8, $C6, $01, $D0, $F4, $E6, $86, $60, $85, $00, $0A, $0A
 .byte $18, $65, $00, $18, $69, $0A, $AA, $A9, $05, $4C, $F9, $86, $A6, $83, $BD, $34
@@ -1020,11 +1089,56 @@ a5a300:
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $04, $08, $01, $40, $00, $20, $00
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+
+do_last_100_bytes_of_ending_graphics:
+    : LDA $8CF1,X
+    STA VMDATAL
+    INX
+    BNE :-
+    JSR load_0x40_attributes_from_ram_for_ending
+    RTS
+
+load_0x40_attributes_from_ram_for_ending:
+  ; 20 at a time
+  LDX #$00
+  LDY #$00
+  LDA #$C0
+: STA ATTR_NES_VM_ADDR_LB
+  LDA #$23
+  STA ATTR_NES_VM_ADDR_HB
+  LDA #$20
+  STA ATTR_NES_VM_COUNT
+
+  ; attributes start at $8CB1
+: LDA $8DB1, Y
+  STA ATTR_NES_VM_ATTR_START, X
+  INY
+  INX
+  CPX #$20
+  BNE :-
+
+  LDA #$00
+  STA ATTR_NES_VM_ATTR_START, X
+  LDA #$01
+  STA ATTR_NES_HAS_VALUES
+  PHY
+  JSL convert_nes_attributes_and_immediately_dma_them
+  LDA #$A5
+  PHA
+  PLB
+  PLY
+  LDA #$E0
+  LDX #$00
+  CPY #$40
+  BNE:--  
+
+  LDA #$A5
+  PHA
+  PLB
+
+  RTS  
+
+.byte $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $7F, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF

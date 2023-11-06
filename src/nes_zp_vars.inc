@@ -7,8 +7,6 @@ C2_BUTTON_HELD      = $18
 C1_BUTTON_PRESS     = $19
 C2_BUTTON_PRESS     = $1A
 
-NES_73              = $73
-NES_F6              = $F6
 C1_BUTTON_MIRROR    = $F8
 
 BUTTON_A            = 80 ; for SNES this is actually B
@@ -38,6 +36,11 @@ HOFS_HB             = $0804
 VOFS_LB             = $FD
 VOFS_HB             = $0805
 
+CURRENT_ATTRIBUTES  = $03B0
+
+; mostly actual nes stuff above
+; all my stuff below
+
 LAST_ATTRIB_LOC_LB  = $E0
 LAST_ATTRIB_LOC_HB  = $E1
 SPRITE_LOOP_JUNK    = $E2
@@ -56,6 +59,9 @@ PPU_ROW_OFFSET      = $091A
 TILES_TO_WRITE      = $091C
 TILES_TO_WRITE_HB   = $091D
 JML_BANK_STORE      = $0920
+
+FULL_ATTRIBUTE_QUARTER_COUNTER = $0930
+FAQ_OFFSET = $0931
 
 STORED_OFFSETS_SET  = $0940
 UNPAUSE_BG1_VOFS_LB = $0941
@@ -83,5 +89,31 @@ ATTR_DMA_VMADDH     = $17FA
 ATTR_DMA_VMADDL     = $17FC
 ATTRIBUTE_CACHE     = $1800
 
+; this will store 8 values that contain the 8 attributes
+; each attribute value is used for 2 adjacent attribute pairs
+; and each pair is for 2 tiles, resulting in 32 values
+COL_ATTR_HAS_VALUES = $1A00
+COL_ATTR_VM_HB      = $1A01
+COL_ATTR_VM_LB      = $1A02
+COL_ATTR_VM_COUNT   = $1A03 ; will always be 8 but whatevs
+COL_ATTR_LB_SET     = $1A04
+COL_ATTR_VM_START   = $1A05
 
+COLUMN_1_DMA        = $1A10
+C1_ATTR_DMA_SRC_HB  = $1A12
+C1_ATTR_DMA_SRC_LB  = $1A14
+C1_ATTR_DMA_SIZE_LB = $1A16
+C1_ATTR_DMA_SIZE_HB = $1A18
+C1_ATTR_DMA_VMADDH  = $1A1A
+C1_ATTR_DMA_VMADDL  = $1A1C
+C1_ATTRIBUTE_CACHE  = $1A20
+
+; COLUMN_2_DMA        = $1A30
+; C2_ATTR_DMA_SRC_HB  = $1A32
+; C2_ATTR_DMA_SRC_LB  = $1A34
+; C2_ATTR_DMA_SIZE_LB = $1A36
+; C2_ATTR_DMA_SIZE_HB = $1A38
+; C2_ATTR_DMA_VMADDH  = $1A3A
+; C2_ATTR_DMA_VMADDL  = $1A3C
+; C2_ATTRIBUTE_CACHE  = $1A40
 

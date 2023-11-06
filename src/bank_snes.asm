@@ -116,6 +116,7 @@ initialize_registers:
   LDA #$00
   LDY #$0F
 : STA ATTRIBUTE_DMA, Y
+  STA COLUMN_1_DMA, Y
   DEY
   BNE :-
 
@@ -169,6 +170,8 @@ initialize_registers:
   STZ ATTR_NES_VM_ADDR_LB
   STZ ATTR_NES_VM_ATTR_START
   STZ ATTRIBUTE_DMA
+  STZ COL_ATTR_HAS_VALUES
+  STZ COLUMN_1_DMA
 
   LDA #$A1
   PHA
@@ -893,9 +896,10 @@ nes96c6_copy:
 horizontal_attribute_scroll_handle:
   JSR nes_02_ada9_copy
   LDY #$00
-  STZ ATTR_NES_VM_COUNT
+  STZ COL_ATTR_VM_COUNT
+  STZ COL_ATTR_LB_SET
 
-: INC ATTR_NES_VM_COUNT
+: INC COL_ATTR_VM_COUNT
   TYA
   ASL A
   ASL A
@@ -912,20 +916,29 @@ horizontal_attribute_scroll_handle:
   ASL A
   ASL A
   ORA #$23  
-  STA ATTR_NES_VM_ADDR_HB
+  PHA
+  LDA COL_ATTR_LB_SET
+  BNE :+
   PLA
-  STA ATTR_NES_VM_ADDR_LB
-  
-  LDX $03
+  STA COL_ATTR_VM_HB
+  PLA  
+  STA COL_ATTR_VM_LB  
+  INC COL_ATTR_LB_SET
+  BRA :++
+: PLA  
+  PLA
+: LDX $03
   LDA $03B0,X
-  STA ATTR_NES_VM_ATTR_START, Y
+  STA COL_ATTR_VM_START, Y
   INY
   CPY #$08
-  BCC :-
+  BCC :---
   LDA #$00
 
-  STA ATTR_NES_VM_ATTR_START, Y
-  INC ATTR_NES_HAS_VALUES
+  STA COL_ATTR_VM_START, Y
+  INC COL_ATTR_HAS_VALUES
+  ; would normall do this during screen but for now just do it in line
+  JSR convert_column_of_tiles
 
   RTL
 
@@ -941,26 +954,6 @@ nes_02_ada9_copy:
   ASL A
   ROL $00
   RTS
-
-full_attribute_calculations:
-  LDA #$23
-  STA ATTR_NES_VM_ADDR_HB
-  LDA #$C0
-  STA ATTR_NES_VM_ADDR_LB
-
-  LDY #$00
-: LDA $3B0, Y
-  STA ATTR_NES_VM_ATTR_START, Y
-  INY
-  CPY #$40
-  BCC :-
-
-  LDA #$40
-  STA ATTR_NES_VM_COUNT
-  INC ATTR_NES_HAS_VALUES
-
-  JSL convert_nes_attributes_and_immediately_dma_them
-
 
 handle_title_screen_a236_attributes:
   LDA $A0
@@ -1089,8 +1082,12 @@ convert_attributes:
 
 check_and_copy_attribute_buffer:
   LDA ATTRIBUTE_DMA
-  BNE copy_prepped_attributes_to_vram
-  RTS
+  BEQ :+
+  JSR copy_prepped_attributes_to_vram
+: LDA COLUMN_1_DMA
+  BEQ :+
+  JSR dma_column_attributes
+: RTS
 
 copy_prepped_attributes_to_vram:
   STZ ATTRIBUTE_DMA
@@ -1181,6 +1178,7 @@ load_0x40_attributes_from_ram_for_pause:
 
   RTL
 
+
 load_0x40_attributes_for_lvl3:
   ; 20 at a time
   LDX #$00
@@ -1217,7 +1215,8 @@ load_0x40_attributes_for_lvl3:
 
 convert_nes_attributes_and_immediately_dma_them:
   JSR check_and_copy_nes_attributes_to_buffer
-  JSR copy_prepped_attributes_to_vram
+  JSR check_and_copy_column_attributes_to_buffer
+  JSR check_and_copy_attribute_buffer
   RTL
 
 ; converts attributes stored at 9A0 - A07 to attribute cache
@@ -1244,7 +1243,7 @@ convert_attributes_inf:
   STA ATTR_DMA_SRC_HB + 1
   LDY #$00  
 inf_9497:
-  LDA ($00),Y
+  LDA ($00),Y ; $00.w is $09A1 to start
   ; early rtl
   BEQ check_and_copy_nes_attributes_to_buffer + 5
   AND #$03
@@ -1553,6 +1552,188 @@ copy_full_screen_attributes:
   LDX #$00
   CPY #$40
   BNE:--
+  RTS
+
+check_and_copy_column_attributes_to_buffer:
+  LDA COL_ATTR_HAS_VALUES
+  BNE convert_column_of_tiles
+  RTS
+
+convert_column_of_tiles:
+  LDA COL_ATTR_VM_HB
+  ; early rtl
+  BNE :+
+  RTL
+: LDA COL_ATTR_VM_LB
+  AND #$F0
+  CMP #$C0
+  BEQ :+
+  CMP #$D0
+  BEQ :+
+  CMP #$E0
+  BEQ :+
+  CMP #$F0
+  BEQ :+
+  RTL
+: 
+  ; LDA COL_ATTR_VM_LB
+  ; PHY
+  ; AND #$0F
+  ; TAY
+  ; LDA attr_lookup_table_1_inf_9450,Y
+  ; PLY
+  LDA COL_ATTR_VM_LB
+  AND #$0F
+  ASL A
+  ASL a
+
+  ; ASL a
+  ; ASL A  
+  STA C1_ATTR_DMA_VMADDL
+  LDA COL_ATTR_VM_HB
+  AND #$24
+  STA C1_ATTR_DMA_VMADDH
+
+  LDA #$20
+  STA C1_ATTR_DMA_SIZE_LB
+  STZ C1_ATTR_DMA_SIZE_HB
+
+  LDY #$00
+  LDX #$00
+: LDA COL_ATTR_VM_START, Y
+
+  ; convert magic!
+  ; each attribute value gives us 4 attribute values
+  ; in a grid of:
+  ; 
+  ; A A B B
+  ; A A B B
+  ; C C D D
+  ; C C D D
+  ;
+  ; we'll store them in 4 batches to be DMA'd
+  ; and store them in columns, but as rows, get it?
+  ; 
+  ; column1:  A A C C
+  ; column2:  A A C C
+  ; column3:  B B D D
+  ; column4:  B B D D
+
+  ; magic convert, for now just set it to 8
+  ; NES attribues will be in 1 byte, for the above description in this way:
+  ; 0xDDCCBBAA
+  ; The only thing we care about with Kid icarus is the palette
+  ; 
+  ; palattes for SNES are put in bits 4, 8 & 16 of the high byte:
+  ; we're only useing 4 palattes, so we'll shift things to byte 4, 8 of the low nibble
+  ; ___0 00___
+
+  ; get A (TL)
+  AND #$03
+  ASL
+  ASL
+  STA C1_ATTRIBUTE_CACHE, X
+  STA C1_ATTRIBUTE_CACHE + 1, X
+  ; store in UR and LR row
+  STA C1_ATTRIBUTE_CACHE + $20, X
+  STA C1_ATTRIBUTE_CACHE + $20 + 1, X
+
+  ; get B (TR), write them as dma lines 3 and 4.
+  LDA COL_ATTR_VM_START, Y
+  CLC
+  AND #$0C
+  STA C1_ATTRIBUTE_CACHE + $40, X
+  STA C1_ATTRIBUTE_CACHE + $40 + 1, X
+  STA C1_ATTRIBUTE_CACHE + $60, X
+  STA C1_ATTRIBUTE_CACHE + $60 + 1, X
+
+  ; get C (BL)
+  LDA COL_ATTR_VM_START, Y
+  CLC
+  AND #$30
+  LSR A
+  LSR A
+  STA C1_ATTRIBUTE_CACHE + 2, X
+  STA C1_ATTRIBUTE_CACHE + 3, X
+  STA C1_ATTRIBUTE_CACHE + $20 + 2, X
+  STA C1_ATTRIBUTE_CACHE + $20 + 3, X
+
+  ; get D (BR)
+  LDA COL_ATTR_VM_START, Y
+  AND #$C0
+  LSR A
+  LSR A
+  LSR A
+  LSR A
+  STA C1_ATTRIBUTE_CACHE + $40 + 2, X
+  STA C1_ATTRIBUTE_CACHE + $40 + 3, X
+  STA C1_ATTRIBUTE_CACHE + $60 + 2, X
+  STA C1_ATTRIBUTE_CACHE + $60 + 3, X
+
+  INX
+  INX
+  INX
+  INX
+
+  INY
+  CPY #$08
+  BNE :-
+
+  INC COLUMN_1_DMA
+
+  RTS
+
+; uses DMA channel 2 to copy a buffer of column attributes
+dma_column_attributes:
+  STZ COLUMN_1_DMA
+
+  ; write vertically for columns
+  LDA #$81
+  STA VMAIN
+
+  LDX #$04
+
+: STZ DMAP2
+
+  LDA #$19
+  STA BBAD2
+
+  LDA #$7E
+  STA A1B2
+
+  LDA #.hibyte(C1_ATTRIBUTE_CACHE)
+  STA A1T2H
+  LDA #.lobyte(C1_ATTRIBUTE_CACHE)
+  STA A1T2L
+
+  LDA C1_ATTR_DMA_SIZE_LB
+  STA DAS2L
+  LDA C1_ATTR_DMA_SIZE_HB
+  STA DAS2H
+
+  LDA C1_ATTR_DMA_VMADDH
+  STA VMADDH
+  LDA C1_ATTR_DMA_VMADDL
+  STA VMADDL
+
+  LDA #$04
+  STA MDMAEN
+
+  INC C1_ATTR_DMA_VMADDL
+  DEX
+  BNE :-
+
+  LDY #$0F
+  LDA #$00
+: STA COLUMN_1_DMA,Y
+  DEY
+  BPL :-
+  LDA #$FF
+  STA COLUMN_1_DMA + 1
+
+  LDA #$80
+  STA VMAIN
+
   RTS
 
 palette_lookup:
