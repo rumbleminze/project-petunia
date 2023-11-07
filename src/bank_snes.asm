@@ -152,7 +152,7 @@ initialize_registers:
   STA TM
   LDA #$01
   STA MEMSEL
-  LDA #$04
+  LDA #$00
   STA SETINI
 
   ; lda #0000

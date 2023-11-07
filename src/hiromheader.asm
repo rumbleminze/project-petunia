@@ -1,5 +1,5 @@
 .segment "HEADER"
-.byte "KID ICARUSNES        " ; ROM name, must be 21 chars
+.byte "KID ICARUSNES V0.2   " ; ROM name, must be 21 chars
 
                 
 .segment "ROMSPEC"
