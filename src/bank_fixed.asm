@@ -2650,17 +2650,9 @@ JMP @nes_e861_replacement
   LDA $01
   PHA                 
   PHY         
-  LDA COLUMN_1_DMA 
-  PHA
-  LDA COL_ATTR_HAS_VALUES   
-  PHA
   STZ COLUMN_1_DMA
   STZ COL_ATTR_HAS_VALUES
-  jsl load_0x40_attributes_from_ram_for_pause              
-  PLA
-  STA COL_ATTR_HAS_VALUES
-  PLA 
-  STA COLUMN_1_DMA
+  jsl load_0x40_attributes_from_ram_for_pause                
   PLY
   PLA
   STA $01
