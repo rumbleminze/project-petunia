@@ -125,6 +125,12 @@ initialize_registers:
   STA $0900, y
   BNE :-
 
+
+  ; lda #0000
+	; sta BG12NBA
+  JSR clearvm
+  JSR zero_oam
+
   STA OBSEL
   LDA #$11
   STA BG12NBA
@@ -155,10 +161,6 @@ initialize_registers:
   LDA #$00
   STA SETINI
 
-  ; lda #0000
-	; sta BG12NBA
-  JSR clearvm
-  JSR zero_oam
 
 	lda #%0000000
 	sta OBSEL
@@ -172,6 +174,8 @@ initialize_registers:
   STZ ATTRIBUTE_DMA
   STZ COL_ATTR_HAS_VALUES
   STZ COLUMN_1_DMA
+
+  JSL upload_sound_emulator_to_spc
 
   LDA #$A1
   PHA
@@ -208,6 +212,8 @@ zero_attribute_buffer:
 
 : STA ATTRIBUTE_CACHE, Y
   STA ATTRIBUTE_CACHE + 256, Y
+  STA SOUND_EMULATOR_BUFFER_START, Y
+  STA SOUND_EMULATOR_BUFFER_START + 256, Y
   INY
   BNE :-
 

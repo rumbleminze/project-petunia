@@ -412,8 +412,9 @@
   LDA $B6                  
   PHA                      
   LDA #$04                 
-  JSR $C17F                
-  JSR $A000                
+  JSR $C17F    
+  ; Audio, go to our special loc            
+  JSR $A000 ; new_sound_engine_hijack                
   PLA                      
   JSR $C17F                
   RTS                      
@@ -423,7 +424,7 @@
   PHA                      
   LDA #$04                 
   JSR @switch_bank                
-  JSR $A003                
+  JSR a003_sound_engine_hijack               
   PLA                      
   JSR @switch_bank                
   RTS                      
@@ -1866,8 +1867,11 @@ JMP @nes_e861_replacement
   ASL A                    
   ORA $00                  
   STA $00
+  NOP
+  NOP
   ; STZ PAUSE_HDMA  
-.byte $ea, $ea
+  ; STA $00 
+  ; STZ PAUSE_HDMA  
   LDA STORED_OFFSETS_SET
   BEQ :+
   JSL reset_to_stored_screen_offsets
