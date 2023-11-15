@@ -1155,8 +1155,8 @@ nes_9411_end_of_level_score:
   JSR $94A7
 
   LDA CURRENT_WORLD_INX
-  AND #$04
-  BEQ :+
+  CMP #$04
+  BNE :+
   LDA #$21  ; changed to #$25 from #$21
   BRA :++
 : LDA #$25
@@ -1176,8 +1176,8 @@ nes_9433_end_of_level_score:
   JSR $94A7
   ; for world 2 we write to a different place
   LDA CURRENT_WORLD_INX
-  AND #$04
-  BEQ :+
+  CMP #$04
+  BNE :+
   LDA #$20  ; changed to #$25 from #$21
   BRA :++
 : LDA #$24
