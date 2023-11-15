@@ -393,7 +393,8 @@ RTS
 .byte $C9
 
 ;9411
-  JSR $9433
+  JMP nes_9411_end_of_level_score
+  ;JSR $9433
   LDX #$31
   LDY #$01
   LDA #$07
@@ -411,7 +412,8 @@ RTS
   LDX #$44
   LDY #$01
   LDA #$07
-  JSR $94A7
+  JMP nes_9433_end_of_level_score
+  ; JSR $94A7
   LDA #$24
   STA $0106
   LDA #$F1
@@ -428,7 +430,7 @@ RTS
 .byte $4C, $3D, $93
 
 ; score tally screen text location information
-.byte $83, $94, $83, $94, $91, $94, $91, $94, $99, $94, $9D, $94, $A1
+.byte $83, $94, $00, $BA, $91, $94, $0E, $BA, $99, $94, $9D, $94, $A1
 .byte $94, $A1, $94
 ; TOTAL_SCORE
 .byte $24, $E5, $29, $24, $29, $16, $21, $12, $28, $18, $24, $27, $1A, $FF
@@ -1135,13 +1137,67 @@ nes990b:
 .byte $FC, $00, $CE, $C3, $04, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FE, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $BF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FB, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+
+; a7:ba00
+; going to put some duplicates here so we write them twice
+; TOTAL_SCORE
+.byte $20, $E5, $29, $24, $29, $16, $21, $12, $28, $18, $24, $27, $1A, $FF
+; SCORE
+.byte $21, $0B, $28, $18, $24, $27, $1A, $FF
+
+; score display re-write
+;9411
+nes_9411_end_of_level_score:
+  JSR $9433
+  LDX #$31
+  LDY #$01
+  LDA #$07
+  JSR $94A7
+
+  LDA CURRENT_WORLD_INX
+  AND #$04
+  BEQ :+
+  LDA #$21  ; changed to #$25 from #$21
+  BRA :++
+: LDA #$25
+: STA $0110
+  LDA #$11
+  STA $010F
+  LDA #$07
+  STA $010E
+  LDX #$11
+  LDY #$01
+  JMP $94E5
+
+nes_9433_end_of_level_score:
+  LDX #$44
+  LDY #$01
+  LDA #$07
+  JSR $94A7
+  ; for world 2 we write to a different place
+  LDA CURRENT_WORLD_INX
+  AND #$04
+  BEQ :+
+  LDA #$20  ; changed to #$25 from #$21
+  BRA :++
+: LDA #$24
+: STA $0106
+  LDA #$F1
+  STA $0105
+  LDA #$07
+  STA $0104
+  LDX #$07
+  LDY #$01
+  JMP $94E5
+
+
+;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $FF, $FF, $FF;, $FF, $FE, $FF, $FF, $FF, $FF, $FF;, $FF, $FF, $FF, $FF, $FF, $FF
+;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+;.byte $FF, $FF, $FF, $FF, $BF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FB, $FF, $FF
+;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF

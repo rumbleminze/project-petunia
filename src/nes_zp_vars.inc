@@ -25,6 +25,18 @@ PPU_SOURCE_LB       = $43
 PPU_DEST_HB         = $42
 PPU_DEST_LB         = $41
 
+; Value determines where we're at
+; 00 - title screen
+; 01 - Start/Continue
+; 02 - World 1-1 to 1-3
+; 03 - Level 1-4
+; 04 - 2-1 to 2-3
+; 05 - 2-4
+; 06 - 3-1 to 3-3
+; 07 - 3-4
+; 08 - 4-1
+CURRENT_WORLD_INX   = $A0
+
 PPU_MASK_STATE      = $FF
 PPU_CONTROL_STATE   = $100
 VMAIN_CONTROL_STATE = $102
