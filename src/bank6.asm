@@ -425,9 +425,22 @@ RTS
   JMP $94E5
 
 
-.byte $A9, $00, $8D, $18, $01, $60, $AD, $63, $07, $F0, $13, $AD, $62, $07
-.byte $D0, $09, $A9, $0D, $8D, $E2, $04, $EE, $62, $07, $60, $AD, $E2, $04, $D0, $FA
-.byte $4C, $3D, $93
+.byte $A9, $00, $8D, $18, $01, $60
+
+; 9458 - check if we should display power up message
+  JMP check_for_power_up
+  ; LDA $0763
+  ; none of this should actually be called anymore
+  BEQ :+++
+  LDA $0762
+  BNE :++
+  LDA #$0D
+  STA $04E2
+  INC $0762
+: RTS
+: LDA $04E2
+  BNE :--
+: JMP $933D
 
 ; score tally screen text location information
 .byte $83, $94, $00, $BA, $91, $94, $0E, $BA, $99, $94, $9D, $94, $A1
@@ -537,40 +550,86 @@ nes_95bd:
 .byte $03, $EE, $06, $01, $8D, $07, $01, $A9, $01, $8D, $04, $01, $A9, $00, $8D, $08
 
 ; 9700
-.byte $01, $60, $1E, $97, $46, $97, $6F, $97, $80, $97, $A4, $97, $CD, $97, $E5, $97
-.byte $08, $98, $20, $98, $49, $98, $75, $98, $92, $98, $B9, $98, $00, $61, $FE, $C8
+.byte $01, $60
+
+; text locations for things
+.byte $1E, $97
+.byte $46, $97
+.byte $6F, $97
+.byte $80, $97
+.byte $A4, $97
+.byte $CD, $97
+.byte $E5, $97
+.byte $08, $98
+.byte $20, $98
+.byte $49, $98
+.byte $75, $98
+.byte $92, $98
+.byte $B9, $98
+.byte .lobyte(power_up_dupe), .hibyte(power_up_dupe)
+; 971E (first message pointed to from above)
+.byte $FE, $C8
 .byte $20, $10, $1C, $21, $16, $19, $12, $2E, $24, $2A, $12, $18, $16, $22, $1A, $FD
 .byte $07, $20, $01, $FE, $08, $21, $1D, $1A, $27, $1A, $0C, $29, $16, $20, $1A, $12
-.byte $29, $1D, $1E, $28, $0E, $FF, $FE, $C8, $20, $18, $16, $23, $12, $2E, $24, $2A
+.byte $29, $1D, $1E, $28, $0E, $FF
+; 9746
+.byte $FE, $C8, $20, $18, $16, $23, $12, $2E, $24, $2A
 .byte $12, $1A, $23, $19, $2A, $27, $1A, $FE, $08, $21, $29, $1D, $1E, $28, $12, $1D
-.byte $16, $27, $28, $1D, $12, $29, $27, $16, $1E, $23, $1E, $23, $1C, $0A, $FF, $FE
+.byte $16, $27, $28, $1D, $12, $29, $27, $16, $1E, $23, $1E, $23, $1C, $0A, $FF
+; 976F
+.byte $FE
 .byte $C8, $20, $2E, $24, $2A, $12, $2C, $1A, $16, $20, $21, $1E, $23, $1C, $0E, $FF
+; 9780
 .byte $FE, $C8, $20, $2C, $1A, $21, $21, $12, $19, $24, $23, $1A, $FD, $06, $20, $01
 .byte $0E, $FE, $08, $21, $29, $16, $20, $1A, $12, $2E, $24, $2A, $27, $12, $25, $1E
-.byte $18, $20, $0D, $FF, $FE, $C8, $20, $22, $16, $2E, $12, $1E, $12, $1D, $1A, $21
+.byte $18, $20, $0D, $FF
+; 97A4
+.byte $FE, $C8, $20, $22, $16, $2E, $12, $1E, $12, $1D, $1A, $21
 .byte $25, $12, $2E, $24, $2A, $0A, $FE, $08, $21, $2C, $1A, $12, $1D, $16, $2B, $1A
-.byte $12, $1A, $2B, $1A, $27, $2E, $29, $1D, $1E, $23, $1C, $0D, $FF, $FE, $C8, $20
+.byte $12, $1A, $2B, $1A, $27, $2E, $29, $1D, $1E, $23, $1C, $0D, $FF
+; 97CD
+.byte $FE, $C8, $20
 .byte $1E, $12, $1C, $2A, $1A, $28, $28, $12, $1E, $12, $18, $16, $23, $10, $29, $12
-.byte $2C, $1E, $23, $0E, $FF, $FE, $C8, $20, $1C, $24, $12, $24, $23, $0E, $12, $2C
-
-; 9800
+.byte $2C, $1E, $23, $0E, $FF
+; 97E5
+.byte $FE, $C8, $20, $1C, $24, $12, $24, $23, $0E, $12, $2C
 .byte $1D, $24, $12, $19, $24, $12, $2E, $24, $2A, $FE, $08, $21, $29, $1D, $1E, $23
-.byte $20, $12, $1E, $12, $16, $22, $0A, $FF, $FE, $C8, $20, $29, $1D, $16, $23, $20
+.byte $20, $12, $1E, $12, $16, $22, $0A, $FF
+; 9808
+.byte $FE, $C8, $20, $29, $1D, $16, $23, $20
 .byte $0F, $2E, $24, $2A, $12, $2B, $1A, $27, $2E, $12, $22, $2A, $18, $1D, $0D, $FF
+; 9820
 .byte $FE, $C8, $20, $2C, $1D, $16, $29, $12, $19, $24, $12, $2E, $16, $12, $28, $16
 .byte $2E, $0E, $FE, $08, $21, $29, $27, $2E, $12, $17, $2A, $2E, $1E, $23, $1C, $12
-.byte $1B, $27, $24, $22, $12, $22, $1A, $0D, $FF, $FE, $C8, $20, $24, $20, $12, $20
+.byte $1B, $27, $24, $22, $12, $22, $1A, $0D, $FF
+; 9849
+.byte $FE, $C8, $20, $24, $20, $12, $20
 .byte $1E, $19, $0C, $1E, $10, $21, $21, $12, $21, $1A, $29, $12, $2E, $24, $2A, $FE
 .byte $08, $21, $1D, $16, $2B, $1A, $12, $1E, $29, $12, $24, $23, $12, $18, $27, $1A
-.byte $19, $1E, $29, $0D, $FF, $FE, $C8, $20, $1D, $16, $0C, $1D, $16, $0C, $1D, $16
+.byte $19, $1E, $29, $0D, $FF
+; 9875
+.byte $FE, $C8, $20, $1D, $16, $0C, $1D, $16, $0C, $1D, $16
 .byte $0C, $FE, $08, $21, $29, $1D, $16, $23, $20, $28, $12, $16, $12, $21, $24, $29
-.byte $0D, $FF, $FE, $C8, $20, $21, $1A, $29, $12, $22, $1A, $12, $27, $1A, $22, $24
+.byte $0D, $FF
+; 9892
+.byte $FE, $C8, $20, $21, $1A, $29, $12, $22, $1A, $12, $27, $1A, $22, $24
 .byte $2B, $1A, $FE, $08, $21, $29, $1D, $1A, $12, $1A, $1C, $1C, $25, $21, $16, $23
-.byte $29, $12, $18, $2A, $27, $28, $1A, $0D, $FF, $FE, $CC, $21, $25, $24, $2C, $1A
-.byte $27, $12, $2A, $25, $0E, $FF, $AD, $02, $20, $AD, $00, $01, $8D, $00, $20
+.byte $29, $12, $18, $2A, $27, $28, $1A, $0D, $FF
+; 98B9 POWER UP!
+.byte $FE, $CC, $25, $25, $24, $2C, $1A
+.byte $27, $12, $2A, $25, $0E, $FF
 
+; code
+  NOP ; LDA $2002
+  NOP
+  NOP
+  LDA PPU_CONTROL_STATE
+  NOP ; STA $2000
+  NOP
+  NOP
 early_rts:
   RTS
+
 nes98d0:
 ; .byte $A5, $A0, $C9, $02, $90, $F9, $4A, $B0, $32, $4A, $90, $F3, $C9, $02, $B0, $EF
 ; .byte $0A, $AA, $BD, $07, $99, $85, $00, $BD, $08, $99, $85, $01, $A9, $00, $85, $02
@@ -1190,17 +1249,41 @@ nes_9433_end_of_level_score:
   LDY #$01
   JMP $94E5
 
+; duplicat of
+; 98B9 POWER UP!
+; but written to 21CC instead of 25CC
+power_up_dupe:
+.byte $FE, $CC, $21, $25, $24, $2C, $1A
+.byte $27, $12, $2A, $25, $0E, $FF
+
+check_for_power_up:
+  LDA $0763
+  BEQ :+++++
+  LDA $0762
+  BNE :++++
+  LDA CURRENT_WORLD_INX
+  CMP #$04
+  BNE :+
+  LDA #$0E
+  BRA :++
+: LDA #$0D
+: STA $04E2
+  INC $0762
+: RTS
+: LDA $04E2
+  BNE :--
+: JMP $933D
 
 ;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF;, $FF, $FE, $FF, $FF, $FF, $FF, $FF;, $FF, $FF, $FF, $FF, $FF, $FF
+;.byte $FF, $FF, $FF, $FF, $FE, $FF, $FF, $FF, $FF, $FF;, $FF, $FF, $FF, $FF, $FF, $FF
 ;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 ;.byte $FF, $FF, $FF, $FF, $BF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FB, $FF, $FF
 ;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 ;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 ;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $FF, $FF, $FF;, $FF, $FF, $FF;, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FB, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
