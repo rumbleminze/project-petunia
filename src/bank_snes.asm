@@ -129,8 +129,9 @@ initialize_registers:
   ; lda #0000
 	; sta BG12NBA
   JSR clearvm
-  JSR zero_oam
-
+  JSR zero_oam  
+  JSR dma_oam_table
+  
   STA OBSEL
   LDA #$11
   STA BG12NBA
