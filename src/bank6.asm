@@ -566,7 +566,7 @@ nes_95bd:
 .byte $75, $98
 .byte $92, $98
 .byte $B9, $98
-.byte .lobyte(power_up_dupe), .hibyte(power_up_dupe)
+.byte $00, $61 ; .lobyte(power_up_dupe), .hibyte(power_up_dupe)
 ; 971E (first message pointed to from above)
 .byte $FE, $C8
 .byte $20, $10, $1C, $21, $16, $19, $12, $2E, $24, $2A, $12, $18, $16, $22, $1A, $FD
