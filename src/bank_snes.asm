@@ -131,7 +131,7 @@ initialize_registers:
   JSR clearvm
   JSR zero_oam  
   JSR dma_oam_table
-  
+
   STA OBSEL
   LDA #$11
   STA BG12NBA
@@ -680,6 +680,7 @@ just_disable_nmi:
   LDA PPU_CONTROL_STATE
   AND #$7F
   STA NMITIMEN  
+  ; STZ TM
   BRA infidelitys_scroll_handling
 
 enable_and_store_nmi:
@@ -712,17 +713,22 @@ enable_nmi:
   STA INIDISP
   STA INIDISP_STATE
 
-  LDA $FF                  
+  STZ RESUABLE_CALC_BYTE
+  ; we only care about bits 10 (sprites and 08 bg)
+  LDA $FF 
   AND #$10
   BEQ :+
-  
-  LDA #$11
+  STA RESUABLE_CALC_BYTE
+: LDA $FF
+  AND #$08
+  BEQ :+
+  LDA #$01
+  ORA RESUABLE_CALC_BYTE
+  STA RESUABLE_CALC_BYTE
+: LDA RESUABLE_CALC_BYTE
   STA TM
-  BRA :++
-: STZ TM
-
   ; STA PPU_MASK_STATE  
-: BRA infidelitys_scroll_handling
+  BRA infidelitys_scroll_handling
 
 
 store_to_ppu_control:

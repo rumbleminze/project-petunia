@@ -47,7 +47,7 @@ HOFS_LB             = $FE
 HOFS_HB             = $0804
 VOFS_LB             = $FD
 VOFS_HB             = $0805
-
+RESUABLE_CALC_BYTE  = $0808
 CURRENT_ATTRIBUTES  = $03B0
 
 ; mostly actual nes stuff above

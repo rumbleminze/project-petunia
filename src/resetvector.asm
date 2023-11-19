@@ -19,16 +19,23 @@ nmi:
     PHY
 
     setAXY8 
+    STZ RESUABLE_CALC_BYTE
+    ; we only care about bits 10 (sprites and 08 bg)
     LDA PPU_MASK_STATE
     AND #$10
     BEQ :+
-    
-    LDA #$11
+    STA RESUABLE_CALC_BYTE
+:   LDA PPU_MASK_STATE
+    AND #$08
+    BEQ :+
+    LDA #$01
+    ORA RESUABLE_CALC_BYTE
+    STA RESUABLE_CALC_BYTE
+:   LDA RESUABLE_CALC_BYTE
     STA TM
-    BRA :++
- :  STZ TM
 
- :  JSL setup_hdma    
+
+    JSL setup_hdma    
     LDA #$7E
     STA A1B1
     LDA #$09
