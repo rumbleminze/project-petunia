@@ -59,7 +59,7 @@
   ; STZ INIDISP     ; STA PpuControl_2000       
   ; STZ NMITIMEN    ; STA PpuMask_2001         
   ; STZ $0100                
-  
+
   LDA $38                  
   BMI @nes_c08d
   AND #$0F                 
@@ -69,7 +69,10 @@
   JSR @nes_c0c9                
   LDA #$A0                 
   JSR @nes_c23d 
-
+  NOP
+  NOP
+  NOP
+  NOP
 @nes_c08d:
   LDA $A0                  
   CMP #$09                 
@@ -100,7 +103,7 @@
   LDA #$03                 
   STA $38                  
   JMP $C06D                
-  .byte $00, $00, $00, $00
+  ; .byte $00, $00, $00, $00
   ; .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00  
   ; .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00 
   ; .byte $00, $00, $00, $00, $00, $00
@@ -438,17 +441,84 @@
 
 
 ; should be c8a1
-.byte $20, $B1, $C8, $20, $8A, $C9, $20, $75, $C9, $20, $C6, $C8, $20, $2B, $C9
-.byte $60, $A2, $2F, $A9, $00, $9D, $31, $60, $CA, $10, $FA, $A2, $11, $A9, $00, $9D
-.byte $61, $60, $CA, $10, $FA, $60, $A9, $00, $A8, $B9, $61, $60, $20, $12, $C9, $20
-.byte $09, $C9, $20, $22, $C9, $C8, $C0, $12, $B0, $25, $B9, $61, $60, $20, $1A, $C9
-.byte $20, $09, $C9, $20, $1A, $C9, $C8, $C0, $12, $B0, $14, $B9, $61, $60, $20, $22
-.byte $C9, $20, $09, $C9, $20, $12, $C9, $20, $09, $C9, $C8, $C0, $12, $90, $CA, $60
+@password_generation:
+  JSR @zero_out_password_area
+  JSR $C98A
+  JSR $C975
+  JSR $C8C6
+  JSR $C92B
+  RTS
 
-; c900
-.byte $A2, $17, $7E, $31, $60, $CA, $10, $FA, $60, $18, $20, $00, $C9, $18, $20, $00
-.byte $C9, $60, $4A, $20, $00, $C9, $4A, $20, $00, $C9, $4A, $20, $00, $C9, $4A, $20
-.byte $00, $C9, $4A, $20, $00, $C9, $4A, $20, $00, $C9, $60, $AD, $02, $20, $A9, $22
+
+@zero_out_password_area:
+  LDX #$2F
+  LDA #$00
+: STA $6031,X
+  DEX
+  BPL :-
+  LDX #$11
+  LDA #$00
+: STA $6061,X
+  DEX
+  BPL :-
+  RTS
+
+; pwcall 3 c8c6
+  LDA #$00
+  TAY
+: LDA $6061,Y
+  JSR $C912
+  JSR $C909
+  JSR $C922
+  INY
+  CPY #$12
+  BCS :+
+  LDA $6061,Y
+  JSR $C91A
+  JSR $C909
+  JSR $C91A
+  INY
+  CPY #$12
+  BCS :+
+  LDA $6061,Y
+  JSR $C922
+  JSR $C909
+  JSR $C912
+  JSR $C909
+  INY
+  CPY #$12
+  BCC :-
+: RTS
+
+
+; c900 - c92a - password utility functions
+  LDX #$17
+: ROR $6031,X
+  DEX
+  BPL :-
+  RTS
+
+  CLC
+  JSR $C900
+  CLC
+  JSR $C900
+  RTS
+
+  LSR
+  JSR $C900
+  LSR
+  JSR $C900
+  LSR
+  JSR $C900
+  LSR
+  JSR $C900
+  LSR
+  JSR $C900
+  LSR
+  JSR $C900
+  RTS
+
+.byte $AD, $02, $20, $A9, $22
 .byte $A0, $89, $A2, $00, $20, $59, $C9, $20, $60, $C9, $A9, $22, $A0, $91, $20, $59
 .byte $C9, $20, $60, $C9, $A9, $22, $A0, $C9, $20, $59, $C9, $20, $60, $C9, $A9, $22
 .byte $A0, $D1, $20, $59, $C9, $20, $60, $C9, $60
@@ -472,22 +542,116 @@
   BPL :-               
   RTS                      
 ;c975
-.byte $A2, $00, $86, $00, $A5, $00, $18, $7D, $61, $60, $85
-.byte $00, $E8, $E0, $11, $90, $F3, $9D, $61, $60, $60, $A0, $02, $B9, $0D, $60, $29
-.byte $F3, $85, $00, $B9, $10, $60, $29, $03, $0A, $0A, $05, $00, $99, $61, $60, $88
-.byte $10, $EA, $AD, $13, $60, $8D, $64, $60, $AD, $14, $60, $8D, $65, $60, $AD, $15
-.byte $60, $8D, $66, $60, $AD, $19, $60, $8D, $67, $60, $AD, $1A, $60, $29, $0F, $85
-.byte $00, $AD, $1B, $60, $8D, $69, $60, $AD, $1C, $60, $29, $0F, $0A, $0A, $0A, $0A
-.byte $05, $00, $8D, $68, $60, $A5, $26, $29, $FE, $85, $00, $AD, $1D, $60, $29, $01
-.byte $05, $00, $8D, $6A, $60, $AD, $1E, $60, $8D, $6B, $60, $AD, $1F, $60, $8D, $6C
-.byte $60, $AD, $20, $60, $8D, $6D, $60, $AD, $21, $60, $0A, $0A, $0A, $0A, $85, $00
+; pwcall 2
+  LDX #$00
+  STX $00
+: LDA $00
+  CLC
+  ADC $6061,X
+  STA $00
+  INX
+  CPX #$11
+  BCC :-
+  STA $6061,X
+  RTS
 
-;ca00
-.byte $AD, $26, $60, $29, $0F, $05, $00, $8D, $6E, $60, $AD, $22, $60, $29, $03, $85
-.byte $00, $AD, $23, $60, $29, $03, $0A, $0A, $05, $00, $85, $00, $AD, $24, $60, $29
-.byte $03, $0A, $0A, $0A, $0A, $05, $00, $8D, $6F, $60, $AD, $25, $60, $8D, $70, $60
-.byte $AD, $28, $60, $0A, $0A, $0A, $0A, $85, $00, $AD, $29, $60, $29, $07, $05, $00
-.byte $85, $00, $AD, $2A, $60, $0A, $0A, $0A, $29, $08, $05, $00, $8D, $71, $60, $60
+
+; pwcall 1
+  LDY #$02
+: LDA $600D,Y
+  AND #$F3
+  STA $00
+  LDA $6010,Y
+  AND #$03
+  ASL
+  ASL
+  ORA $00
+  STA $6061,Y
+  DEY
+  BPL :-
+  LDA $6013
+  STA $6064
+  LDA $6014
+  STA $6065
+  LDA $6015
+  STA $6066
+  LDA $6019
+  STA $6067
+  LDA $601A
+  AND #$0F
+  STA $00
+  LDA $601B
+  STA $6069
+  LDA $601C
+  AND #$0F
+  ASL
+  ASL
+  ASL
+  ASL
+  ORA $00
+  STA $6068
+  LDA $26
+  AND #$FE
+  STA $00
+  LDA $601D
+  AND #$01
+  ORA $00
+  STA $606A
+  LDA $601E
+  STA $606B
+  LDA $601F
+  STA $606C
+  LDA $6020
+  STA $606D
+  LDA $6021
+  ASL
+  ASL
+  ASL
+  ASL
+  STA $00
+  LDA $6026
+  AND #$0F
+  ORA $00
+  STA $606E
+  LDA $6022
+  AND #$03
+  STA $00
+  LDA $6023
+  AND #$03
+  ASL
+  ASL
+  ORA $00
+  STA $00
+  LDA $6024
+  AND #$03
+  ASL
+  ASL
+  ASL
+  ASL
+  ORA $00
+  STA $606F
+  LDA $6025
+  STA $6070
+  LDA $6028
+  ASL
+  ASL
+  ASL
+  ASL
+  STA $00
+  LDA $6029
+  AND #$07
+  ORA $00
+  STA $00
+  LDA $602A
+  ASL
+  ASL
+  ASL
+  AND #$08
+  ORA $00
+  STA $6071
+  RTS
+
+;ca50
 .byte $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $16, $17, $18, $19, $1A, $1B
 .byte $1C, $1D, $1E, $1F, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $2A, $2B
 .byte $2C, $2D, $2E, $2F, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $3A, $3B
