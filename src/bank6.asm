@@ -428,8 +428,8 @@ RTS
 .byte $A9, $00, $8D, $18, $01, $60
 
 ; 9458 - check if we should display power up message
-  JMP check_for_power_up
-  ; LDA $0763
+  ; JMP check_for_power_up
+  LDA $0763
   ; none of this should actually be called anymore
   BEQ :+++
   LDA $0762
@@ -542,8 +542,22 @@ nes_95bd:
 .byte $04, $20, $CC, $96, $8D, $06, $01, $EE, $E4, $04, $A5, $3A, $C9, $10, $90, $09
 .byte $AD, $06, $01, $18, $69, $04, $8D, $06, $01, $60, $A9, $00, $8D, $E2, $04, $8D
 .byte $E3, $04, $8D, $E4, $04, $8D, $04, $01, $A9, $00, $8D, $E5, $04, $8D, $E6, $04
-.byte $60, $AE, $E2, $04, $CA, $8A, $0A, $AA, $BD, $02, $97, $8D, $E7, $04, $BD, $03
-.byte $97, $8D, $E8, $04, $60, $84, $02, $C8, $B1, $00, $8D, $E6, $04, $C8, $B1, $00
+.byte $60 
+
+;96a1 - Load text location for offset 0x04E2
+  JMP nes_96a1_replacement
+  ; LDX $04E2
+  DEX
+  TXA
+  ASL
+  TAX
+  LDA $9702,X
+  STA $04E7
+  LDA $9703,X
+  STA $04E8
+  RTS
+
+.byte $84, $02, $C8, $B1, $00, $8D, $E6, $04, $C8, $B1, $00
 .byte $8D, $E9, $04, $C8, $B1, $00, $8D, $EA, $04, $A4, $02, $60, $AD, $E7, $04, $85
 .byte $00, $AD, $E8, $04, $85, $01, $AC, $E4, $04, $B1, $00, $60, $AD, $E9, $04, $85
 .byte $00, $AD, $EA, $04, $85, $01, $AC, $E5, $04, $B1, $00, $60, $EE, $05, $01, $D0
@@ -1256,23 +1270,49 @@ power_up_dupe:
 .byte $FE, $CC, $21, $25, $24, $2C, $1A
 .byte $27, $12, $2A, $25, $0E, $FF
 
-check_for_power_up:
-  LDA $0763
-  BEQ :+++++
-  LDA $0762
-  BNE :++++
+; check_for_power_up:
+;   LDA $0763
+;   BEQ :+++++
+;   LDA $0762
+;   BNE :++++
+;   LDA CURRENT_WORLD_INX
+;   CMP #$04
+;   BNE :+
+;   LDA #$0D
+;   BRA :++
+; : LDA #$0D
+; : STA $04E2
+;   INC $0762
+; : RTS
+; : LDA $04E2
+;   BNE :--
+; : JMP $933D
+
+nes_96a1_replacement:
+  LDX $04E2
+  DEX
+  TXA
+  ASL
+  TAX
+
+  ; for the POWER_UP Text (x == 0x18)
+  ; we need to check if we're on world index #$04 (world 2)
+  CPX #$18
+  BNE :+
   LDA CURRENT_WORLD_INX
   CMP #$04
   BNE :+
-  LDA #$0E
+  LDA #.lobyte(power_up_dupe)
+  STA $04E7
+  LDA #.hibyte(power_up_dupe)
+  STA $04E8
   BRA :++
-: LDA #$0D
-: STA $04E2
-  INC $0762
+
+: LDA $9702,X
+  STA $04E7
+  LDA $9703,X
+  STA $04E8
 : RTS
-: LDA $04E2
-  BNE :--
-: JMP $933D
 
 ;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 ;.byte $FF, $FF, $FF, $FF, $FE, $FF, $FF, $FF, $FF, $FF;, $FF, $FF, $FF, $FF, $FF, $FF
@@ -1281,10 +1321,10 @@ check_for_power_up:
 ;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 ;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 ;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF;, $FF, $FF, $FF;, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+;.byte $FF, $FF, $FF, $FF, $FF, $FF;, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 ;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 ;.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FB, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $FF, $FF, $FF, $FF, $FF, $FB, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF;, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
