@@ -56,6 +56,7 @@ CURRENT_ATTRIBUTES  = $03B0
 LAST_ATTRIB_LOC_LB  = $E0
 LAST_ATTRIB_LOC_HB  = $E1
 SPRITE_LOOP_JUNK    = $E2
+tmp_dat             = $E2
 
 JMP_REDIRECT_LB     = $d0
 
@@ -157,3 +158,6 @@ NES_APU_DMC_OUTPUT      = $0A13
 
 NES_APU_CHAN_ENABLE     = $0A15
 NES_APU_FRAME_CTR       = $0A17
+APUInit                 = $0A18
+
+SPC700CodeBank          = $8C

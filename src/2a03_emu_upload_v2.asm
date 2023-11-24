@@ -70,8 +70,8 @@ upload_sound_emulator_to_spc:
   ; PLP
 
 
-;   LDA #$00 
-  LDA #$01 ; - disabling all sound for now
+;   LDA #$00 ; - set to 00 to disable all sound
+  LDA #$01 
   STA $0A18
   PLB
   STZ $00
