@@ -524,6 +524,7 @@ convert_audio:
 
 ca_d9ee:
   SEP #$30
+
   LDA $0A00
   AND #$20
   BNE :++
@@ -538,6 +539,7 @@ ca_d9ee:
   BRA :++
 : LDA $0A03
   STA $0A1C
+
 : LDA $0A04
   AND #$20
   BNE :++
@@ -556,6 +558,7 @@ ca_d9ee:
   BRA :++
 : LDA $0A07
   STA $0A20
+
 : LDA $0A08
   AND #$F0
   BNE :++
@@ -574,6 +577,7 @@ ca_d9ee:
   BRA :++
 : LDA $0A0B
   STA $0A24
+
 : LDA $0A0C
   AND #$20
   BNE :++
@@ -592,10 +596,10 @@ ca_d9ee:
   BRA :++
 : LDA $0A0F
   STA $0A28
+
 : LDA $0A01
   AND #$F0
   BEQ :+
-; .byte $F0, $1E
   LDA $0A01
   AND #$07
   BEQ :+++
@@ -614,8 +618,9 @@ ca_d9ee:
 : LDA $0A2F
   AND #$BF
   STA $0A2F
-  ; bra #$EE
   .byte $80, $EE
+  ; bra :---
+
 ca_dad5:
   LDA $0A05
   AND #$F0
@@ -848,33 +853,39 @@ ca_dc90:
   STA $0A19
   LDA $0A01
   STA $0A1A
+
   LDA $0A04
   STA $0A1D
   LDA $0A05
   STA $0A1E
+
   LDA $0A08
   STA $0A21
   LDA $0A09
-  STA $0A22
+  STA $0A22  
   LDA $0A0A
   STA $0A23
+
   LDA $0A0C
   STA $0A25
   LDA $0A0D
   STA $0A26
   LDA $0A0E
   STA $0A27
+
   LDA $0A11
   STA $0A2A
+  
   RTS
 
 .byte $ff
 
 ca_dcd4:
   LDA $0A18
-  BNE ca_dcda
+  BNE write_data_to_apu
   RTS
-ca_dcda:
+  
+write_data_to_apu:
   PHP
   SEP #$30
   PHX

@@ -12,6 +12,8 @@
 
 .include "2a03_emulator_first_8000.asm"
 .include "2a03_emulator_second_8000.asm"
+; .include "2a03_emulator_v2_1.asm"
+; .include "2a03_emulator_v2_2.asm"
 
 .include "bank_snes.asm"
 .include "bank0.asm"
