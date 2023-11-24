@@ -58,6 +58,7 @@ initialize_registers:
 
   LDA #$01
   STA M7A
+  STA MEMSEL
   STZ M7B
   STZ M7B
   STZ M7C
