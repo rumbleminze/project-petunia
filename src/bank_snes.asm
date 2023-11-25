@@ -185,6 +185,36 @@ initialize_registers:
   JML $A1C000
 
 snes_nmi:
+  STZ RESUABLE_CALC_BYTE
+  ; we only care about bits 10 (sprites and 08 bg)
+  LDA PPU_MASK_STATE
+  AND #$10
+  BEQ :+
+  STA RESUABLE_CALC_BYTE
+: LDA PPU_MASK_STATE
+  AND #$08
+  BEQ :+
+  LDA #$01
+  ORA RESUABLE_CALC_BYTE
+  STA RESUABLE_CALC_BYTE
+: LDA RESUABLE_CALC_BYTE
+  STA TM
+
+
+  JSL setup_hdma    
+  LDA #$7E
+  STA A1B1
+  LDA #$09
+  STA A1T1H
+  STZ A1T1L
+  LDA #$0D
+  STA BBAD1
+  LDA #$03
+  STA DMAP1
+
+  LDA #$02
+  STA HDMAEN
+
   LDA RDNMI
   JSR dma_oam_table
   JSR disable_attribute_buffer_copy
@@ -829,6 +859,8 @@ nes_951d_copy:
 
   setAXY16
 
+  LDA #$80
+  STA VMAIN
 
   LDA $0481
   STA VMADDL ; STA PpuAddr_2006         
@@ -857,8 +889,8 @@ nes_951d_copy:
   setAXY8
   ; LDA INIDISP_STATE
   ; STA INIDISP
-  ; LDA VMAIN_CONTROL_STATE
-  ; STA VMAIN
+  LDA VMAIN_CONTROL_STATE
+  STA VMAIN
   RTL
 
 veritcal_scroll_attribute_handle:
