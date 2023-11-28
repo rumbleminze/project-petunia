@@ -1218,10 +1218,23 @@
   JMP $7F24                
 : JSR $E1AF                
 
-.byte $4C, $C7, $E1, $A5, $3A, $C9, $10, $B0, $0C, $A9, $0F, $8D, $95
+  JMP $E1C7
+  LDA $3A
+  CMP #$10
+  BCS :+
+: LDA #$0F
+  STA $0395
+  STA $0396
+  STA $0397
+  RTS
 
-; 0xE200
-.byte $03, $8D, $96, $03, $8D, $97, $03, $60, $AD, $3D, $01, $F0, $EF, $60, $0F, $20
+
+; 0xE20B - Check for map?
+: LDA $013D
+  BNE :- ; Changed from BEQ :- so we always have map (unless you spend 990 to turn it off)
+  RTS
+
+.byte $0F, $20
 .byte $22, $02, $0F, $2A, $17, $07, $0F, $37, $10, $00, $0F, $31, $27, $15, $0F, $20
 .byte $26, $07, $0F, $31, $02, $15, $0F, $11, $25, $31, $0F, $20, $00, $10
 
@@ -1246,10 +1259,39 @@
 @nes_e24f:
 .byte $20
 .byte $1E, $7F, $20, $21, $7F, $20, $C9, $EB, $4C, $EB, $E1, $A0, $00, $A9, $F8, $99
-.byte $00, $02, $C8, $D0, $FA, $60, $A2, $04, $AD, $3A, $01, $F0, $28, $A5, $14, $29
-.byte $08, $D0, $22, $A5, $46, $29, $07, $0A, $0A, $0A, $18, $69, $A0, $9D, $03, $02
-.byte $A5, $46, $29, $F8, $18, $69, $1F, $9D, $00, $02, $A9, $0A, $9D, $01, $02, $A9
-.byte $01, $9D, $02, $02, $60, $A9, $F8, $9D, $00, $02, $60, $A2, $41, $A9, $00, $9D
+.byte $00, $02, $C8, $D0, $FA, $60
+
+; e266 - checking for various items (pencil/torch)
+  LDX #$04
+  LDA $013A
+  ; BEQ :+
+  BNE :+  ; inverted so that we get functionality without the torch
+  LDA $14
+  AND #$08
+  BNE :+
+  LDA $46
+  AND #$07
+  ASL
+  ASL
+  ASL
+  CLC
+  ADC #$A0
+  STA $0203,X
+  LDA $46
+  AND #$F8
+  CLC
+  ADC #$1F
+  STA $0200,X
+  LDA #$0A
+  STA $0201,X
+  LDA #$01
+  STA $0202,X
+  RTS
+: LDA #$F8
+  STA $0200,X
+  RTS
+
+.byte $A2, $41, $A9, $00, $9D
 .byte $31, $01, $CA, $10, $FA, $60, $A0, $00, $C9, $00, $D0, $01, $60, $A0, $07, $C9
 .byte $80, $B0, $1A, $88, $C9, $40, $B0, $15, $88, $C9, $20, $B0, $10, $88, $C9, $10
 .byte $B0, $0B, $88, $C9, $05, $B0, $06, $88, $C9, $03, $B0, $01, $88, $98, $0A, $A8
@@ -2073,7 +2115,6 @@ JMP @nes_e861_replacement
   ; STA NMITIMEN
   ; STA PPU_CONTROL_STATE
   
-
   RTS                      
 
 ; 0xEBF5
@@ -2388,8 +2429,23 @@ JMP @nes_e861_replacement
 ; EF83
 .byte $A9, $00, $F0, $02, $A9, $1E, $8D, $01, $20, $60, $05, $07, $08
 .byte $06, $07, $08, $05, $06, $08, $0A, $05, $09, $05, $07, $06, $06, $04, $08, $00
-.byte $01, $02, $21, $10, $40, $35, $27, $76, $02, $01, $05, $39, $15, $63, $12, $07
-.byte $20, $18, $10, $25, $48, $50, $45, $60, $50, $70, $01, $00, $00, $00, $00, $01
+.byte $01, $02
+ ; prices (times 10 hearts, in decimal)
+.byte $04, $02, $05 ; chalice, discount, increased
+.byte $16, $10, $24 ; bottle, discount, increased
+.byte $01, $01, $02 ; hammer, discount, increased
+.byte $12, $07, $20 ; feather
+.byte $99, $99, $99 ; torch
+.byte $99, $99, $99 ; pencil
+; black market
+.byte $15 ; bottle
+.byte $20 ; barrel
+.byte $17 ; feather
+.byte $01 ; fire
+.byte $02 ; bow
+.byte $03 ; shield
+
+.byte $01, $00, $00, $00, $00, $01
 .byte $01, $00, $00, $00, $01, $01, $01, $00, $00, $00, $01, $AE, $24, $00, $06, $93
 .byte $22, $00, $07, $AB, $20, $01, $01, $71, $22, $01, $03, $D8, $26, $01, $04, $99
 .byte $22, $01, $06, $B1, $25, $01, $0C, $2C, $24, $02, $02, $8E, $22, $02, $04, $43
@@ -2678,16 +2734,21 @@ JMP @nes_e861_replacement
   ;ORA $80                 
   ; STA INIDISP ; STA PpuControl_2000    
   ; PLA                      
-  STA $BC                  
-  LDA $B6   
+  STA $BC
 
-  PHA                      
+  LDA $B6
+  PHA   
+
+  ; INC A
+  ; ORA #$A0
+  ; PHA    
+
   LDA #.hibyte(@cac7 - 1) 
-
   PHA                      
+
   LDA #.lobyte(@cac7 - 1) 
-
   PHA                      
+
   LDA #$80                 
   STA $BD      
 
@@ -2703,9 +2764,11 @@ JMP @nes_e861_replacement
   ; STA $FFFF                
   ; LSR A                    
   ; STA $FFFF
+
   INC A
   AND #$0F
   ORA #$A0
+
   STA $0802
   STA JMP_REDIRECT_LB + 2
   ; NOP
@@ -2713,10 +2776,13 @@ JMP @nes_e861_replacement
   
   PHA
   PLB
+
   LDA #.lobyte(:+)
   STA $0800
+
   LDA #.hibyte(:+)
   STA $0801
+
   JML ($0800)
 
 : PHY
@@ -2729,6 +2795,9 @@ JMP @nes_e861_replacement
   STA JMP_REDIRECT_LB + 1
   PLA
   PLY
+
+
+
   JML (JMP_REDIRECT_LB)
 
 
@@ -2888,6 +2957,8 @@ JMP @nes_e861_replacement
   STA JMP_REDIRECT_LB
   LDA $6FFB
   STA JMP_REDIRECT_LB + 1
+  LDA $0802
+  STA JMP_REDIRECT_LB + 2
   JML (JMP_REDIRECT_LB)
 
   @post_jump_loc:           

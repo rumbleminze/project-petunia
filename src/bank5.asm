@@ -428,7 +428,8 @@ nes_91bf:
 ; 9239 - 926C
 nes_9239:
   LDA $013B
-  BEQ nes_91bf
+  BNE nes_91bf ; this is inverted from BEQ, but because this happens not during
+               ; vblank it doesn't work =(
   LDA $46
   AND #$07
   STA $00

@@ -23,3 +23,4 @@
 .include "bank4.asm"
 .include "bank5.asm"
 .include "bank6.asm"
+.include "randomizer.asm"
