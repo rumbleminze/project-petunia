@@ -451,9 +451,15 @@ nes_9239:
   TAX
   LDY $01
   LDA #$13
-  STX VMADDL
-  STY VMADDH
-  STA VMDATAL
+  JSL add_extra_vram_update
+      ; STX VMADDL
+  NOP ; STY VMADDH
+  NOP
+
+  NOP ; STA VMDATAL
+  NOP
+  NOP
+
   RTS
 
 

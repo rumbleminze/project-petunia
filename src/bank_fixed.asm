@@ -1221,7 +1221,7 @@
   JMP $E1C7
   LDA $3A
   CMP #$10
-  BCS :+
+  BCS :++
 : LDA #$0F
   STA $0395
   STA $0396
@@ -1231,7 +1231,7 @@
 
 ; 0xE20B - Check for map?
 : LDA $013D
-  BNE :- ; Changed from BEQ :- so we always have map (unless you spend 990 to turn it off)
+  BNE :-- ; Changed from BEQ :- so we always have map (unless you spend 990 to turn it off)
   RTS
 
 .byte $0F, $20

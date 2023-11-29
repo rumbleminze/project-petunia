@@ -112,6 +112,7 @@ initialize_registers:
   STZ UNPAUSE_BG1_VOFS_HB
   STZ UNPAUSE_BG1_HOFS_LB
   STZ UNPAUSE_BG1_HOFS_HB
+  STZ EXTRA_VRAM_UPDATE
 
   setAXY8
   LDA #$00
@@ -219,6 +220,7 @@ snes_nmi:
   JSR dma_oam_table
   JSR disable_attribute_buffer_copy
   JSR check_and_copy_attribute_buffer
+  JSR write_one_off_vrams
   RTL
 
 clearvm:
@@ -1836,6 +1838,56 @@ dma_column_attributes:
   LDA #$80
   STA VMAIN
 
+  RTS
+
+; X should contain VMADDH
+; Y should contain VMADDL
+; A should contain VMDATAL
+
+add_extra_vram_update:
+  STY VRAM_UPDATE_ADDR_LB
+  STX VRAM_UPDATE_ADDR_HB
+  STA VRAM_UPDATE_DATA
+
+  LDA EXTRA_VRAM_UPDATE
+  ASL A
+  ADC EXTRA_VRAM_UPDATE
+  INC A
+  TAY
+
+  LDA VRAM_UPDATE_ADDR_LB
+  STA EXTRA_VRAM_UPDATE, Y
+
+  LDA VRAM_UPDATE_ADDR_HB
+  STA EXTRA_VRAM_UPDATE + 1, Y
+
+  LDA VRAM_UPDATE_DATA
+  STA EXTRA_VRAM_UPDATE + 2, Y
+
+  INC EXTRA_VRAM_UPDATE
+  RTL
+
+write_one_off_vrams:
+  
+  LDX EXTRA_VRAM_UPDATE
+  BEQ :++
+  LDY #$00
+: LDA EXTRA_VRAM_UPDATE+1, Y
+  STA VMADDL  
+  INY
+
+  LDA EXTRA_VRAM_UPDATE+1, Y
+  STA VMADDH
+  INY
+
+  LDA EXTRA_VRAM_UPDATE+1, Y
+  STA VMDATAL
+  INY
+
+  DEX
+  BNE :-  
+
+: STZ EXTRA_VRAM_UPDATE
   RTS
 
 palette_lookup:
