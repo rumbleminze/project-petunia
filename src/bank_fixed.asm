@@ -789,7 +789,7 @@
   BCC @fixedCBA6
   LDY $012F
   LDA $46
-  CMP $CB90,Y
+  CMP BOSS_MUSIC_ROOM,Y
   BEQ @fixedCB8C
   CMP #$1B
   BNE :++
