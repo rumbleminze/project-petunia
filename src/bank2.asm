@@ -1867,8 +1867,8 @@ nes9736:
 .byte $D7, $D8, $DB, $DB, $D8, $D8, $DB, $DB, $D8, $D9, $DB, $DB
 
 ; These tiles have been moved so they're consistent across W 1-3
-.byte $E9, $EA, $EC, $ED ; $D7, $D8, $DF, $E0
-.byte $EA, $EB, $EE, $EF ; $D8, $D9, $E1, $E2
+.byte $ED, $EE, $F0, $F1 ; $D7, $D8, $DF, $E0
+.byte $EE, $EF, $F2, $F3 ; $D8, $D9, $E1, $E2
 
 .byte $7B, $12, $12, $12, $7B, $12, $12, $12, $7B, $12, $12, $12
 .byte $60, $61, $64, $65, $60, $61, $62, $63, $62, $63, $62, $63, $C9, $CA, $CB, $CC

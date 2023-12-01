@@ -97,6 +97,7 @@ loop:
     INC $03                  
     DEX                      
     BNE loop  
+    ; RTL here to turn off dungeon randomization
     ; RTL
 
     LDA #$A8

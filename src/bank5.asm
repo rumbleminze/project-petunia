@@ -780,8 +780,9 @@ nes_9239:
 .byte $12, $12, $2B, $12, $12, $12, $2B, $12, $12, $12, $2B, $12, $12, $12
 
 ; These tiles have been moved so they're consistent across W 1-3
-.byte $E9, $EA, $EC, $ED ; $D7, $D8, $DF, $E0
-.byte $EA, $EB, $EE, $EF ; $D8, $D9, $E1, $E2
+.byte $ED, $EE, $F0, $F1 ; $D7, $D8, $DF, $E0
+.byte $EE, $EF, $F2, $F3 ; $D8, $D9, $E1, $E2
+
 
 .byte $2B, $12, $12, $12, $2B, $12, $12, $12, $2B, $12
 .byte $12, $12, $2B, $12, $12, $12, $2B, $12, $12, $12, $2B, $12, $12, $12, $60, $61
