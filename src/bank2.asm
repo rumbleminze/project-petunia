@@ -8,7 +8,13 @@
 .byte $4C, $71, $97, $4C, $6D, $95, $4C, $3E, $96, $4C, $1D, $95, $4C, $37, $95, $4C
 
 .byte $85, $85, $67, $C5, $E7, $C5, $AA, $81, $EA, $81, $12, $82, $2A, $82, $4A, $82
-.byte $56, $82, $56, $82, $56, $83, $C9, $EF, $40, $7E
+.byte $56, $82, $56, $82, $56, $83
+
+; changes where we load doors for W1
+; .byte $C9, $EF
+.byte $00, $61
+
+.byte $40, $7E
 
 ; 805a - main level loop resides here at a3:8095
   JSR $EB07                
@@ -187,15 +193,67 @@ nes8139:
 .byte $01, $FD, $00, $AE, $01, $03, $F8, $9A, $01, $F4, $F8, $9A, $01, $FC, $F8, $9A
 .byte $01, $04, $F8, $9A, $01, $0C, $F8, $0E, $00, $FC, $F8, $0E, $40, $04, $00, $5C
 .byte $00, $FC, $00, $5C, $40, $04, $A2, $50, $A9, $80, $9D, $01, $07, $0A, $9D, $00
-.byte $07, $85, $A1, $60, $A2, $50, $BD, $01, $07, $10, $0C, $20, $0D, $86, $BD, $01
+.byte $07, $85, $A1, $60
 
-.byte $07, $29, $0F, $F0, $03, $D0, $51, $60, $A5, $A1, $CD, $07, $7E, $90, $06, $A9
-.byte $00, $9D, $01, $07, $60, $85, $00, $0A, $0A, $A8, $B9, $08, $7E, $CD, $30, $01
-.byte $90, $17, $D0, $E3, $B9, $09, $7E, $CD, $D1, $04, $90, $0D, $D0, $D9, $B9, $0A
-.byte $7E, $29, $F0, $C5, $FD, $F0, $06, $90, $CE, $E6, $A1, $D0, $CB, $A9, $00, $9D
+; 8434
+  LDX #$50
+  LDA $0701,X
+  BPL :+
+  JSR $860D
+  LDA $0701,X
+  AND #$0F
+  BEQ :++
+  BNE nes_8498
+: RTS
 
-.byte $00, $07, $B9, $0A, $7E, $0A, $0A, $0A, $0A, $9D, $03, $07, $A9, $81, $9D, $01
-.byte $07, $B9, $0B, $7E, $9D, $02, $07, $60, $BD, $00, $07, $C9, $F8, $B0, $11, $20
+; 8448
+: LDA $A1
+  ; check for item, this has been moved so we can edit it in the level randomization
+  CMP LVL_ITEM_COUNT
+  BCC nes_8455
+  LDA #$00
+  STA $0701,X
+  RTS
+
+; 8455
+nes_8455:
+  STA $00
+  ASL
+  ASL
+  TAY
+  ; check for item, this has been moved so we can edit it in the level randomization
+  ; LDA $7E08,Y
+  LDA LVL_ITEM_COUNT + 1, Y
+  CMP $0130
+  BCC :+
+  BNE :+++
+  LDA LVL_ITEM_COUNT + 2,Y
+  CMP $04D1
+  BCC :+
+  BNE :+++
+  LDA LVL_ITEM_COUNT + 3,Y
+  AND #$F0
+  CMP $FD
+  BEQ :++
+  BCC :+++
+: INC $A1
+  BNE :--
+: LDA #$00
+  STA $0700,X
+  LDA LVL_ITEM_COUNT + 3,Y
+  ASL
+  ASL
+  ASL
+  ASL
+  STA $0703,X
+  LDA #$81
+  STA $0701,X
+  LDA LVL_ITEM_COUNT + 4,Y
+  STA $0702,X
+: RTS
+
+nes_8498:
+.byte $BD, $00, $07, $C9, $F8, $B0, $11, $20
 .byte $8A, $D9, $90, $03, $4C, $C6, $84, $BD, $02, $07, $D0, $11, $A9, $FF, $85, $3E
 .byte $A9, $10, $8D, $81, $03, $A9, $80, $9D, $01, $07, $4C, $2B, $DD, $A5, $A6, $18
 
@@ -321,11 +379,36 @@ nes8139:
 .byte $44, $8B, $A2, $70, $A0, $20, $20, $44, $8B, $A2, $80, $A0, $40, $20, $44, $8B
 
 .byte $A2, $90, $A0, $60, $20, $51, $8B, $C8, $C8, $C8, $C8, $98, $29, $1F, $D0, $F4
-.byte $60, $B9, $60, $7B, $C9, $FF, $F0, $29, $CD, $30, $01, $D0, $23, $AD, $D1, $04
-.byte $D9, $61, $7B, $D0, $1B, $A5, $FD, $D9, $62, $7B, $D0, $14, $A9, $78, $9D, $01
-.byte $07, $A9, $0C, $9D, $02, $07, $A9, $00, $9D, $00, $07, $A9, $80, $9D, $03, $07
+.byte $60
 
-.byte $60, $68, $68, $60, $A2, $60, $20, $98, $8B, $A2, $70, $20, $98, $8B, $A2, $80
+;8b51
+; Changes where we load platform information World 1
+  LDA LVL_PLATFORMS,Y
+  CMP #$FF
+  BEQ :++
+  CMP $0130
+  BNE :+
+  LDA $04D1
+  CMP LVL_PLATFORMS+1,Y
+  BNE :+
+  LDA $FD
+  CMP LVL_PLATFORMS+2,Y
+  BNE :+
+  LDA #$78
+  STA $0701,X
+  LDA #$0C
+  STA $0702,X
+  LDA #$00
+  STA $0700,X
+  LDA #$80
+  STA $0703,X
+: RTS
+: PLA
+  PLA
+  RTS
+
+
+.byte $A2, $60, $20, $98, $8B, $A2, $70, $20, $98, $8B, $A2, $80
 .byte $20, $98, $8B, $A2, $90, $4C, $98, $8B, $BD, $01, $07, $29, $F8, $C9, $78, $D0
 .byte $20, $20, $49, $E0, $20, $0D, $86, $BD, $01, $07, $29, $07, $BD, $00, $07, $C9
 .byte $F8, $B0, $09, $20, $C2, $8B, $20, $C0, $DB, $4C, $EA, $8B, $A9, $00, $9D, $01
@@ -1048,24 +1131,53 @@ nes9736:
   RTS                      
 
 ; 973F
-  JSR $95B7                
-  LDA #$00                 
-  STA $04D2                
-  LDA $0130                
-  ASL A                    
-  TAY                      
-  LDA $7BF0,Y              
-  STA $00                  
-  LDA $7BF1,Y              
-  STA $01                  
-  LDA $04D1                
-  ASL A                    
-  TAY                      
-  LDA ($00),Y              
-  STA $49                  
-  INY                      
-  LDA ($00),Y              
-  CMP #$FF                 
+  JSR $95B7 
+; Hijacked to randomize      
+
+  LDA #.lobyte(world_1_screen_data)
+  STA PARAM_RULES_FP_LB
+
+  LDA #.hibyte(world_1_screen_data)
+  STA PARAM_RULES_FP_HB
+
+  LDA #.hibyte(w1_item_locations)
+  STA PARAM_ITEM_LOCS_HB
+
+  LDA #.lobyte(w1_item_locations)
+  STA PARAM_ITEM_LOCS_LB
+
+  LDA #LVL_1_1_SIZE
+  STA LVL_GEN_PARAM_SIZE
+
+  LDA #.lobyte(ENEMY_TABLE)
+  STA PARAM_ENEMY_TABLE1_LB
+
+  JSL scrolling_randomization
+
+  NOP
+  NOP
+  NOP
+  NOP
+
+  ; LDA #$00                 
+  ; STA $04D2                
+  ; LDA $0130                
+  ; ASL A                    
+  ; TAY                      
+  ; LDA $7BF0,Y              
+  ; STA $00                  
+  ; LDA $7BF1,Y              
+  ; STA $01                  
+  ; LDA $04D1                
+  ; ASL A                    
+  ; TAY                      
+  ; LDA ($00),Y              
+  ; STA $49                  
+  ; INY                      
+  ; LDA ($00),Y   
+ ; End hijack
+           
+  CMP #$FF   
   BEQ nes9736            
   STA $4A                  
   JSR $95C2                
@@ -1466,7 +1578,11 @@ nes9736:
 .byte $07, $BD, $02, $07, $29, $F0, $C9, $80, $B0, $0D, $BD, $00, $07, $C9, $C0, $B0
 .byte $0D, $A9, $30, $9D, $02, $07, $60, $BD, $00, $07, $C9, $40, $90, $F3, $A9, $C0
 .byte $9D, $02, $07, $60, $A9, $1B, $4C, $67, $C6, $A2, $50, $A9, $80, $9D, $01, $07
-.byte $0A, $9D, $03, $07, $85, $A1, $60, $A2, $50, $BD, $01, $07, $10, $F8, $20, $17
+.byte $0A, $9D, $03, $07, $85, $A1, $60
+
+; AA07
+
+.byte $A2, $50, $BD, $01, $07, $10, $F8, $20, $17
 .byte $9F, $BD, $01, $07, $29, $0F, $D0, $52, $A5, $A1, $CD, $2A, $BC, $90, $06, $A9
 .byte $00, $9D, $01, $07, $60, $85, $00, $0A, $0A, $A8, $B9, $2B, $BC, $CD, $30, $01
 .byte $90, $1B, $D0, $D2, $B9, $2C, $BC, $CD, $D1, $04, $90, $11, $D0, $C8, $B9, $2D

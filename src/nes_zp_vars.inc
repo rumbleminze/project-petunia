@@ -52,6 +52,8 @@ CURRENT_ATTRIBUTES  = $03B0
 
 ; mostly actual nes stuff above
 ; all my stuff below
+; variables that are set per level
+LVL_GEN_PARAM_SIZE	=	$C0 ; size of the level.  how many rooms to build
 
 LAST_ATTRIB_LOC_LB  = $E0
 LAST_ATTRIB_LOC_HB  = $E1
@@ -60,9 +62,21 @@ tmp_dat             = $E2
 
 JMP_REDIRECT_LB     = $d0
 
+
+
 FULL_ATTRIBUTE_COPY_SRC_LB = $7D
 FULL_ATTRIBUTE_COPY_SRC_HB = $7E
 FULL_ATTRIBUTE_COPY_HB = $7F
+
+; scrolling level params, different per world
+PARAM_RULES_FP_LB			= $80
+PARAM_RULES_FP_HB			= $81
+PARAM_ITEM_LOCS_LB			= $82
+PARAM_ITEM_LOCS_HB			= $83
+PARAM_ENEMY_TABLE1_LB		= $84
+PARAM_ENEMY_TABLE1_HB		= $85
+
+
 
 PPU_CURR_VRAM_ADDR  = $0912
 PPU_TILE_COUNT      = $0914

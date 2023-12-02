@@ -72,6 +72,62 @@ DUNGEON_SEED_RB			    = $011F
 CURRENT_LEVEL_IDX			= $00A0
 STORE_SEED_LB		        = $00B0
 
+; these variables don't change per level
+CURRENT_SCREEN		        = $04D1
+CURRENT_LEVEL		        = $0130
+CURRENT_WORLD		        = $00A0
+LVL_ITEM_DATA		        = $FE00
+LVL_START			        = $6200
+LVL_DOORS			        = $6100
+LVL_ITEM_COUNT		        = $6140
+LVL_ITEMS			        = $6141
+LVL_ENEMIES_T1		        = $6180
+LVL_ENEMIES_T3		        = $61A0
+LVL_ENEMIES_T4		        = $61C0	; this is positional infor for T3
+LVL_PLATFORMS 		        = $6300
+MAX_PLATFORM_SCRNS	        = $08
+LVL_MAX_ITEMS		        = $05
+FIRST_ROOM			        = $29
+FIRST_EXIT_OPTION	        = $26
+CURRENT_STR			        = $0152
+
+
+
+; variables that are used while we generate the level
+POTENTIAL				    = $00D0	; index of the next room we might use
+CURRENT_SCREEN_ID		    = $00D1	; the index of the last screen we wrote
+SCREEN_RULES_LOCATION	    = $00D2	; offset of the room connection rule byte we care about
+SRL_WORK				    = $00D3	; temporary variable used to shift to get the right bit
+ROOM_BIT				    = $00D4	; index of the bit we care about
+SCREEN_RULE				    = $00D5
+SCREEN_ADDR				    = $00D6
+PREVIOUS_ROOM_IDX		    = $00D7
+TEMP_JUNK				    = $00D8	; used withing some subroutines
+DOOR_COUNT				    = $00D9	; how many doors we've placed
+ROOM_RULES_ADDRESS_PTR	    = $00DA	; 2 bytes, word address of the rules we care about
+										; needed because rooms take up more than 256 bytes
+ROOM_LOCATION			    = $00DC	; location in a room that we're placing something (door or item)
+DOOR_CHOSEN				    = $00DD	; which door (or item) we've chosen
+DATA_OFFSET_CALC		    = $00DE	; used when calculating the data offset for a room index
+LAST_DOOR_ROOM_IDX		    = $0086
+PLATFORM_SCRNS_COUNT	    = $0087
+PLATFORM_SCRNS_PTR		    = $0088	; 2 bytes, points to the next place to write platform
+
+PLATFORM_BANK_COUNTS	    = $0098 ; 38, 39, 3A, and 3B hold counts for each platform bank
+PLATFORM_BANK_IDX		    = $009C
+PLATFORM_BANK_CURR_COUNT	= $009D
+PLATFORM_BANK_OFFSET	    = $009E
+
+PLATFORM_DATA_IDX		    = $008A
+LAST_LEVEL_RANDOMIZED	    = $011D
+FIXED_SEED_LB			    = $011E
+FIXED_SEED_HB			    = $011F
+
+LVL_1_1_SIZE 				=	$24
+
+ENEMY_TABLE1_LB     		= $0
+ENEMY_TABLE2_LB             = $20
+ENEMY_TABLE3_LB             = $40
 
 ; original code that we swiped
 dungeon_load_hijack:           
@@ -104,10 +160,10 @@ loop:
     PHA
     PLB
 
-    LDA DUNGEON_SEED_LB
+    LDA FIXED_SEED_LB
     BEQ checkforExistingSeed
     STA RNG_SEED
-    LDA DUNGEON_SEED_RB
+    LDA FIXED_SEED_HB
     STA RNG_SEED_RB
     BRA zerodungeon
 
@@ -661,3 +717,688 @@ prng:
 	sta RNG_SEED+0
 	rts
 
+; SCROLLING WORLD RANDOMIZATION START
+scrolling_randomization:
+    PHB
+    LDA #$A8
+    PHA
+    PLB
+
+	LDA CURRENT_SCREEN
+	BNE loadNextScreen		;if we're not on the 0th screen, we've already generated it.
+	JSR seedRNG	
+	JSR generateLevel
+	JSR generateEnemies
+loadNextScreen:
+	JSR writeRoomToLoadAddr	;writes the next room to the place that the game loads it
+    TAX
+    PLB
+    TXA
+    RTL
+
+clearPlatformData:
+	LDA #$FF
+	LDY #$7F
+
+	loopClear:
+	STA LVL_PLATFORMS, Y
+	DEY
+	BPL loopClear
+
+	RTS
+
+writeRoomToLoadAddr:
+	LDA CURRENT_SCREEN
+	STA POTENTIAL
+	ASL POTENTIAL
+	LDY POTENTIAL
+	LDA LVL_START, Y
+	STA $49
+	INY
+	LDA LVL_START, Y
+	STA $4A
+	RTS					; we only re-generate on the first screen
+	
+seedRNG:
+checkForNextLevelSeed:
+	LDA FIXED_SEED_LB
+	; if Fixed seed isn't set, then we randomize every time
+	BEQ useSystemRNG
+
+	LDA CURRENT_LEVEL
+	CMP LAST_LEVEL_RANDOMIZED
+	BEQ useFixedRng
+	STA LAST_LEVEL_RANDOMIZED
+	; new level, increment the seed number so 
+	; levels don't repeat from the previous
+	INC FIXED_SEED_LB
+	BNE useFixedRng
+	INC FIXED_SEED_LB
+	INC FIXED_SEED_HB
+	BNE useFixedRng
+	INC FIXED_SEED_HB
+
+useFixedRng:
+	; first check for a set seed
+	LDA FIXED_SEED_LB
+	STA RNG_SEED	
+	STA STORE_SEED_LB
+
+	LDA FIXED_SEED_LB + 1
+	STA RNG_SEED + 1	
+	STA STORE_SEED_LB + 1
+	RTS
+
+useSystemRNG:
+	LDA SYSTEM_SEED_LB
+	BNE storerng_lb
+	LDA #$BE
+storerng_lb:
+	STA STORE_SEED_LB
+	STA RNG_SEED
+	
+	LDA SYSTEM_SEED_RB
+	BNE storerng_rb
+	LDA #$EF
+storerng_rb:
+	STA STORE_SEED_LB + 1
+	STA RNG_SEED + 1	
+	RTS
+
+generateLevel:
+	; reset our variables
+	LDX #$63
+	STX PLATFORM_SCRNS_PTR + 1
+	LDX #$00
+	STX PLATFORM_SCRNS_PTR	
+	STX DOOR_COUNT
+	STX LVL_ITEM_COUNT
+	STX LAST_DOOR_ROOM_IDX
+	STX PLATFORM_BANK_OFFSET
+	STX PLATFORM_SCRNS_COUNT
+
+	JSR clearPlatformData
+	
+	; write the first room
+	LDA #FIRST_ROOM
+	CLC
+	ADC CURRENT_LEVEL
+	STA POTENTIAL
+	STA PREVIOUS_ROOM_IDX
+	JSR storeRoom
+
+	; add rooms until we've hit the size
+	moreRooms:
+		JSR pickNextRoom
+		JSR checkRoom
+	BEQ moreRooms			;try again, didn't work
+	JSR storeRoom
+	JSR placeDoor
+	JSR addItem
+	CPX LVL_GEN_PARAM_SIZE
+	BNE moreRooms
+	JSR writeExit
+	BEQ generateLevel	;try again
+	JSR writeDoorClosure
+	RTS
+
+; generateEnemies is done after the level is generated
+; and generates the 4 enemy tables (2 of enemies, 2 of positions)
+; it distributes the enemies against the values in the ENEMY_TABLE1 and ENEMY_TABLE2
+; blocks, which are 16 bytes each creating a distribution of those enemy values
+generateEnemies:
+	LDA #.hibyte(ENEMY_TABLE)
+	STA PARAM_ENEMY_TABLE1_HB
+
+	LDA LVL_GEN_PARAM_SIZE
+	LSR A
+	TAX
+	genEnemyLoop:
+	; select T1 Enemy
+	JSR prng
+	AND #$0F
+	TAY
+	LDA (PARAM_ENEMY_TABLE1_LB), Y
+	STA LVL_ENEMIES_T1, X
+	STA LVL_ENEMIES_T1 - 1, X
+	; select T2 Enemy, it's always 0x10 more than table 1
+	JSR prng
+	AND #$0F
+	CLC
+	ADC #$10
+	TAY
+	LDA (PARAM_ENEMY_TABLE1_LB), Y
+	STA LVL_ENEMIES_T3, X
+	STA LVL_ENEMIES_T3 - 1, X
+	
+	CMP #REAPER
+	BNE zeroPosition
+	
+	addPosition:
+	LDA #$38
+	JMP writePosition
+
+	zeroPosition:
+	LDA #$00
+	
+	writePosition:
+	STA LVL_ENEMIES_T4, X
+	STA LVL_ENEMIES_T4 - 1, X
+
+	nextEnemies:
+	DEX
+	DEX
+
+	BPL genEnemyLoop
+	RTS
+
+; Pre-reqs:
+;
+;		POTENTIAL contains the index of the room to place a door
+;		Y contains the memory offset (2 bytes per room)
+;		LVL_START contains the starting address of the level data
+;		Updates Y to point to the next place to write
+placeDoor:
+	
+	; prevent doors on screen 2 for various reasons
+	; it results in the level being regenerated when you exit the room
+	CPX #$04
+	BNE maybeDoor
+	RTS
+	
+	maybeDoor:
+	JSR prng
+	AND #$03
+	CMP #$01
+	BEQ checkNumDoors
+	RTS
+	
+	checkNumDoors:
+	LDA DOOR_COUNT
+	CMP #$06
+	BMI pickDoorToPlace
+	RTS
+	
+	pickDoorToPlace:
+	JSR pickADoor
+	STA DOOR_CHOSEN
+	
+	LDA POTENTIAL
+	STA DATA_OFFSET_CALC
+	JSR convertDataOffsetCalcToDataOffset
+	ADC #$05
+	TAY
+	LDA (ROOM_RULES_ADDRESS_PTR), Y	
+	BNE putADoorHere
+	RTS
+	
+	putADoorHere:
+	STA ROOM_LOCATION
+	;door data is 4 bytes each, stage, screen, coords, room type
+	LDA DOOR_COUNT
+	ASL A
+	ASL A
+	TAY
+	
+	LDA CURRENT_LEVEL
+	STA LVL_DOORS, Y
+	
+	TXA
+	ROR A
+	SEC
+	SBC #$01
+	STA LVL_DOORS+1, Y
+	
+	LDA ROOM_LOCATION
+	STA LVL_DOORS+2, Y
+	
+	LDA DOOR_CHOSEN
+	STA LVL_DOORS+3, Y
+	
+	INC DOOR_COUNT
+	STX LAST_DOOR_ROOM_IDX
+
+	RTS
+	
+; todo: this needs different logic per world
+pickADoor:
+	JSR prng
+	AND #$0F
+
+	LDY CURRENT_WORLD
+	CPY #$02	
+	BEQ loadDoorFromDistribution
+	
+	CLC
+	ADC #$10
+	CPY #$04	
+	BEQ loadDoorFromDistribution
+	
+	CLC
+	ADC #$10
+
+	loadDoorFromDistribution:
+	TAY
+	LDA DOOR_DISTRIBUTION, Y
+	STA TEMP_JUNK
+	CMP #UPGRADE_ROOM
+	BNE exitPickADoor
+
+	; if we got an upgrade room, check that our str * 2 < world_value
+	; get the max str for our world
+	LDA CURRENT_WORLD
+	CMP #$06
+	BNE w2Max
+	LDA #$04
+	JMP compare_str
+
+	w2Max:
+	CMP #$04
+	BNE w1Max
+	LDA #$02
+	JMP compare_str
+
+	w1Max:
+	LDA #$00
+
+	; check against current str
+	compare_str:
+	CMP CURRENT_STR
+	BPL exitPickADoor
+	JMP pickADoor
+
+	exitPickADoor:
+	LDA TEMP_JUNK
+	RTS
+
+addItem:
+
+	LDA LVL_ITEM_COUNT
+	CMP #LVL_MAX_ITEMS
+	BCC notatmaxitems
+	RTS
+	
+	notatmaxitems:
+	JSR prng
+	AND #$07
+	CMP #$01
+	BEQ pickItem
+	RTS
+	
+	pickItem:
+	JSR prng
+	AND #$01
+	STA DOOR_CHOSEN	;yeah this is for doors, but we'll use it here
+	
+	LDA POTENTIAL
+	SEC
+	SBC #$01
+	TAY
+	LDA (PARAM_ITEM_LOCS_LB), Y
+	STA ROOM_LOCATION
+	
+	LDA LVL_ITEM_COUNT
+	ASL A
+	ASL A
+	TAY
+	
+	LDA CURRENT_LEVEL
+	STA LVL_ITEMS, Y
+	
+	TXA
+	ROR A
+	SEC
+	SBC #$01
+	STA LVL_ITEMS+1, Y
+	
+	LDA ROOM_LOCATION
+	STA LVL_ITEMS+2, Y
+	
+	LDA DOOR_CHOSEN
+	STA LVL_ITEMS+3, Y
+	
+	INC LVL_ITEM_COUNT
+	RTS
+
+writeDoorClosure:
+	LDA DOOR_COUNT
+	ASL A
+	ASL A
+	TAY
+	LDA #$FF
+	STA LVL_DOORS, Y
+	STA LVL_DOORS + 1, Y
+	STA LVL_DOORS + 2, Y
+	STA LVL_DOORS + 3, Y
+	RTS
+
+convertDataOffsetCalcToDataOffset:
+	LDA PARAM_RULES_FP_LB
+	STA ROOM_RULES_ADDRESS_PTR
+	LDA PARAM_RULES_FP_HB
+	STA ROOM_RULES_ADDRESS_PTR + 1
+	LDA DATA_OFFSET_CALC
+	SEC
+	SBC #$01
+	ASL A
+	ASL A
+	ASL A
+	
+	BCC exitConvert
+	INC ROOM_RULES_ADDRESS_PTR + 1
+	CLC
+	
+	exitConvert:
+	; SRL_WORK now contains the index of the first byte of rules for our current room
+	RTS
+
+pickNextRoom:
+	; pick a random new screen
+	JSR prng
+	AND #$3F
+	CMP #$25	; valid rooms are 0 -> 36
+	BPL pickNextRoom
+	STA POTENTIAL
+	INC POTENTIAL
+	RTS
+
+; checkRoom - compares rules of PREVIOUS_ROOM_IDX with POTENTIAL.  A > 0 means it works
+checkRoom:
+
+	; check if the room has platforms, if it does we might need to exit early
+	JSR getPlatformDataForRoom
+	CMP #$FF
+	BEQ platformsWork
+
+	LDA #MAX_PLATFORM_SCRNS
+	CMP PLATFORM_SCRNS_COUNT
+	BPL checkForPlatformDoor
+	; not good, we have enough platforms
+	LDA #$00
+	RTS
+
+checkForPlatformDoor:
+	; we've got platforms, make sure the previous screen didn't have a door
+	CPX LAST_DOOR_ROOM_IDX
+	BNE platformsWork
+	LDA #$00
+	RTS
+
+	platformsWork:
+	LDA PREVIOUS_ROOM_IDX
+	STA DATA_OFFSET_CALC
+	JSR convertDataOffsetCalcToDataOffset
+	
+	; SRL_WORK now contains the index of the first byte of rules for our current room
+	STA SRL_WORK
+	
+	; figure out which byte and bit of rules we want
+	LDA POTENTIAL
+	getroomrulebitindex:
+		CMP #$08
+		BPL moveToNextRuleBit
+		JMP setindex
+		moveToNextRuleBit:
+		INC SRL_WORK
+		SEC
+		SBC #$08
+		JMP getroomrulebitindex
+
+	setindex:
+		; now that we have the offset stored in SRL_WORK
+		; get the right rule byte and store it
+		STA ROOM_BIT 
+		LDY SRL_WORK
+		LDA (ROOM_RULES_ADDRESS_PTR), Y
+		STA SCREEN_RULE
+
+		LDA #$80
+		
+	bitcheck_loop:
+		DEC ROOM_BIT
+		BEQ compareroom 
+		ROR A				; shift accumulator bit over
+		BNE bitcheck_loop
+
+	compareroom:
+
+		AND SCREEN_RULE
+
+	RTS
+
+; writeExit - writes our exit room for the level
+;	returns a 0 accumulator if the exit was bad and we need to restart
+; 
+writeExit:
+	LDA #FIRST_EXIT_OPTION
+	STA POTENTIAL
+	JSR checkRoom
+	BNE goodExit
+	
+	INC POTENTIAL
+	JSR checkRoom
+	BNE goodExit
+	
+	INC POTENTIAL
+	JSR checkRoom
+	BNE goodExit
+	
+	; last chance so if this isn't good remake the whole level
+	RTS
+	
+	goodExit:
+	JSR storeRoom
+	; store FF FF in the last spot (fake room 0x26)
+	LDA #$2C
+	STA POTENTIAL
+	JSR storeRoom
+	RTS
+
+
+; Pre-reqs:
+;
+;		POTENTIAL contains the index of the room to store (0 - 31)
+;		Y contains the memory offset (2 bytes per room)
+;		LVL_START contains the starting address of the level data
+;		Updates Y to point to the next place to write
+storeRoom:
+	LDA POTENTIAL
+	STA DATA_OFFSET_CALC
+	STA PREVIOUS_ROOM_IDX
+	JSR convertDataOffsetCalcToDataOffset
+	getFirstRoomAddressByte:
+	ADC #$06
+	TAY
+	LDA (ROOM_RULES_ADDRESS_PTR), Y
+	STA LVL_START, X
+	INX
+	INY
+	LDA (ROOM_RULES_ADDRESS_PTR), Y
+	STA LVL_START, X
+	INX
+	
+	; get platforms if they exist
+	JSR getPlatformDataForRoom
+	CMP #$FF
+	BEQ exitStoreRoom	
+
+	STA PLATFORM_DATA_IDX
+
+	nextPlatform:
+		LDY PLATFORM_BANK_OFFSET
+		LDA CURRENT_LEVEL
+		STA LVL_PLATFORMS, Y	
+		INY
+
+		TXA
+		CLC
+		LSR A
+		SEC
+		SBC #$01
+		STA LVL_PLATFORMS, Y	
+		INY
+
+		PHY
+		LDY PLATFORM_DATA_IDX
+		LDA PLATFORM_DATA, Y
+		PLY
+		STA LVL_PLATFORMS, Y	
+		INY
+
+		LDA #$00
+		STA LVL_PLATFORMS, Y
+		INY
+
+		; prep for the next bank by adding 0x20
+		; wrapping back to 0x00 if we're over 0x60
+		LDA PLATFORM_BANK_OFFSET
+		CLC
+		ADC #$20
+
+		BVC nextPlatformBankAddress	; if overflow isn't clear, then go to 0x0[i+4]
+		AND #$1F
+		CLC
+		ADC #$04
+
+		nextPlatformBankAddress:
+		STA PLATFORM_BANK_OFFSET
+		INC PLATFORM_DATA_IDX
+		LDY PLATFORM_DATA_IDX
+		LDA PLATFORM_DATA, Y
+		CMP #$00
+		BEQ exitStoreRoom
+		JMP nextPlatform
+	
+	exitStoreRoom:
+		LDA POTENTIAL
+		CMP #$00
+		RTS
+
+getPlatformDataForRoom:
+	LDY #$00
+
+	LDA PLATFORM_DATA, Y
+	CMP CURRENT_WORLD
+	BEQ checkPlatformRoom
+
+	nextlineOfPlatformData:	
+	TYA
+	CLC
+	ADC #$08
+	TAY
+	
+	LDA PLATFORM_DATA, Y
+	CMP #$FF
+	BEQ platformDataReturn	; no more data, exit with FF in A
+
+	CMP CURRENT_WORLD
+	BNE nextlineOfPlatformData	; not current world
+
+	checkPlatformRoom:
+	LDA PLATFORM_DATA + 1, Y
+	CMP POTENTIAL
+	BNE nextlineOfPlatformData
+
+	foundMatch:
+	; found match!  the offset of actual platform locations is Y + 2
+	INY
+	INY
+	TYA
+
+	platformDataReturn:
+	RTS
+
+
+
+; Rooms are represented by 8 bytes of data
+; The first 5 bytes are binary data that tell us if they connect to the room in that index 1 - 40
+; The 6th byte represents the door location to use if a door is in that room
+; the 7th and 8th bytes are the memory address of the room's data
+
+
+; The next two bytes are the address of the room data
+world_1_screen_data:
+.byte $6E, $74, $1F, $C8, $01, $ae, $0b, $71; 
+.byte $A1, $3B, $F0, $38, $02, $74, $3e, $71; 
+.byte $B9, $7F, $B7, $EF, $01, $4b, $80, $71; 
+.byte $AB, $7F, $D6, $A8, $00, $93, $a4, $71; 
+.byte $2F, $FF, $DE, $AF, $00, $73, $ec, $71; 
+.byte $AB, $7B, $F4, $BF, $02, $ab, $3a, $72; 
+.byte $01, $02, $00, $08, $00, $75, $73, $72; 
+.byte $FF, $FF, $FF, $FF, $02, $55, $a3, $72;
+.byte $0F, $1E, $16, $0C, $04, $a9, $d3, $72; 
+.byte $3F, $FF, $FF, $ED, $02, $71, $4b, $73; 
+.byte $B9, $7F, $B7, $B4, $02, $74, $81, $73; 
+.byte $A9, $7B, $F5, $CF, $01, $2e, $a5, $73;
+.byte $BF, $FF, $D6, $AF, $06, $99, $cf, $73; 
+.byte $B9, $7B, $F2, $1F, $02, $64, $f9, $73; 
+.byte $B9, $7F, $B7, $B7, $02, $b1, $23, $74; 
+.byte $60, $57, $96, $83, $00, $a7, $56, $74;
+.byte $7F, $FF, $FF, $ED, $00, $4c, $7d, $74; 
+.byte $33, $FF, $F6, $AF, $02, $2c, $f8, $74; 
+.byte $11, $02, $32, $00, $02, $8e, $76, $75; 
+.byte $2E, $74, $1F, $C7, $00, $51, $97, $75;
+.byte $2A, $75, $9F, $A5, $00, $43, $c4, $75; 
+.byte $B9, $76, $3F, $C6, $03, $55, $0c, $76; 
+.byte $2F, $DF, $D6, $22, $00, $00, $39, $76; 
+.byte $00, $00, $21, $10, $00, $9e, $b1, $76; 
+.byte $00, $00, $20, $02, $00, $00, $17, $77;   - platforms
+.byte $FF, $FF, $FF, $FD, $02, $46, $4d, $77; 
+.byte $23, $9F, $D7, $45, $01, $41, $8c, $77; 
+.byte $7F, $7F, $7F, $74, $00, $92, $db, $76;
+.byte $BD, $BB, $E3, $08, $06, $00, $a4, $74;   - platforms
+.byte $27, $DF, $DE, $27, $00, $00, $c5, $74;   - platforms
+.byte $2F, $5F, $56, $87, $00, $00, $e0, $74;   - platforms
+.byte $0E, $1C, $16, $60, $00, $00, $81, $76;   - platforms
+.byte $00, $00, $00, $00, $00, $00, $00, $00;   - not used yet
+.byte $00, $00, $00, $00, $00, $00, $00, $00;   - not used yet
+.byte $00, $00, $00, $00, $00, $00, $00, $00;   - not used yet
+.byte $00, $00, $00, $00, $00, $00, $00, $00;   - not used yet
+.byte $00, $00, $00, $00, $00, $00, $00, $00;   - not used yet
+.byte $00, $00, $00, $00, $00, $00, $00, $70;   - end rooms
+.byte $00, $00, $00, $00, $00, $00, $39, $70;   - end rooms
+.byte $00, $00, $00, $00, $00, $00, $78, $70;   - end rooms
+.byte $B3, $7F, $F6, $28, $00, $00, $bd, $70;   - start rooms
+.byte $2F, $5F, $D6, $A4, $00, $00, $09, $73;   - start rooms
+.byte $63, $7E, $5E, $A4, $00, $00, $2e, $75;   - start rooms
+.byte $00, $00, $00, $00, $00, $00, $ff, $ff;   - fake "end of level"
+
+; item locations
+w1_item_locations:
+.byte $9A
+.byte $9A
+.byte $99
+.byte $C5
+.byte $3A
+.byte $98
+.byte $6A
+.byte $98
+.byte $9A
+.byte $9A
+.byte $98
+.byte $96
+.byte $9D
+.byte $9B
+.byte $A3
+.byte $97
+.byte $97
+.byte $9B
+.byte $84
+.byte $AA
+.byte $92
+.byte $9B
+.byte $A4
+.byte $96
+.byte $9A
+.byte $95
+.byte $AB
+.byte $B9
+.byte $AA
+.byte $95
+.byte $95
+.byte $69
+
+
+.include "platform_data.asm"
+.include "enemy_frequency_table.asm"
+.include "door_distribution.asm"
