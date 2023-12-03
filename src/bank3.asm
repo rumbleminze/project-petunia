@@ -1350,12 +1350,59 @@ nes_e48e:
   STA $FE
   RTS
 
-
 .byte $20, $66, $B8, $A9, $06, $20, $90
 .byte $CA, $A0, $0F, $B9, $00, $05, $99, $E0, $06, $88, $10, $F7, $60, $A5, $5C, $09
-.byte $40, $85, $5C, $68, $68, $60, $20, $F1, $B6, $A9, $00, $8D, $D2, $04, $AD, $30
-.byte $01, $0A, $A8, $B9, $7C, $BE, $85, $00, $B9, $7D, $BE, $85, $01, $AD, $D1, $04
-.byte $0A, $A8, $B1, $00, $85, $49, $C8, $B1, $00, $C9, $FF, $F0, $D0, $85, $4A, $20
+.byte $40, $85, $5C, $68, $68, $60
+
+; b866 - world 4 loading routine
+  JSR $B6F1
+  LDA #$00
+  STA $04D2
+  
+  JSL world_4_randomizer
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+
+  NOP
+  NOP
+  NOP
+
+  ; LDA $0130
+  ; ASL
+  ; TAY
+  ; LDA $BE7C,Y
+  ; STA $00
+  ; LDA $BE7D,Y
+  ; STA $01
+  ; LDA $04D1
+  ; ASL
+  ; TAY
+  ; LDA ($00),Y
+  ; STA $49
+  ; INY
+  ; LDA ($00),Y
+  CMP #$FF
+
+.byte $F0, $D0, $85, $4A, $20
 .byte $A2, $B8, $60, $AD, $D1, $04, $0A, $A8, $B9, $82, $BE, $85, $49, $B9, $83, $BE
 .byte $85, $4A, $20, $F7, $B6, $20, $D9, $B7, $20, $6B, $B9, $A0, $00, $B1, $49, $20
 .byte $78, $B9, $A0, $01, $B1, $49, $C9, $FD, $F0, $17, $85, $4D, $C8, $B1, $49, $85

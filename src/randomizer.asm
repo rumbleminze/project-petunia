@@ -1331,9 +1331,130 @@ getPlatformDataForRoom:
 
 
 
+W4_SIZE            =     $1C
+
+world_4_randomizer:
+    PHB
+    LDA #$A8
+    PHA
+    PLB
+
+    LDA CURRENT_SCREEN
+	CMP #$00
+	BNE loadNextW4Screen		;if we're not on the 0th screen, we've already generated it.
+	JSR useSystemRNG
+	JSR generateW4
+	JSR generateW4Enemies
+loadNextW4Screen:
+	JSR writeW4RoomToLoadAddr	;writes the next room to the place that the game loads it
+    PLB
+    RTL
+
+writeW4RoomToLoadAddr:
+	LDA CURRENT_SCREEN
+	STA POTENTIAL
+	ASL POTENTIAL
+	LDY POTENTIAL
+	LDA LVL_START, Y
+	STA $49
+	INY
+	LDA LVL_START, Y
+	RTS					; we only re-generate on the first screen
+
+
+generateW4:
+
+	LDX #$00
+	; write the first room
+    ; for W4 it's 00
+	LDA #$00
+	STA POTENTIAL
+	JSR storeW4Room
+
+	; add rooms until we've hit the size
+	moreW4Rooms:
+		JSR pickNextW4Room
+	    JSR storeW4Room
+	CPX #W4_SIZE
+	BNE moreW4Rooms
+	JSR writeW4Exit
+    
+
+	RTS
+
+; generateEnemies is done after the level is generated
+; and generates the 4 enemy tables (2 of enemies, 2 of positions)
+; it distributes the enemies against the values in the ENEMY_TABLE1 and ENEMY_TABLE2
+; blocks, which are 16 bytes each creating a distribution of those enemy values
+generateW4Enemies:
+	
+	genW4EnemyLoop:
+	; select T1 Enemy
+	JSR prng
+	AND #$0F
+	TAY
+	LDA W4_ENEMIES, Y
+	STA LVL_ENEMIES_T1, X
+	
+	; select T2 Enemy, it's always Erinus.  we'll have one 50% of the time
+	JSR prng
+    AND #$01
+    CMP #$00
+    BEQ storeErinus
+    LDA #ENEMY_ERINUS
+
+    storeErinus:
+	STA LVL_ENEMIES_T3, X
+	
+	DEX
+	BPL genW4EnemyLoop
+	RTS
+
+pickNextW4Room:
+	; pick a random new screen
+	JSR prng
+	AND #$07
+	STA POTENTIAL
+	RTS
+
+; writeExit - writes our exit room for the level
+;	returns a 0 accumulator if the exit was bad and we need to restart
+; 
+writeW4Exit:
+	; store FF FF in the last spot (fake room index 8)
+	LDA #$08
+	STA POTENTIAL
+	JSR storeW4Room
+
+    LDA #$09
+	STA POTENTIAL
+	JSR storeW4Room
+	RTS
+
+
+; Pre-reqs:
+;
+;		POTENTIAL contains the index of the room to store (0 - 31)
+;		Y contains the memory offset (2 bytes per room)
+;		LVL_START contains the starting address of the level data
+;		Updates Y to point to the next place to write
+storeW4Room:
+	LDA POTENTIAL
+	ASL A	
+	TAY
+	LDA W4_SCREENS, Y
+	STA LVL_START, X
+    INX
+	LDA W4_SCREENS + 1, Y
+	STA LVL_START, X
+	INX
+	
+	RTS   
+
 .include "world1_screen_data.asm"
 .include "world2_screen_data.asm"
 .include "world3_screen_data.asm"
+.include "world4_screen_data.asm"
 .include "platform_data.asm"
 .include "enemy_frequency_table.asm"
 .include "door_distribution.asm"
