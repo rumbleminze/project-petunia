@@ -6,4 +6,4 @@ cd "$(dirname "$0")"
 
 mkdir -p out
 ca65 ./src/main-hirom.asm -o ./out/main.o -g
-ld65 -C ./src/hirom.cfg -o ./out/kid-icarusnes.sfc ./out/main.o
+ld65 -C ./src/hirom.cfg -o ./out/kid-icarusnes-randomizer-1.0.0.sfc ./out/main.o

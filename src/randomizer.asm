@@ -1458,3 +1458,4 @@ storeW4Room:
 .include "platform_data.asm"
 .include "enemy_frequency_table.asm"
 .include "door_distribution.asm"
+.include "set_seed_from_password.asm"
