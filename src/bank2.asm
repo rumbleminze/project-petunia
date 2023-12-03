@@ -1317,7 +1317,13 @@ nes9736:
 .byte $9A, $4C, $C7, $AA, $4C, $31, $9A, $4C, $24, $9B, $4C, $F7, $9A, $4C, $07, $AE
 .byte $4C, $51, $AE, $4C, $7B, $AC, $4C, $2A, $AD, $4C, $F3, $AB, $4C, $47, $AC, $4C
 .byte $D6, $9D, $67, $C5, $E7, $C5, $38, $9B, $78, $9B, $A0, $9B, $C0, $9B, $E0, $9B
-.byte $00, $9C, $00, $9C, $00, $9D, $FF, $EF, $B4, $BE, $20, $1D, $EB, $20, $F0, $EE
+.byte $00, $9C, $00, $9C, $00, $9D
+
+; this is where we read door data from
+; .byte $FF, $EF
+.byte .lobyte(LVL_DOORS), .hibyte(LVL_DOORS)
+
+.byte $B4, $BE, $20, $1D, $EB, $20, $F0, $EE
 .byte $20, $E5, $EE, $A9, $01, $8D, $2F, $01, $20, $01, $EB, $20, $2A, $C4, $20, $20
 .byte $EF, $20, $21, $7F, $20, $42, $EE, $20, $2E, $EF, $20, $CA, $EE, $20, $E5, $EE
 .byte $A9, $08, $20, $90, $CA, $20, $F7, $9A, $20, $53, $C4, $20, $3D, $C8, $20, $64
@@ -1568,27 +1574,102 @@ nes9736:
 .byte $69, $A5, $01, $85, $6A, $60, $A2, $60, $A0, $00, $20, $53, $A9, $A2, $70, $A0
 .byte $20, $20, $53, $A9, $A2, $80, $A0, $40, $20, $53, $A9, $A2, $90, $A0, $60, $20
 .byte $53, $A9, $60, $20, $60, $A9, $C8, $C8, $C8, $C8, $98, $29, $1F, $D0, $F4, $60
-.byte $B9, $B3, $BD, $C9, $FF, $F0, $29, $CD, $30, $01, $D0, $23, $AD, $D1, $04, $D9
-.byte $B4, $BD, $D0, $1B, $A5, $FE, $D9, $B5, $BD, $D0, $14, $A9, $78, $9D, $01, $07
-.byte $A9, $C0, $9D, $02, $07, $A9, $80, $9D, $00, $07, $A9, $F8, $9D, $03, $07, $60
-.byte $68, $68, $60, $A2, $60, $20, $A4, $A9, $A2, $70, $20, $A4, $A9, $A2, $80, $20
+
+;a960 - read stuff from elsewhere
+  LDA LVL_PLATFORMS,Y
+  CMP #$FF
+  BEQ :++
+  CMP $0130
+  BNE :+
+  LDA $04D1
+  CMP LVL_PLATFORMS + 1,Y
+  BNE :+
+  LDA $FE
+  CMP LVL_PLATFORMS + 2,Y
+  BNE :+
+  LDA #$78
+  STA $0701,X
+  LDA #$C0
+  STA $0702,X
+  LDA #$80
+  STA $0700,X
+  LDA #$F8
+  STA $0703,X
+: RTS
+
+: PLA
+  PLA
+  RTS
+
+.byte $A2, $60, $20, $A4, $A9, $A2, $70, $20, $A4, $A9, $A2, $80, $20
 .byte $A4, $A9, $A2, $90, $BD, $01, $07, $29, $F8, $C9, $78, $D0, $1B, $20, $49, $E0
 .byte $20, $17, $9F, $BD, $01, $07, $29, $07, $BD, $03, $07, $C9, $08, $90, $0A, $20
 .byte $CC, $A9, $20, $C0, $DB, $20, $F4, $A9, $60, $4C, $1D, $DD, $A9, $00, $9D, $04
 .byte $07, $BD, $02, $07, $29, $F0, $C9, $80, $B0, $0D, $BD, $00, $07, $C9, $C0, $B0
 .byte $0D, $A9, $30, $9D, $02, $07, $60, $BD, $00, $07, $C9, $40, $90, $F3, $A9, $C0
-.byte $9D, $02, $07, $60, $A9, $1B, $4C, $67, $C6, $A2, $50, $A9, $80, $9D, $01, $07
-.byte $0A, $9D, $03, $07, $85, $A1, $60
+.byte $9D, $02, $07, $60, $A9, $1B, $4C, $67, $C6
+  LDX #$50
+  LDA #$80
+  STA $0701,X
+  ASL
+  STA $0703,X
+  STA $A1
+: RTS
 
 ; AA07
 
-.byte $A2, $50, $BD, $01, $07, $10, $F8, $20, $17
-.byte $9F, $BD, $01, $07, $29, $0F, $D0, $52, $A5, $A1, $CD, $2A, $BC, $90, $06, $A9
-.byte $00, $9D, $01, $07, $60, $85, $00, $0A, $0A, $A8, $B9, $2B, $BC, $CD, $30, $01
-.byte $90, $1B, $D0, $D2, $B9, $2C, $BC, $CD, $D1, $04, $90, $11, $D0, $C8, $B9, $2D
-.byte $BC, $29, $0F, $0A, $0A, $0A, $0A, $C5, $FE, $F0, $06, $B0, $B9, $E6, $A1, $D0
-.byte $C7, $A9, $00, $9D, $03, $07, $B9, $2D, $BC, $29, $F0, $9D, $00, $07, $A9, $81
-.byte $9D, $01, $07, $B9, $2E, $BC, $9D, $02, $07, $60, $BD, $03, $07, $C9, $02, $90
+  LDX #$50
+  LDA $0701,X
+  BPL :-
+  JSR $9F17
+  LDA $0701,X
+  AND #$0F
+  BNE nes_aa6a
+nes_aa18:
+  LDA $A1
+  CMP LVL_ITEM_COUNT
+  BCC :+
+  LDA #$00
+  STA $0701,X
+  RTS
+
+; item placement checks
+: STA $00
+  ASL
+  ASL
+  TAY
+  LDA LVL_ITEM_COUNT + 1,Y
+  CMP $0130
+  BCC :+
+  BNE :--
+  LDA LVL_ITEM_COUNT + 2,Y
+  CMP $04D1
+  BCC :+
+  BNE :--
+  LDA LVL_ITEM_COUNT + 3,Y
+  AND #$0F
+  ASL
+  ASL
+  ASL
+  ASL
+  CMP $FE
+  BEQ :++
+  BCS :--
+: INC $A1
+  BNE nes_aa18
+: LDA #$00
+  STA $0703,X
+  LDA LVL_ITEM_COUNT + 3,Y
+  AND #$F0
+  STA $0700,X
+  LDA #$81
+  STA $0701,X
+  LDA LVL_ITEM_COUNT + 4,Y
+  STA $0702,X
+  RTS
+
+nes_aa6a:
+.byte $BD, $03, $07, $C9, $02, $90
 .byte $11, $20, $8A, $D9, $90, $03, $4C, $98, $AA, $BD, $02, $07, $D0, $11, $A9, $FF
 .byte $85, $3E, $A9, $10, $8D, $81, $03, $A9, $80, $9D, $01, $07, $4C, $2B, $DD, $A5
 .byte $A6, $18, $69, $07, $85, $A6, $D0, $EA, $BD, $02, $07, $D0, $05, $A9, $19, $4C
@@ -1766,9 +1847,34 @@ nes9736:
 
 .byte $20, $24, $AE, $A9, $06, $20, $90, $CA, $A0
 .byte $0F, $B9, $00, $05, $99, $E0, $06, $88, $10, $F7, $60, $A5, $5C, $09, $40, $85
-.byte $5C, $68, $68, $60, $20, $AF, $AC, $A9, $00, $8D, $D2, $04, $AD, $30, $01, $0A
-.byte $A8, $B9, $04, $BB, $85, $00, $B9, $05, $BB, $85, $01, $AD, $D1, $04, $0A, $A8
-.byte $B1, $00, $85, $49, $C8, $B1, $00, $C9, $FF, $F0, $D0, $85, $4A, $20, $60, $AE
+.byte $5C, $68, $68, $60, $20, $AF, $AC
+
+  LDA #.lobyte(world_2_screen_data)
+  STA PARAM_RULES_FP_LB
+
+  LDA #.hibyte(world_2_screen_data)
+  STA PARAM_RULES_FP_HB
+
+  LDA #.hibyte(w2_item_locations)
+  STA PARAM_ITEM_LOCS_HB
+
+  LDA #.lobyte(w2_item_locations)
+  STA PARAM_ITEM_LOCS_LB
+
+  LDA #LVL_2_1_SIZE
+  STA LVL_GEN_PARAM_SIZE
+
+  LDA #.lobyte(ENEMY_TABLE_W2)
+  STA PARAM_ENEMY_TABLE1_LB
+
+  JSL scrolling_randomization
+
+  NOP
+  NOP
+  NOP
+  NOP
+
+.byte $C9, $FF, $F0, $D0, $85, $4A, $20, $60, $AE
 .byte $60, $AD, $D1, $04, $0A, $A8, $B9, $0A, $BB, $85, $49, $B9, $0B, $BB, $85, $4A
 .byte $20, $B5, $AC, $20, $97, $AD, $20, $29, $AF, $A0, $00, $B1, $49, $20, $36, $AF
 .byte $A0, $01, $B1, $49, $C9, $FD, $F0, $17, $85, $4D, $C8, $B1, $49, $85, $4E, $C8
@@ -2015,8 +2121,13 @@ nes9736:
 .byte $9A, $B8, $A0, $B8, $A5, $B8, $AA, $B8, $BA, $B8, $BD, $B8, $C0, $B8, $C4, $B8
 .byte $D4, $B8, $DE, $B8, $F3, $B8, $00, $B9, $09, $B9, $0D, $B9, $12, $B9, $15, $B9
 .byte $18, $B9, $1E, $B9, $23, $B9, $26, $B9, $2B, $B9, $03, $00, $01, $8E, $00, $00
-.byte $0D, $AE, $01, $00, $04, $88, $01, $02, $01, $81, $01, $02, $05, $35, $01, $45
-.byte $BC, $60, $BC, $7E, $BC, $00, $00, $04, $04, $04, $04, $00, $0A, $0A, $08, $00
+.byte $0D, $AE, $01, $00, $04, $88, $01, $02, $01, $81, $01, $02, $05, $35, $01
+
+; changing where we load enemies for w2 1/2
+; .byte $45, $BC, $60, $BC, $7E, $BC
+.byte $80, $61, $80, $61, $80, $61
+
+.byte $00, $00, $04, $04, $04, $04, $00, $0A, $0A, $08, $00
 .byte $04, $04, $0A, $0A, $00, $05, $05, $00, $0A, $00, $05, $00, $04, $0A, $04, $0A
 .byte $00, $00, $00, $00, $04, $0A, $0A, $00, $07, $08, $00, $08, $00, $08, $08, $00
 .byte $05, $00, $08, $00, $00, $00, $05, $08, $00, $00, $00, $05, $0A, $0A, $00, $04
@@ -2027,7 +2138,13 @@ nes9736:
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $FF, $BC, $1A, $BD, $38, $BD, $00
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00
+
+; changing where we load enemies for w2 2/2
+; .byte $FF, $BC, $1A, $BD, $38, $BD
+.byte $A0, $61, $A0, $61, $A0, $61
+
+.byte $00
 .byte $02, $02, $00, $02, $03, $03, $00, $02, $02, $02, $02, $00, $02, $02, $02, $02
 .byte $02, $00, $02, $00, $03, $03, $00, $03, $03, $03, $00, $00, $00, $00, $02, $02
 .byte $00, $00, $00, $00, $00, $00, $00, $09, $09, $09, $00, $00, $00, $00, $09, $00
