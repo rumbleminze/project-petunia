@@ -125,6 +125,7 @@ FIXED_SEED_HB			    = $011F
 
 LVL_1_1_SIZE 				=	$24
 LVL_2_1_SIZE 				=	$36
+LVL_3_1_SIZE 				=	$28
 
 ENEMY_TABLE1_LB     		= $0
 ENEMY_TABLE2_LB             = $20
@@ -732,9 +733,7 @@ scrolling_randomization:
 	JSR generateEnemies
 loadNextScreen:
 	JSR writeRoomToLoadAddr	;writes the next room to the place that the game loads it
-    TAX
     PLB
-    TXA
     RTL
 
 clearPlatformData:
@@ -1334,6 +1333,7 @@ getPlatformDataForRoom:
 
 .include "world1_screen_data.asm"
 .include "world2_screen_data.asm"
+.include "world3_screen_data.asm"
 .include "platform_data.asm"
 .include "enemy_frequency_table.asm"
 .include "door_distribution.asm"

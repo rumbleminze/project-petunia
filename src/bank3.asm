@@ -10,7 +10,7 @@
 
 ; change where we load doors from for w2?  maybe w3?
 ; .byte $5D, $F0
-.byte $61, $00
+.byte $00, $61
 
 .byte $59, $79, $20, $07, $EB, $20, $F0, $EE
 .byte $20, $E5, $EE, $A9, $02, $8D, $2F, $01, $20, $2A, $C4, $20, $20, $EF, $20, $21
@@ -74,12 +74,58 @@
 .byte $AE, $01, $03, $F8, $9A, $01, $F4, $F8, $9A, $01, $FC, $F8, $9A, $01, $04, $F8
 .byte $9A, $01, $0C, $F8, $0E, $00, $FC, $F8, $0E, $40, $04, $00, $5C, $00, $FC, $00
 .byte $5C, $40, $04, $A2, $50, $A9, $80, $9D, $01, $07, $0A, $9D, $00, $07, $85, $A1
-.byte $60, $A2, $50, $BD, $01, $07, $10, $16, $20, $E5, $85, $BD, $01, $07, $29, $0F
-.byte $D0, $4C, $A5, $A1, $CD, $2C, $79, $90, $06, $A9, $00, $9D, $01, $07, $60, $85
-.byte $00, $0A, $18, $65, $00, $A8, $B9, $2D, $79, $CD, $30, $01, $90, $17, $D0, $EE
-.byte $B9, $2E, $79, $CD, $D1, $04, $90, $0D, $D0, $E4, $B9, $2F, $79, $29, $F0, $C5
-.byte $FD, $F0, $06, $90, $D9, $E6, $A1, $D0, $C9, $A9, $00, $9D, $00, $07, $B9, $2F
-.byte $79, $0A, $0A, $0A, $0A, $9D, $03, $07, $A9, $81, $9D, $01, $07, $60, $BD, $00
+.byte $60
+
+; w3 item handling
+  LDX #$50
+  LDA $0701,X
+  BPL :+
+  JSR $85E5
+  LDA $0701,X
+  AND #$0F
+  BNE nes_e48e
+nes_8442:
+  LDA $A1
+  CMP LVL_ITEM_COUNT
+  BCC :++
+  LDA #$00
+  STA $0701,X
+: RTS
+
+: STA $00
+  ASL
+  CLC
+  ADC $00
+  TAY
+  LDA LVL_ITEM_COUNT + 1,Y
+  CMP $0130
+  BCC :+
+  BNE :--
+  LDA LVL_ITEM_COUNT + 2,Y
+  CMP $04D1
+  BCC :+
+  BNE :--
+  LDA LVL_ITEM_COUNT + 3,Y
+  AND #$F0
+  CMP $FD
+  BEQ :++
+  BCC :--
+: INC $A1
+  BNE nes_8442
+: LDA #$00
+  STA $0700,X
+  LDA LVL_ITEM_COUNT + 3,Y
+  ASL
+  ASL
+  ASL
+  ASL
+  STA $0703,X
+  LDA #$81
+  STA $0701,X
+  RTS
+
+nes_e48e:
+.byte $BD, $00
 .byte $07, $C9, $F8, $B0, $0C, $20, $8A, $D9, $90, $03, $4C, $A9, $84, $A9, $FF, $85
 .byte $3E, $A9, $80, $9D, $01, $07, $4C, $2B, $DD, $A9, $19, $4C, $67, $C6, $A9, $08
 .byte $9D, $00, $07, $A9, $44, $9D, $02, $07, $A9, $50, $9D, $03, $07, $A9, $00, $9D
@@ -229,10 +275,35 @@
 .byte $42, $F8, $F8, $D6, $42, $00, $F8, $D5, $42, $08, $00, $D4, $42, $00, $00, $D3
 .byte $42, $08, $A2, $60, $A0, $00, $20, $DF, $8D, $A2, $70, $A0, $20, $20, $DF, $8D
 .byte $A2, $80, $A0, $40, $20, $DF, $8D, $A2, $90, $A0, $60, $20, $DF, $8D, $60, $20
-.byte $EC, $8D, $C8, $C8, $C8, $C8, $98, $29, $1F, $D0, $F4, $60, $B9, $9B, $76, $C9
-.byte $FF, $F0, $29, $CD, $30, $01, $D0, $23, $AD, $D1, $04, $D9, $9C, $76, $D0, $1B
-.byte $A5, $FD, $D9, $9D, $76, $D0, $14, $A9, $78, $9D, $01, $07, $A9, $0C, $9D, $02
-.byte $07, $A9, $00, $9D, $00, $07, $A9, $80, $9D, $03, $07, $60, $68, $68, $60, $A2
+.byte $EC, $8D, $C8, $C8, $C8, $C8, $98, $29, $1F, $D0, $F4, $60
+
+;8DEC - platform logic
+  LDA LVL_PLATFORMS,Y
+  CMP #$FF
+  BEQ :++
+  CMP $0130
+  BNE :+
+  LDA $04D1
+  CMP LVL_PLATFORMS + 1,Y
+  BNE :+
+  LDA $FD
+  CMP LVL_PLATFORMS + 2,Y
+  BNE :+
+  LDA #$78
+  STA $0701,X
+  LDA #$0C
+  STA $0702,X
+  LDA #$00
+  STA $0700,X
+  LDA #$80
+  STA $0703,X
+: RTS
+
+: PLA
+  PLA
+  RTS
+
+.byte $A2
 .byte $60, $20, $33, $8E, $A2, $70, $20, $33, $8E, $A2, $80, $20, $33, $8E, $A2, $90
 .byte $4C, $33, $8E, $BD, $01, $07, $29, $F8, $C9, $78, $D0, $20, $20, $49, $E0, $20
 .byte $E5, $85, $BD, $01, $07, $29, $07, $BD, $00, $07, $C9, $F8, $B0, $09, $20, $5D
@@ -584,12 +655,58 @@
   STA $FD
   RTS
 
-; 99b8
+; 99b9
 .byte $20, $D6, $99, $A9, $06, $20, $90
 .byte $CA, $A0, $0F, $B9, $00, $05, $99, $E0, $06, $88, $10, $F7, $60, $A5, $5C, $09
-.byte $40, $85, $5C, $68, $68, $60, $20, $4E, $98, $A9, $00, $8D, $D2, $04, $AD, $30
-.byte $01, $0A, $A8, $B9, $2B, $77, $85, $00, $B9, $2C, $77, $85, $01, $AD, $D1, $04
-.byte $0A, $A8, $B1, $00, $85, $49, $C8, $B1, $00, $C9, $FF, $F0, $D0, $85, $4A, $20
+.byte $40, $85, $5C, $68, $68, $60, $20, $4E, $98
+
+;99d9 - level load code
+  LDA #.lobyte(world_3_screen_data)
+  STA PARAM_RULES_FP_LB
+
+  LDA #.hibyte(world_3_screen_data)
+  STA PARAM_RULES_FP_HB
+
+  LDA #.hibyte(w3_item_locations)
+  STA PARAM_ITEM_LOCS_HB
+
+  LDA #.lobyte(w3_item_locations)
+  STA PARAM_ITEM_LOCS_LB
+
+  LDA #LVL_3_1_SIZE
+  STA LVL_GEN_PARAM_SIZE
+
+  NOP
+  NOP
+  NOP
+  NOP
+
+  JSL scrolling_randomization
+
+  NOP
+  NOP
+  NOP
+  NOP
+  
+  ; LDA #$00
+  ; STA $04D2
+  ; LDA $0130
+  ; ASL
+  ; TAY
+  ; LDA $772B,Y
+  ; STA $00
+  ; LDA $772C,Y
+  ; STA $01
+  ; LDA $04D1
+  ; ASL
+  ; TAY
+  ; LDA ($00),Y
+  ; STA $49
+  ; INY
+  ; LDA ($00),Y
+  CMP #$FF
+
+.byte $F0, $D0, $85, $4A, $20
 
 ; 9A00
 .byte $59, $98, $20, $4B, $99, $4C, $25, $9A, $AD, $D1, $04, $0A, $A8, $B9, $31, $77
@@ -1370,9 +1487,25 @@
 .byte $7C, $BA, $AF, $BA, $FF, $FF, $ED, $BB, $F3, $BB, $F8, $BB, $FB, $BB, $02, $BC
 .byte $07, $BC, $0E, $BC, $14, $BC, $27, $BC, $30, $BC, $39, $BC, $42, $BC, $57, $BC
 .byte $61, $BC, $67, $BC, $7C, $BC, $8C, $BC, $93, $BC, $03, $00, $02, $88, $00, $00
-.byte $03, $88, $01, $00, $04, $88, $00, $FD, $BE, $FD, $BE, $FD, $BE, $00, $04, $06
-.byte $06, $04, $04, $08, $08, $0A, $0A, $07, $07, $07, $00, $00, $12, $BF, $12, $BF
-.byte $12, $BF, $00, $00, $00, $09, $00, $09, $00, $00, $00, $00, $00, $00, $00, $00
+.byte $03, $88, $01, $00, $04, $88, $00
+
+; world 4 change enemy data locations
+; .byte $FD, $BE, $FD, $BE, $FD, $BE
+.byte .lobyte(LVL_ENEMIES_T1), .hibyte(LVL_ENEMIES_T1)
+.byte .lobyte(LVL_ENEMIES_T1), .hibyte(LVL_ENEMIES_T1)
+.byte .lobyte(LVL_ENEMIES_T1), .hibyte(LVL_ENEMIES_T1)
+
+.byte $00, $04, $06
+.byte $06, $04, $04, $08, $08, $0A, $0A, $07, $07, $07, $00, $00
+
+; world 4 enemy data table 2
+; .byte $12, $BF, $12, $BF, $12, $BF
+.byte .lobyte(LVL_ENEMIES_T3), .hibyte(LVL_ENEMIES_T3)
+.byte .lobyte(LVL_ENEMIES_T3), .hibyte(LVL_ENEMIES_T3)
+.byte .lobyte(LVL_ENEMIES_T3), .hibyte(LVL_ENEMIES_T3)
+
+
+.byte $00, $00, $00, $09, $00, $09, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $1F, $3F, $5F, $0F, $30, $15, $0C, $0F, $21, $13, $02, $0F, $27, $18, $09
 .byte $0F, $36, $14, $15, $0F, $20, $26, $07, $0F, $31, $02, $15, $0F, $12, $25, $31
 .byte $0F, $09, $2A, $37, $00, $00, $00, $00, $04, $00, $02, $00, $02, $0A, $02, $00
