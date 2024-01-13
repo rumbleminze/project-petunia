@@ -58,7 +58,7 @@ sprite_loop:
 
   setAXY8
     STZ SNES_OAM_TRANSLATE_NEEDED
-	rts
+	rtl
 
 dma_oam_table:
   ; setXY16

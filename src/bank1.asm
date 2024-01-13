@@ -619,12 +619,22 @@
 .byte $00, $60, $E8, $D0, $F7, $20, $53, $A5, $20, $F0, $EE, $20, $07, $EB, $A5, $A0
 .byte $C9, $01, $F0, $51, $A9, $10, $85, $85, $20, $E5, $EE, $A9, $00, $85, $A0, $85
 .byte $18, $8D, $00, $06, $E6, $1A, $20, $F9, $E3, $20, $36, $A2, $A9, $00, $20, $00
-.byte $A7, $20, $1D, $A7, $20, $C4, $A5, $AD, $02, $20, $10, $FB, $20, $2E, $EB, $20
+.byte $A7, $20, $1D, $A7, $20, $C4, $A5
+
+: LDA RDNMI ; PpuStatus_2002
+  BPL :-
+
+.byte $20, $2E, $EB, $20
 .byte $42, $EE, $20, $01, $EF, $A5, $1A, $6A, $90, $0A, $AD, $8D, $03, $D0, $05, $A9
 .byte $10, $8D, $84, $03, $A5, $18, $29, $10, $F0, $EB, $A9, $01, $8D, $80, $03, $20
 .byte $56, $C8, $4C, $6A, $A1, $A9, $00, $85, $AD, $85, $AE, $20, $77, $EF, $A9, $20
 .byte $85, $85, $20, $E5, $EE, $E6, $1A, $20, $F9, $E3, $A9, $01, $20, $00, $A7, $20
-.byte $1D, $A7, $20, $5B, $A7, $A9, $01, $85, $B1, $AD, $02, $20, $10, $FB, $20, $2E
+.byte $1D, $A7, $20, $5B, $A7, $A9, $01, $85, $B1
+
+: LDA RDNMI
+  BPL :-
+
+.byte $20, $2E
 .byte $EB, $20, $42, $EE, $20, $01, $EF, $A5, $00, $A5, $B1, $D0, $FA, $20, $F0, $EE
 
 
@@ -637,7 +647,11 @@
 .byte $B1, $08, $85, $AA, $8D, $70, $01, $88, $B1, $08, $99, $3E, $01, $99, $57, $01
 .byte $88, $10, $F5, $A9, $00, $85, $38, $4C, $6D, $C0, $E6, $A0, $D0, $F5, $00, $27
 .byte $4E, $A9, $03, $85, $B2, $A5, $B2, $38, $E9, $03, $8D, $00, $61, $20, $26, $A8
-.byte $A9, $02, $85, $B1, $AD, $02, $20, $10, $FB, $20, $42, $EE, $20, $01, $EF, $A5
+.byte $A9, $02, $85, $B1
+
+LDA RDNMI ; LDA PpuStatus_2002
+
+.byte $10, $FB, $20, $42, $EE, $20, $01, $EF, $A5
 .byte $00, $A5, $B1, $D0, $FA, $20, $F0, $EE, $20, $C6, $AB, $D0, $03, $4C, $09, $A1
 .byte $20, $4D, $AC, $A9, $00, $85, $14, $85, $15, $85, $85, $A9, $08, $8D, $84, $03
 .byte $A9, $00, $85, $1A, $A9, $08, $85, $FF, $20, $C9, $EB, $20, $01, $EF, $A5, $14
@@ -651,18 +665,67 @@
 .byte $0D, $60, $E8, $C8, $C0, $1A, $D0, $F7, $60, $A5, $14, $29, $01, $F0, $01, $60
 .byte $A5, $15, $D0, $06, $A5, $14, $C9, $80, $90, $1B, $E6, $FD, $20, $CA, $A5, $A5
 .byte $FD, $C9, $F0, $D0, $10, $A9, $00, $85, $14, $85, $15, $A5, $1A, $49, $01, $85
-.byte $1A, $A9, $00, $85, $FD, $60, $20, $77, $EF, $AD, $02, $20, $A9, $23, $8D, $06
-.byte $20, $A9, $C0, $8D, $06, $20, $A0, $3F, $A9, $AA, $8D, $07, $20, $88, $10, $FA
-.byte $A9, $00, $85, $46, $20, $63, $A2, $20, $B3, $C2, $E6, $46, $A5, $46, $C9, $16
-.byte $D0, $F2, $60, $85, $00, $0A, $0A, $18, $65, $00, $AA, $A0, $00, $BD, $7A, $A2
-.byte $99, $41, $00, $E8, $C8, $C0, $05, $D0, $F4, $60, $E7, $21, $E8, $A2, $12, $C0
-.byte $2B, $FA, $A2, $40, $35, $28, $3A, $A3, $04, $53, $28, $3E, $A3, $08, $72, $28
-.byte $4B, $A3, $0E, $80, $28, $59, $A3, $20, $A0, $28, $79, $A3, $20, $C0, $28, $99
-.byte $A3, $05, $E0, $28, $9E, $A3, $04, $00, $29, $A2, $A3, $80, $80, $29, $22, $A4
-.byte $80, $0A, $2A, $A2, $A4, $13, $2A, $2A, $B5, $A4, $13, $58, $2A, $C8, $A4, $05
-.byte $79, $2A, $CD, $A4, $03, $89, $2A, $D0, $A4, $0C, $B7, $2A, $DC, $A4, $03, $C6
-.byte $2A, $DF, $A4, $16, $E3, $2A, $F5, $A4, $19, $01, $2B, $0E, $A5, $0B, $21, $2B
-.byte $19, $A5, $0B, $43, $2B, $24, $A5, $05, $31, $5D, $C0, $64, $12, $C0, $C3, $A7
+.byte $1A, $A9, $00, $85, $FD, $60
+
+; writes attributes
+  JSR $EF77
+  nops 3 ; LDA PpuStatus_2002  
+  LDA #$23
+  STA VMADDH
+  LDA #$C0
+  STA VMADDL
+  LDY #$3F
+  LDA #$AA
+: STA VMDATAL
+  DEY
+  BPL :-
+  LDA #$00
+  STA $46
+: JSR $A263
+  JSR $C2B3
+  INC $46
+  LDA $46
+  CMP #$16
+  BNE :-
+  ; TODO: handle attribute writes
+  RTS
+
+.byte $85, $00, $0A, $0A, $18, $65, $00, $AA, $A0, $00, $BD, $7A, $A2
+.byte $99, $41, $00, $E8, $C8, $C0, $05, $D0, $F4, $60
+
+; Title Screen Graphics in sets of 5 bytes
+; 00 - LB of VM ADDR
+; 01 - HB of VM ADDR
+; 02 - LB of source data
+; 03 - HB of source data
+; 04 - # of bytes
+; I've subtracted 0x400 from anything with a VMH addr > 23, since
+; our 2nd BG page is 2400 instead of 2800
+.byte $E7, $21, $E8, $A2, $12
+.byte $C0, $2B, $FA, $A2, $40 ; attributes
+.byte $35, $24, $3A, $A3, $04
+.byte $53, $24, $3E, $A3, $08
+.byte $72, $24, $4B, $A3, $0E
+.byte $80, $24, $59, $A3, $20
+.byte $A0, $24, $79, $A3, $20
+.byte $C0, $24, $99, $A3, $05 ; also attributes, but smaller because it's just 'push start button'
+.byte $E0, $24, $9E, $A3, $04
+.byte $00, $25, $A2, $A3, $80
+.byte $80, $25, $22, $A4, $80
+.byte $0A, $26, $A2, $A4, $13
+.byte $2A, $26, $B5, $A4, $13
+.byte $58, $26, $C8, $A4, $05
+.byte $79, $26, $CD, $A4, $03
+.byte $89, $26, $D0, $A4, $0C
+.byte $B7, $26, $DC, $A4, $03
+.byte $C6, $26, $DF, $A4, $16
+.byte $E3, $26, $F5, $A4, $19
+.byte $01, $27, $0E, $A5, $0B
+.byte $21, $27, $19, $A5, $0B
+.byte $43, $27, $24, $A5, $05
+
+; a2e8 - actual attribute and tile data for above starts here
+.byte $31, $5D, $C0, $64, $12, $C0, $C3, $A7
 .byte $B6, $C3, $12, $65, $5D, $C3, $C3, $B7, $A6, $12, $00, $00, $00, $00, $80, $AA
 
 
@@ -710,10 +773,43 @@
 .byte $19, $17, $18, $19, $17, $18, $19, $17, $19, $AD, $00, $06, $D0, $03, $4C, $42
 .byte $EE, $A8, $A2, $00, $AD, $02, $20, $AD, $02, $06, $8D, $06, $20, $AD, $01, $06
 .byte $8D, $06, $20, $BD, $03, $06, $8D, $07, $20, $E8, $88, $D0, $F6, $A9, $00, $8D
-.byte $00, $06, $60, $60, $08, $48, $8A, $48, $98, $48, $AD, $02, $20, $20, $2E, $EB
-.byte $A5, $85, $C9, $10, $F0, $11, $C9, $20, $F0, $1F, $20, $94, $EE, $20, $56, $C8
-.byte $68, $A8, $68, $AA, $68, $28, $60, $20, $29, $A5, $20, $C9, $EB, $20, $6A, $EE
-.byte $20, $09, $A2, $20, $02, $A6, $4C, $6A, $A5, $A5, $18, $F0, $05, $A9, $01, $8D
+.byte $00, $06, $60, $60
+
+
+;a554
+  PHP
+  PHA
+  TXA
+  PHA
+  TYA
+  PHA
+  nops 3 ; LDA $2002
+  JSR $EB2E
+  LDA $85
+  CMP #$10
+  BEQ :+
+  CMP #$20
+  BEQ :++
+  JSR $EE94
+  JSR $C856
+  PLA
+  TAY
+  PLA
+  TAX
+  PLA
+  PLP
+  RTS
+
+; a577
+: JSR $A529
+  JSR $EBC9
+  JSR $EE6A
+  JSR $A209
+  JSR $A602
+  JMP $A56A
+; a589
+:
+.byte $A5, $18, $F0, $05, $A9, $01, $8D
 .byte $81, $03, $A5, $B1, $20, $2B, $EE, $6A, $A5, $9D, $A5, $A9, $A5, $20, $42, $EE
 .byte $20, $6A, $EE, $20, $94, $A7, $4C, $6A, $A5, $20, $0F, $AA, $20, $42, $EE, $20
 .byte $6A, $EE, $20, $34, $AA, $20, $7A, $A8, $20, $92, $A8, $20, $FE, $A8, $20, $BC
@@ -801,9 +897,24 @@
 
 ; AA00 - bank 1
 .byte $0A, $A9, $F8, $8D, $34, $02, $8D, $38, $02, $A9, $40, $8D, $00, $07, $60, $AE
-.byte $4E, $07, $D0, $01, $60, $AD, $02, $20, $AD, $4F, $07, $8D, $06, $20, $AD, $50
-.byte $07, $8D, $06, $20, $A0, $00, $B9, $51, $07, $8D, $07, $20, $C8, $CA, $D0, $F6
-.byte $8E, $4E, $07, $60, $A5, $F6, $D0, $2F, $A5, $F8, $CD, $08, $07, $D0, $28, $AE
+.byte $4E, $07, $D0, $01, $60
+
+; aa15 - PW character inputed update
+  nops 3 ; LDA PpuStatus_2002
+  LDA $074F
+  STA VMADDH ; PpuAddr_2006
+  LDA $0750
+  STA VMADDL ; PpuAddr_2006
+  LDY #$00
+: LDA $0751,Y
+  STA VMDATAL ; PpuData_2007
+  INY
+  DEX
+  BNE :-
+  STX $074E
+  RTS
+
+.byte $A5, $F6, $D0, $2F, $A5, $F8, $CD, $08, $07, $D0, $28, $AE
 .byte $0A, $07, $E0, $30, $B0, $05, $EE, $0A, $07, $D0, $0C, $F0, $10, $E8, $E0, $37
 .byte $D0, $02, $A2, $30, $8E, $0A, $07, $A9, $00, $8D, $09, $07, $60, $AD, $08, $07
 .byte $8D, $09, $07, $EE, $0A, $07, $60, $A5, $F6, $8D, $08, $07, $8D, $09, $07, $A9
@@ -842,10 +953,13 @@
 .byte $18, $90, $D4, $60, $A2, $11, $7E, $61, $60, $CA, $10, $FA, $60, $4A, $20, $14
 .byte $AC, $4A, $20, $14, $AC, $4A, $20, $14, $AC, $4A, $20, $14, $AC, $4A, $20, $14
 .byte $AC, $4A, $20, $14, $AC, $60, $A2, $00, $86, $00, $A5, $00, $18, $7D, $61, $60
-.byte $85, $00, $E8, $E0, $11, $90, $F3, $BD, $61, $60, $C5, $00, $60, $A9, $28, $A2
-.byte $12, $A0, $00, $20, $76, $EB, $AD, $02, $20, $A9, $2A, $8D, $06, $20, $A9, $08
-.byte $8D, $06, $20, $A2, $00, $BD, $74, $AC, $8D, $07, $20, $E8, $E0, $0F, $90, $F5
-.byte $20, $C9, $EB, $60, $1A, $27, $27, $24, $27, $0E, $29, $27, $2E, $12, $16, $1C
+.byte $85, $00, $E8, $E0, $11, $90, $F3, $BD, $61, $60, $C5, $00, $60
+
+; AC4D - Password Error
+  JMP ac4d_replacement
+  nops 36
+
+.byte $1A, $27, $27, $24, $27, $0E, $29, $27, $2E, $12, $16, $1C
 .byte $16, $1E, $23, $A0, $00, $A2, $00, $E8, $D0, $FD, $C8, $D0, $F8, $38, $E9, $01
 .byte $D0, $F1, $60, $A0, $02, $B9, $61, $60, $48, $29, $F3, $99, $0D, $60, $68, $29
 .byte $0C, $4A, $4A, $99, $10, $60, $88, $10, $EC, $AD, $64, $60, $8D, $13, $60, $AD
@@ -876,9 +990,28 @@
 
 
 ; AE00 - bank 1
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+ac4d_replacement:
+  JSL force_blank_and_store
+  LDA #$24 ; #$28
+  LDX #$12
+  LDY #$00
+  JSR $EB76
+  nops 3 ; LDA PpuStatus_2002
+  LDA #$26 ; #$2A
+  STA VMADDH ; PpuAddr_2006
+  LDA #$08
+  STA VMADDL ; PpuAddr_2006
+  LDX #$00
+: LDA $AC74,X
+  STA VMDATAL ; PpuData_2007
+  INX
+  CPX #$0F
+  BCC :-
+  JSR $EBC9
+  JSL turn_off_forced_blank_and_store
+  RTS
+
+.byte $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF

@@ -9,7 +9,7 @@ initialize_registers:
   setAXY16
   setA8
 
-  LDA #$80
+  LDA #$8F
   STA INIDISP
   STA INIDISP_STATE
   STZ OBSEL
@@ -82,7 +82,7 @@ initialize_registers:
   STA COLDATA
   ; STZ SETINI
   STZ NMITIMEN
-  STZ NMITIMEN_STATUS
+  STZ NMITIMEN_STATE
 
   LDA #$FF
   STA WRIO   
@@ -171,8 +171,9 @@ initialize_registers:
 ;   STZ COLUMN_1_DMA
 
   JSL upload_sound_emulator_to_spc
-  JSR load_base_tiles
-  JSR do_intro
+  JSL load_base_tiles
+;   JSR do_intro
+  JSR clearvm_to_12
 
   LDA #$A1
   PHA
@@ -181,6 +182,7 @@ initialize_registers:
 
 
   snes_nmi:
+    LDA RDNMI
     STZ REUSABLE_CALC_BYTE
     ; we only care about bits 10 (sprites and 08 bg)
     LDA PPU_MASK_STATE
@@ -197,22 +199,21 @@ initialize_registers:
     STA TM
 
 
-;   JSL setup_hdma    
+  JSL setup_hdma    
   LDA #$7E
-  STA A1B1
+  STA A1B3
   LDA #$09
-  STA A1T1H
-  STZ A1T1L
+  STA A1T3H
+  STZ A1T3L
   LDA #$0D
-  STA BBAD1
+  STA BBAD3
   LDA #$03
-  STA DMAP1
+  STA DMAP3
 
-  LDA #$02
+  LDA #%00001000
   STA HDMAEN
 
-  LDA RDNMI
-;   JSR dma_oam_table
+  JSR dma_oam_table
 ;   JSR disable_attribute_buffer_copy
 ;   JSR check_and_copy_attribute_buffer
 ;   JSR write_one_off_vrams
@@ -258,3 +259,10 @@ clearvm_to_12:
   .include "palette_lookup.asm"
   .include "sprites.asm"
   .include "tiles.asm"
+  .include "hardware-status-switches.asm"
+  .include "scrolling.asm"
+
+
+
+
+  .include "hdma_scroll_lookups.asm"

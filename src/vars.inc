@@ -1,3 +1,8 @@
+; set to 1 to enable debug cheats
+.define DEBUG_MOD 1
+
+
+
 ; Value determines where we're at
 ; 00 - title screen
 ; 01 - Start/Continue
@@ -12,12 +17,12 @@ CURRENT_WORLD_INX   = $A0
 
 PPU_MASK_STATE      = $FF
 PPU_CONTROL_STATE   = $100
-VMAIN_CONTROL_STATE = $102
 
 ; SNES Register Value storage
-.define NMITIMEN_STATUS  $1706
-.define VMAIN_STATUS     $1705
+.define NMITIMEN_STATE  $1706
+.define VMAIN_STATE     $1705
 .define INIDISP_STATE    $1704
+.define TM_STATE        $1707
 .define BANK_SWITCH_JMP  $0800
 
 HOFS_LB             = $FE

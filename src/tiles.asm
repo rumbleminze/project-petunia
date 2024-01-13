@@ -1,4 +1,39 @@
 ; routines related to loading the tiles
+load_title_tiles:
+
+    LDA #$80
+    STA VMAIN
+
+    LDA #$01
+    STA DMAP1
+
+    LDA #$18
+    STA BBAD1 
+
+    LDA #<title_screen_tiles
+    STA A1T1L
+
+    LDA #>title_screen_tiles
+    STA A1T1H
+
+    LDA #^title_screen_tiles
+    STA A1B1
+
+    ; 2000 bytes
+    LDA #$40
+    STA DAS1H
+    STZ DAS1L
+
+    STZ VMADDH
+    STZ VMADDL
+
+    LDA #$02
+    STA MDMAEN
+    
+    LDA VMAIN_STATE
+    STA VMAIN
+    RTL
+
 load_base_tiles:
 
     LDA #$80
@@ -30,10 +65,10 @@ load_base_tiles:
     LDA #$02
     STA MDMAEN
     
-    LDA VMAIN_STATUS
+    LDA VMAIN_STATE
     STA VMAIN
 :
-    RTS
+    RTL
 
 ; Sprite Addresses per world index
 ; for each level 1 address for sprites, next for background tiles
@@ -48,17 +83,26 @@ source_locations:
 
 load_level_specific_tiles:
 
+    PHB
+    LDA #$A0
+    PHA
+    PLB
+
     LDA #$80
     STA VMAIN
 
     LDA #$01
-    STA DMAP1
-    STA DMAP2
+    STA DMAP5
+    STA DMAP4
 
     LDA CURRENT_WORLD_INX
     BEQ :-                  ; early rts if we're in level 0 (title screen)
 
-    CLC
+    ; index 1 users the same as index 2 and not 0, so inc it so it follows the right logic
+    CMP #$01
+    BNE :+
+    INC A
+:   CLC
     LSR ; divide by 2 then multiply by 4 to get source location lookup
     CLC
     ASL
@@ -66,52 +110,53 @@ load_level_specific_tiles:
     TAY
 
     LDA source_locations, Y
-    STA A1T1L
+    STA A1T5L
     INY 
 
     LDA source_locations, Y
-    STA A1T1H
+    STA A1T5H
     INY
 
     LDA #^level_specific_tiles
-    STA A1B1
-    STA A1B2
+    STA A1B5
+    STA A1B4
 
     LDA source_locations, Y
-    STA A1T2L
+    STA A1T4L
     INY 
 
     LDA source_locations, Y
-    STA A1T2H
+    STA A1T4H
     INY
 
     LDA #$18
-    STA BBAD1 
-    STA BBAD2
+    STA BBAD5 
+    STA BBAD4
 
     ; 800 bytes
     LDA #$08
-    STA DAS1H
-    STA DAS2H
-    STZ DAS1L
-    STZ DAS2L
+    STA DAS5H
+    STA DAS4H
+    STZ DAS5L
+    STZ DAS4L
 
     LDA #$0C
     STA VMADDH
     STZ VMADDL
 
-    LDA #$02
+    LDA #$20
     STA MDMAEN
 
     LDA #$1C
     STA VMADDH
     STZ VMADDL
-    LDA #$04
+    LDA #$10
     STA MDMAEN
     
-    LDA VMAIN_STATUS
+    LDA VMAIN_STATE
     STA VMAIN
 
-    RTS
+    PLB
+    RTL
 
 

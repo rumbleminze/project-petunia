@@ -66,7 +66,7 @@ exit_intro_write:
     RTS
 
 do_intro:
-    LDA VMAIN_STATUS
+    LDA VMAIN_STATE
     AND #$0F
     STA VMAIN
 

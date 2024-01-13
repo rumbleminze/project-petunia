@@ -610,10 +610,38 @@
 
 
 ; A000 - bank 4
-.byte $4C, $06, $A0, $4C, $FD, $A0, $A9, $00, $8D, $10, $40, $8D, $11, $40, $A9, $0F
-.byte $8D, $15, $40, $A9, $C0, $8D, $17, $40, $A9, $10, $8D, $00, $40, $8D, $04, $40
-.byte $8D, $0C, $40, $A9, $00, $8D, $08, $40, $A9, $00, $AA, $9D, $00, $03, $E8, $D0
-.byte $FA, $85, $DF, $A9, $AA, $85, $EF, $60, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+JMP $A006 ; a006_sound_engine_hijack
+JMP $A0FD
+
+; sound stuff, I've changed the writes from $40__ to $0A__
+LDA #$00
+STA NES_APU_DMC_TIMER
+STA NES_APU_DMC_MEMRDR
+LDA #$0F
+STA NES_APU_CHAN_ENABLE
+LDA #$C0
+STA NES_APU_FRAME_CTR
+LDA #$10
+STA NES_APU_P1_TIMER
+STA NES_APU_P2_TIMER
+STA NES_APU_NOISE_TIMER
+LDA #$00
+STA NES_APU_TRI_TIMER
+
+; zero out 0300 - 03FF
+LDA #$00
+TAX
+:STA $0300, X
+INX
+BNE :-
+
+STA $DF
+LDA #$AA
+STA $EF
+RTS
+
+a038:
+.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $7F, $FF

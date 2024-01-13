@@ -357,17 +357,59 @@
 .byte $4C, $0C, $92, $85, $09, $20, $AC, $93, $90, $04, $C6, $09, $D0, $F7, $60, $A9
 .byte $05, $8D, $66, $07, $A9, $00, $8D, $62, $07, $8D, $61, $07, $8D, $64, $07, $8D
 .byte $65, $07, $AA, $20, $E0, $92, $E8, $AD, $30, $01, $C9, $03, $B0, $05, $E0, $03
-.byte $4C, $D5, $92, $E0, $04, $90, $EC, $20, $11, $94, $A9, $01, $8D, $60, $07, $60
-.byte $8A, $0A, $A8, $B9, $73, $94, $85, $00, $B9, $74, $94, $85, $01, $A0, $00, $B1
-.byte $00, $8D, $06, $20, $C8, $B1, $00, $8D, $06, $20, $C8, $B1, $00, $C9, $FF, $F0
+.byte $4C, $D5, $92, $E0, $04, $90, $EC, $20, $11, $94, $A9, $01, $8D, $60, $07
 
+; used as early rts
+: RTS
 
+; 92e0 - 934B
+  TXA
+  ASL A
+  TAY
+  LDA $9473,Y
+  STA $00
+  LDA $9474,Y
+  STA $01
+  LDY #$00
+  LDA ($00),Y
+  STA VMADDH
+  INY
+  LDA ($00),Y
+  STA VMADDL
+  INY
+  LDA ($00),Y
+  CMP #$FF
+  BEQ :-
+  STA VMDATAL
+  JMP $92FA
+  INC $0764
+  BNE :+
+  INC $0765
+: LDA $0760
+  BEQ :++
+  LDA $0761
+  BNE :+
+  LDA $0760
+  STA $0761
+  INC $0760
+: JSR $EE2B
+;9325-9331 is ???
+.byte $31, $93, $58, $93, $60, $93, $32, $93, $58, $94, $32
+.byte $93
+: RTS
+
+  LDA $0760
+  STA $0763
+  LDA #$00
+  STA $0760
+  LDA #$00
+  STA $0761
+  STA $0762
+  STA $0765
+  STA $0764
+  RTS
 ; 9300 - bank 6
-.byte $DE, $8D, $07, $20, $4C, $FA, $92, $EE, $64, $07, $D0, $03, $EE, $65, $07, $AD
-.byte $60, $07, $F0, $1D, $AD, $61, $07, $D0, $09, $AD, $60, $07, $8D, $61, $07, $EE
-.byte $60, $07, $20, $2B, $EE, $31, $93, $58, $93, $60, $93, $32, $93, $58, $94, $32
-.byte $93, $60, $AD, $60, $07, $8D, $63, $07, $A9, $00, $8D, $60, $07, $A9, $00, $8D
-.byte $61, $07, $8D, $62, $07, $8D, $65, $07, $8D, $64, $07, $60, $A5, $14, $29, $0F
+.byte $A5, $14, $29, $0F
 .byte $D0, $05, $A9, $01, $8D, $81, $03, $60, $A9, $04, $8D, $66, $07, $4C, $3D, $93
 .byte $20, $4C, $93, $AD, $66, $07, $C9, $07, $B0, $D3, $20, $85, $93, $20, $F9, $93
 .byte $90, $06, $20, $05, $94, $4C, $11, $94, $EE, $66, $07, $4C, $60, $93, $AA, $4C
@@ -383,22 +425,64 @@
 
 ; 9400 - bank 6
 .byte $34, $A0, $01, $D0, $A3, $A2, $44, $A0, $01, $D0, $CF, $A2, $47, $A0, $01, $D0
-.byte $C9, $20, $33, $94, $A2, $31, $A0, $01, $A9, $07, $20, $A7, $94, $A9, $29, $8D
-.byte $10, $01, $A9, $11, $8D, $0F, $01, $A9, $07, $8D, $0E, $01, $A2, $11, $A0, $01
-.byte $4C, $E5, $94, $A2, $44, $A0, $01, $A9, $07, $20, $A7, $94, $A9, $28, $8D, $06
-.byte $01, $A9, $F1, $8D, $05, $01, $A9, $07, $8D, $04, $01, $A2, $07, $A0, $01, $4C
-.byte $E5, $94, $A9, $00, $8D, $18, $01, $60, $AD, $63, $07, $F0, $13, $AD, $62, $07
+.byte $C9
+
+JMP nes_9411_end_of_level_score
+  ;JSR $9433
+  LDX #$31
+  LDY #$01
+  LDA #$07
+  JSR $94A7
+  LDA #$25  ; changed to #$25 from #$21
+  STA $0110
+  LDA #$11
+  STA $010F
+  LDA #$07
+  STA $010E
+  LDX #$11
+  LDY #$01
+  JMP $94E5
+
+  LDX #$44
+  LDY #$01
+  LDA #$07
+  JMP nes_9433_end_of_level_score
+  ; JSR $94A7
+  LDA #$24
+  STA $0106
+  LDA #$F1
+  STA $0105
+  LDA #$07
+  STA $0104
+  LDX #$07
+  LDY #$01
+  JMP $94E5
+
+.byte $A9, $00, $8D, $18, $01, $60, $AD, $63, $07, $F0, $13, $AD, $62, $07
 .byte $D0, $09, $A9, $0D, $8D, $E2, $04, $EE, $62, $07, $60, $AD, $E2, $04, $D0, $FA
-.byte $4C, $3D, $93, $83, $94, $83, $94, $91, $94, $91, $94, $99, $94, $9D, $94, $A1
-.byte $94, $A1, $94, $28, $E5, $29, $24, $29, $16, $21, $12, $28, $18, $24, $27, $1A
-.byte $FF, $29, $0B, $28, $18, $24, $27, $1A, $FF, $2B, $F3, $03, $FF, $2B, $36, $22
-.byte $FF, $2B, $57, $33, $10, $22, $FF, $20, $BB, $94, $20, $CF, $E9, $B0, $05, $20
+.byte $4C, $3D, $93
+
+; score tally screen text location information
+.byte $83, $94, $00, $BA, $91, $94, $0E, $BA, $99, $94, $9D, $94, $A1
+.byte $94, $A1, $94
+; TOTAL_SCORE
+.byte $24, $E5, $29, $24, $29, $16, $21, $12, $28, $18, $24, $27, $1A, $FF
+; SCORE
+.byte $25, $0B, $28, $18, $24, $27, $1A, $FF
+; 3?  not sure where this is used.
+.byte $2B, $F3, $03, $FF
+; M? not sure where this is used.
+.byte $2B, $36, $22, $FF
+; d'L? not sure where this is used.
+.byte $2B, $57, $33, $10, $22, $FF
+
+;code now
+.byte $20, $BB, $94, $20, $CF, $E9, $B0, $05, $20
 .byte $E6, $E9, $B0, $03, $20, $1C, $EA, $20, $27, $EA, $60, $85, $02, $86, $0C, $84
 .byte $0D, $AA, $A9, $00, $85, $05, $85, $06, $85, $07, $A9, $12, $85, $03, $BD, $55
 .byte $EA, $A8, $B1, $0C, $99, $05, $00, $88, $10, $F8, $A2, $06, $A9, $00, $9D, $28
 .byte $01, $CA, $10, $FA, $60, $86, $00, $84, $01, $85, $02, $AA, $BD, $5D, $EA, $AA
 .byte $A0, $00, $BD, $28, $01, $91, $00, $C8, $E8, $C4, $02, $90, $F5, $60, $20, $C6
-
 
 ; 9500 - bank 6
 .byte $98, $A0, $00, $AD, $56, $7F, $85, $00, $AD, $57, $7F, $85, $01, $B1, $00, $C9
@@ -407,9 +491,27 @@
 .byte $00, $A8, $A9, $50, $91, $62, $98, $18, $69, $10, $A8, $68, $91, $62, $68, $A8
 .byte $4C, $19, $95, $20, $C6, $98, $20, $8A, $96, $4C, $98, $96, $20, $C6, $98, $A2
 .byte $00, $BC, $04, $01, $D0, $18, $AC, $E2, $04, $C0, $F0, $90, $09, $20, $8D, $95
-.byte $A9, $00, $8D, $04, $01, $60, $A9, $00, $8D, $04, $01, $4C, $42, $EE, $AD, $02
-.byte $20, $BD, $06, $01, $8D, $06, $20, $BD, $05, $01, $8D, $06, $20, $BD, $07, $01
-.byte $8D, $07, $20, $E8, $88, $D0, $F6, $E8, $E8, $E8, $4C, $51, $95, $C0, $FF, $D0
+.byte $A9, $00, $8D, $04, $01, $60
+
+  LDA #$00
+  STA $0104
+  JMP $EE42
+  nops 3 ; LDA $2002
+  LDA $0106,X
+  STA VMADDH
+  LDA $0105,X
+  STA VMADDL
+: LDA $0107,X
+  STA VMDATAL
+  INX
+  DEY
+  BNE :-
+  INX
+  INX
+  INX
+  JMP $9551
+
+.byte $C0, $FF, $D0
 .byte $18, $A2, $20, $A5, $3A, $C9, $10, $90, $02, $A2, $28, $86, $00, $A0, $C8, $20
 .byte $BD, $95, $A6, $00, $E8, $A0, $08, $D0, $14, $AE, $06, $01, $AC, $05, $01, $20
 .byte $BD, $95, $98, $18, $69, $40, $A8, $AD, $06, $01, $69, $00, $AA, $AD, $02, $20
@@ -469,8 +571,18 @@
 .byte $0C, $FE, $08, $21, $29, $1D, $16, $23, $20, $28, $12, $16, $12, $21, $24, $29
 .byte $0D, $FF, $FE, $C8, $20, $21, $1A, $29, $12, $22, $1A, $12, $27, $1A, $22, $24
 .byte $2B, $1A, $FE, $08, $21, $29, $1D, $1A, $12, $1A, $1C, $1C, $25, $21, $16, $23
-.byte $29, $12, $18, $2A, $27, $28, $1A, $0D, $FF, $FE, $CC, $29, $25, $24, $2C, $1A
-.byte $27, $12, $2A, $25, $0E, $FF, $AD, $02, $20, $AD, $00, $01, $8D, $00, $20, $60
+.byte $29, $12, $18, $2A, $27, $28, $1A, $0D, $FF
+
+; 98B9 POWER UP!  moved from 29CC to 25CC
+.byte $FE, $CC, $25, $25, $24, $2C, $1A
+.byte $27, $12, $2A, $25, $0E, $FF
+
+;   LDA $2002
+;   LDA $0100
+;   STA $2000
+  nops 9
+  RTS
+  
 .byte $A5, $A0, $C9, $02, $90, $F9, $4A, $B0, $32, $4A, $90, $F3, $C9, $02, $B0, $EF
 .byte $0A, $AA, $BD, $07, $99, $85, $00, $BD, $08, $99, $85, $01, $A9, $00, $85, $02
 .byte $A9, $70, $85, $03, $A2, $0F, $A0, $00, $B1, $00, $91, $02, $C8, $D0, $F9, $E6
@@ -1104,13 +1216,59 @@
 
 
 ; BA00 - bank 6
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FE, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $BF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FB, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+; score display re-write
+;9411
+nes_9411_end_of_level_score:
+  JSR $9433
+  LDX #$31
+  LDY #$01
+  LDA #$07
+  JSR $94A7
+
+  LDA CURRENT_WORLD_INX
+  CMP #$04
+  BNE :+
+  LDA #$21  ; changed to #$25 from #$21
+  BRA :++
+: LDA #$25
+: STA $0110
+  LDA #$11
+  STA $010F
+  LDA #$07
+  STA $010E
+  LDX #$11
+  LDY #$01
+  JMP $94E5
+
+nes_9433_end_of_level_score:
+  LDX #$44
+  LDY #$01
+  LDA #$07
+  JSR $94A7
+  ; for world 2 we write to a different place
+  LDA CURRENT_WORLD_INX
+  CMP #$04
+  BNE :+
+  LDA #$20  ; changed to #$25 from #$21
+  BRA :++
+: LDA #$24
+: STA $0106
+  LDA #$F1
+  STA $0105
+  LDA #$07
+  STA $0104
+  LDX #$07
+  LDY #$01
+  JMP $94E5
+
+; duplicat of
+; 98B9 POWER UP!
+; but written to 21CC instead of 25CC
+power_up_dupe:
+.byte $FE, $CC, $21, $25, $24, $2C, $1A
+.byte $27, $12, $2A, $25, $0E, $FF
+
+.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
