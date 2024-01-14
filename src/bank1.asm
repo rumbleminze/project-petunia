@@ -663,9 +663,20 @@ LDA RDNMI ; LDA PpuStatus_2002
 
 ; A200 - bank 1
 .byte $0D, $60, $E8, $C8, $C0, $1A, $D0, $F7, $60, $A5, $14, $29, $01, $F0, $01, $60
-.byte $A5, $15, $D0, $06, $A5, $14, $C9, $80, $90, $1B, $E6, $FD, $20, $CA, $A5, $A5
-.byte $FD, $C9, $F0, $D0, $10, $A9, $00, $85, $14, $85, $15, $A5, $1A, $49, $01, $85
-.byte $1A, $A9, $00, $85, $FD, $60
+
+  LDA $15
+  BNE :+
+  LDA $14
+  CMP #$80
+  BCC :++
+: INC $FD
+  JSR $A5CA
+  LDA $FD
+  CMP #$F0
+  BNE :+
+  JSL title_screen_rollover
+  nops 12
+: RTS
 
 ; writes attributes
   JSR $EF77

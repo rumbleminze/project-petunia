@@ -8,7 +8,7 @@ reset_to_stored_screen_offsets:
   LDA UNPAUSE_BG1_VOFS_LB
   STA VOFS_LB
   LDA UNPAUSE_BG1_VOFS_HB
-  STA VOFS_HB
+  ; STA VOFS_HB
 
   STZ STORED_OFFSETS_SET
 : RTL
@@ -71,11 +71,11 @@ infidelitys_scroll_handling:
   BRA :+++    ; RTL
 : STZ HOFS_HB
   LDA #$01
-  STA VOFS_HB
+  ; STA VOFS_HB
   BRA :++     ; RTL
 : LDA #$01
   STA HOFS_HB
-  STA VOFS_HB
+  ; STA VOFS_HB
 : RTL 
 
 setup_hdma:
@@ -92,6 +92,7 @@ setup_hdma:
   STA $090A
   LDA $A0A520,X
   STA $090D
+
   LDA HOFS_LB
   STA $0901
   STA $0906
@@ -108,3 +109,43 @@ setup_hdma:
   STZ $090F
 
   RTL
+
+scroll_rollover:
+  LDA #$EF  
+  STA $FD
+  LDA $5C
+  ORA #$80
+  STA $5C
+
+  ; we have to update PPU_STORE here because we use it almost immediately
+  ; in the hdma routine
+  JSR flip_bg1_bit
+
+  RTL
+
+title_screen_rollover:
+  LDA #$00
+  STA $14
+  STA $15
+  LDA $1A
+  EOR #$01
+  STA $1A
+  LDA #$00
+  STA $FD
+  JSR flip_bg1_bit
+  
+  RTL
+
+flip_bg1_bit:
+  LDA PPU_CONTROL_STATE
+  AND #$02  
+  CMP #$02
+  BNE :+
+  LDA PPU_CONTROL_STATE
+  AND #$FD
+  BRA :++
+: LDA PPU_CONTROL_STATE
+  ORA #$02
+
+: STA PPU_CONTROL_STATE
+  RTS

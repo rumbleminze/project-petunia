@@ -656,18 +656,102 @@ nops 56
 
 
 ; CC00 - bank 7
-.byte $CD, $3E, $CD, $55, $CD, $55, $CD, $55, $CD, $55, $CD, $4C, $1D, $E1, $4C, $2D
-.byte $E1, $4C, $35, $E1, $4C, $55, $E1, $A9, $04, $85, $37, $A9, $07, $20, $CD, $C4
-.byte $FE, $04, $07, $BD, $04, $07, $C9, $10, $60, $20, $17, $CC, $90, $DD, $C9, $20
-.byte $90, $DC, $C9, $30, $90, $DB, $A9, $80, $85, $AB, $60, $20, $17, $CC, $90, $CE
-.byte $C9, $20, $90, $C7, $C9, $30, $90, $CC, $A9, $80, $9D, $01, $07, $0A, $9D, $04
-.byte $07, $85, $37, $60, $C9, $10, $F0, $E3, $C9, $20, $F0, $CD, $BD, $05, $07, $D0
-.byte $4A, $BD, $00, $07, $C9, $F8, $B0, $13, $BD, $02, $07, $29, $7F, $9D, $02, $07
-.byte $FE, $00, $07, $FE, $00, $07, $A9, $18, $4C, $C5, $C6, $CE, $50, $01, $10, $13
-.byte $A9, $00, $9D, $01, $07, $20, $2B, $DD, $9D, $10, $02, $9D, $14, $02, $A9, $40
-.byte $85, $AB, $60, $A5, $A5, $09, $08, $85, $A5, $A9, $FF, $85, $A7, $A9, $C0, $85
-.byte $1D, $BD, $00, $07, $38, $E9, $04, $9D, $00, $07, $60, $DE, $05, $07, $A9, $18
-.byte $4C, $C5, $C6, $A5, $A5, $29, $0F, $85, $00, $BD, $01, $07, $29, $F0, $05, $00
+.byte $CD, $3E, $CD, $55, $CD, $55, $CD, $55, $CD, $55, $CD
+
+@cc0b: JMP $E11D
+@cc0e: JMP $E12D
+@cc11: JMP $E135
+@cc14: JMP $E155
+
+  LDA #$04
+  STA $37
+  LDA #$07
+  JSR $C4CD
+  INC $0704,X
+  LDA $0704,X
+  CMP #$10
+  RTS
+
+@cc29:
+  JSR $CC17
+  BCC @cc0b
+  CMP #$20
+  BCC @cc0e
+  CMP #$30
+  BCC @cc11
+  LDA #$80
+  STA $AB
+  RTS
+
+@cc3b:
+  JSR $CC17
+  BCC @cc0e
+  CMP #$20
+  BCC @cc0b
+  CMP #$30
+  BCC @cc14
+  LDA #$80
+  STA $0701,X
+  ASL A
+  STA $0704,X
+  STA $37
+  RTS
+
+  CMP #$10
+  BEQ @cc3b
+  CMP #$20
+  BEQ @cc29
+  LDA $0705,X
+  BNE @ccab
+  LDA $0700,X
+  CMP #$F8
+  BCS :+
+  LDA $0702,X
+  AND #$7F
+  STA $0702,X
+  INC $0700,X
+  INC $0700,X
+  LDA #$18
+  JMP $C6C5
+
+  ; infinite feathers
+  .if DEBUG_MOD > 0
+: nops 3
+  BRA @cc93
+  .else
+: DEC $0150
+  BPL @cc93
+  .endif
+  
+  LDA #$00
+  STA $0701,X
+  JSR $DD2B
+  STA $0210,X
+  STA $0214,X
+  LDA #$40
+  STA $AB
+  RTS
+
+@cc93:
+  LDA $A5
+  ORA #$08
+  STA $A5
+  LDA #$FF
+  STA $A7
+  LDA #$C0
+  STA $1D
+  LDA $0700,X
+  SEC
+  SBC #$04
+  STA $0700,X
+  RTS
+  
+@ccab:  
+  DEC $0705,X
+  LDA #$18
+  JMP $C6C5
+
+.byte $A5, $A5, $29, $0F, $85, $00, $BD, $01, $07, $29, $F0, $05, $00
 .byte $9D, $01, $07, $60, $A5, $A7, $C9, $40, $B0, $08, $C9, $20, $B0, $05, $C9, $01
 .byte $B0, $1F, $60, $A5, $14, $29, $08, $D0, $F9, $A0, $05, $8A, $48, $BD, $02, $02
 .byte $29, $FC, $09, $01, $9D, $02, $02, $E8, $E8, $E8, $E8, $88, $10, $EF, $68, $AA
@@ -1095,7 +1179,7 @@ nops 56
   JSR $EE42
 
   JSL no_scroll_screen_enable
-  nops 12 ;   LDA PpuStatus_2002
+  nops 15 ;   LDA PpuStatus_2002
 ;   LDA #$00
 ;   STA PpuScroll_2005
 ;   STA PpuScroll_2005
@@ -1109,15 +1193,33 @@ nops 56
   JMP $7F24
 : JSR $E1AF
 
-.byte $20, $AF, $E1, $4C, $C7, $E1, $A5, $3A, $C9, $10, $B0, $0C, $A9, $0F, $8D, $95
+.byte $4C, $C7, $E1, $A5, $3A, $C9, $10, $B0, $0C, $A9, $0F, $8D, $95
 
 
 ; E200 - bank 7
 .byte $03, $8D, $96, $03, $8D, $97, $03, $60, $AD, $3D, $01, $F0, $EF, $60, $0F, $20
 .byte $22, $02, $0F, $2A, $17, $07, $0F, $37, $10, $00, $0F, $31, $27, $15, $0F, $20
-.byte $26, $07, $0F, $31, $02, $15, $0F, $11, $25, $31, $0F, $20, $00, $10, $20, $F0
-.byte $EE, $A9, $00, $85, $38, $85, $DF, $20, $5B, $E2, $A5, $3A, $C9, $10, $B0, $0F
-.byte $20, $18, $7F, $20, $21, $7F, $20, $42, $EE, $20, $C9, $EB, $4C, $EB, $E1, $20
+.byte $26, $07, $0F, $31, $02, $15, $0F, $11, $25, $31, $0F, $20, $00, $10
+
+; 0xE22E
+  JSR $EEF0
+  LDA #$00
+  STA $38
+  STA $DF
+  JSR $E25B
+  LDA $3A
+  CMP #$10
+  BCS @nes_e24f
+  ; ee42 is moved ahead of 7f18 and 7f21 so that H and V offsets are restored 
+  ; prior to drawing tiles
+  JSR $EE42
+  JSR $7F18
+  JSR $7F21
+  JSR $EBC9
+  JMP $E1EB
+
+@nes_e24f:
+.byte $20
 .byte $1E, $7F, $20, $21, $7F, $20, $C9, $EB, $4C, $EB, $E1, $A0, $00, $A9, $F8, $99
 .byte $00, $02, $C8, $D0, $FA, $60, $A2, $04, $AD, $3A, $01, $F0, $28, $A5, $14, $29
 .byte $08, $D0, $22, $A5, $46, $29, $07, $0A, $0A, $0A, $18, $69, $A0, $9D, $03, $02
@@ -1590,15 +1692,14 @@ nops 56
   STA $00
 ; new stuff
 
-  JSL reset_to_stored_screen_offsets
-
   LDA PPU_CONTROL_STATE
   AND #$FC
   ORA $00
   STA PPU_CONTROL_STATE
   JSL infidelitys_scroll_handling
-  JSL setup_hdma
-  nops 4
+  JSL reset_to_stored_screen_offsets
+  ; JSL setup_hdma
+  nops 8
   RTS
 
 .byte $A9, $00, $85, $04, $85, $05, $A5, $00, $38, $E9, $10

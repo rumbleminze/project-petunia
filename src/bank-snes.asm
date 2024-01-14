@@ -153,7 +153,7 @@ initialize_registers:
   STA MEMSEL
 ; Use #$04 to enable overscan if we can.
   LDA #$04
-  LDA #$00
+  ; LDA #$00
   STA SETINI
 
 
@@ -183,29 +183,19 @@ initialize_registers:
 
   snes_nmi:
     LDA RDNMI
-    STZ REUSABLE_CALC_BYTE
-    ; we only care about bits 10 (sprites and 08 bg)
-    LDA PPU_MASK_STATE
-    AND #$10
-    BEQ :+
-    STA REUSABLE_CALC_BYTE
-    : LDA PPU_MASK_STATE
-    AND #$08
-    BEQ :+
-    LDA #$01
-    ORA REUSABLE_CALC_BYTE
-    STA REUSABLE_CALC_BYTE
-    : LDA REUSABLE_CALC_BYTE
-    STA TM
-
+    JSL update_values_for_ppu_mask
+    JSL infidelitys_scroll_handling
 
   JSL setup_hdma    
+
   LDA #$7E
   STA A1B3
   LDA #$09
   STA A1T3H
   STZ A1T3L
-  LDA #$0D
+  
+  LDA #<(BG1HOFS)
+  ; LDA #$0D
   STA BBAD3
   LDA #$03
   STA DMAP3

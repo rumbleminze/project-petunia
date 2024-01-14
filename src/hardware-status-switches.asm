@@ -63,6 +63,23 @@ update_ppu_mask_store_to_1e:
     STA TM_STATE
     RTL
 
+update_values_for_ppu_mask:
+    STZ REUSABLE_CALC_BYTE
+    ; we only care about bits 10 (sprites and 08 bg)
+    LDA PPU_MASK_STATE
+    AND #$10
+    BEQ :+
+    STA REUSABLE_CALC_BYTE
+    : LDA PPU_MASK_STATE
+    AND #$08
+    BEQ :+
+    LDA #$01
+    ORA REUSABLE_CALC_BYTE
+    STA REUSABLE_CALC_BYTE
+    : LDA REUSABLE_CALC_BYTE
+    STA TM
+    RTL
+
 enable_nmi_and_store:
     LDA NMITIMEN_STATE
     ORA #$80

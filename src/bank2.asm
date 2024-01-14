@@ -476,12 +476,31 @@ nes_8139:
   JMP $8095
 
  ; 94f0
-.byte $A5, $F3, $29, $80, $F0, $22, $A5, $FD, $38, $E9, $01, $85, $FD, $A5, $1A, $E9
+  LDA $F3
+  AND #$80
+  BEQ :++
+  LDA $FD
+  SEC
+  SBC #$01
+  STA $FD
+  LDA $1A
+  SBC #$00
+  STA $1A
+  LDA #$01
+  STA $27
+  LDA $FD
+  CMP #$F0
+  BCC :+
+  jsl scroll_rollover
+  nops 6
 
+: RTS
 
-; 9500 - bank 2
-.byte $00, $85, $1A, $A9, $01, $85, $27, $A5, $FD, $C9, $F0, $90, $0A, $A9, $EF, $85
-.byte $FD, $A5, $5C, $09, $80, $85, $5C, $60, $A9, $00, $85, $27, $60
+  ; 9518
+: LDA #$00
+  STA $27
+  RTS
+
 
 ;951D
   LDA $0482
