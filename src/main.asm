@@ -23,6 +23,7 @@
 .include "bank4.asm"
 .include "bank5.asm"
 .include "bank6.asm"
+.include "bank_msu.asm"
 
 
 .include "base_tiles.asm"

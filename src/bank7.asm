@@ -414,8 +414,17 @@ nops 3
 .byte $01, $02, $38, $E9, $02, $9D, $05, $02, $BD, $02, $07, $29, $0F, $C9, $08, $B0
 .byte $0B, $BD, $02, $02, $09, $40, $9D, $02, $02, $9D, $06, $02, $60, $20, $39, $EF
 .byte $20, $06, $7F, $4C, $C9, $EB, $A5, $B6, $48, $A9, $04, $20, $7F, $C1, $20, $00
-.byte $A0, $68, $20, $7F, $C1, $60, $A5, $B6, $48, $A9, $04, $20, $7F, $C1, $20, $03
 .byte $A0, $68, $20, $7F, $C1, $60
+
+; 0xC856
+  LDA $B6                  
+  PHA                      
+  LDA #$04                 
+  JSR @switch_bank_to_a            
+  JSR a003_sound_engine_hijack               
+  PLA                      
+  JSR @switch_bank_to_a        
+  RTS   
 
 ; C866 - NES's NMI routine
 ; we've moved this since we needed more space
@@ -1908,14 +1917,15 @@ nops 56
   STA $B6
   INC A
   ORA #$A0
-  STA $802
+
+  STA JMP_REDIRECT_LB + 2
   PHA 
   PLB                   
   LDA #.lobyte(@bank_switch_jump2)
-  STA $0800
+  STA JMP_REDIRECT_LB
   LDA #.hibyte(@bank_switch_jump2)
-  STA $0801
-  JML ($0800)
+  STA JMP_REDIRECT_LB + 1
+  JML (JMP_REDIRECT_LB)
 @bank_switch_jump2:
   JSL reset_nmi_status
   PLA
@@ -1928,9 +1938,34 @@ nops 56
   PLP   
   RTI
 
+@switch_bank_to_a:
+  PHA                      
+  ; disable NMI
+  JSL disable_nmi_no_store    
+  PLA                      
+  STA $B6
+  INC A
+  AND #$0F
+  ORA #$A0
+
+  STA JMP_REDIRECT_LB + 2
+  PHA
+  PLB
+  LDA #.lobyte(@bank_switch_jump_3)
+  STA JMP_REDIRECT_LB
+  LDA #.hibyte(@bank_switch_jump_3)
+  STA JMP_REDIRECT_LB + 1
+  JML (JMP_REDIRECT_LB)
+@bank_switch_jump_3:
+;  re-enable NMI
+  ;  LDA PpuStatus_2002  
+  JSL reset_nmi_status 
+
+  NOP
+  NOP    
+  RTS
+
 .byte $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $BF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $BF, $FF, $FF, $FF
