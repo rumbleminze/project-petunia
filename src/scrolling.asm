@@ -133,19 +133,25 @@ title_screen_rollover:
   LDA #$00
   STA $FD
   JSR flip_bg1_bit
-  
+
   RTL
 
 flip_bg1_bit:
   LDA PPU_CONTROL_STATE
-  AND #$02  
-  CMP #$02
-  BNE :+
-  LDA PPU_CONTROL_STATE
-  AND #$FD
-  BRA :++
-: LDA PPU_CONTROL_STATE
-  ORA #$02
+  EOR #$02  
+  STA PPU_CONTROL_STATE
+  RTS
 
-: STA PPU_CONTROL_STATE
+
+handle_horizontal_scroll_wrap:
+  INC $1B
+
+  LDA PPU_CONTROL_STATE
+  EOR #$01
+  STA PPU_CONTROL_STATE
+
+  LDA $5C
+  ORA #$80
+  STA $5C
+
   RTS

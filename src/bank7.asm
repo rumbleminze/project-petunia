@@ -649,10 +649,17 @@ nops 56
   PLA
   RTS
 
-; CB49 - bank 7
-.byte $A5, $BE, $4C, $7F, $C1, $A5, $BE
-.byte $20, $7F, $C1, $20, $33, $7F, $20, $36, $7F, $20, $39, $7F, $20, $3C, $7F, $A9
-.byte $06, $4C, $7F, $C1, $A9, $02, $D0, $20, $A9, $04, $D0, $1C, $A9, $08, $D0, $18
+  LDA $BE
+  JMP $C17F
+
+; cb4e - load info for room switch
+JMP @nes_cb4e_replacement
+nops 19
+; CB4e - bank 7
+; .byte $A5, $BE
+; .byte $20, $7F, $C1, $20, $33, $7F, $20, $36, $7F, $20, $39, $7F, $20, $3C, $7F, $A9
+; .byte $06, $4C, $7F, $C1, 
+.byte $A9, $02, $D0, $20, $A9, $04, $D0, $1C, $A9, $08, $D0, $18
 .byte $A5, $3A, $F0, $1F, $C9, $10, $90, $2E, $AC, $2F, $01, $A5, $46, $D9, $90, $CB
 .byte $F0, $0A, $C9, $1B, $D0, $05, $A9, $40, $8D, $85, $03, $60, $A9, $20, $D0, $F8
 .byte $37, $2E, $07, $AD, $2F, $01, $C9, $01, $F0, $CA, $C9, $02, $F0, $CA, $C9, $03
@@ -1372,36 +1379,10 @@ nops 56
 .byte $E8, $8C, $E8, $9D, $E8, $AE, $E8, $CD, $E8, $E1, $E8, $03, $E9, $1C, $E9, $3C
 .byte $E9, $3C, $E9, $3C, $E9, $3C, $E9, $3C, $E9, $79, $E9
 
-  JSR $EA4B
-  STA $00
-  nops 3 ; LDX PpuStatus_2002
-  STA VMADDH
-  LDA #$00
-  STA VMADDL
-  JSR $EA4B
-  JSR $E83B
-  JSR $EA4B
-  TAX
-  JSR $EA4B
-  JMP $E84B
-  LDX #$00
-  JSR $E861
-  JSR $E861
-  JSR $E861
-  LDX #$C0
-  JMP $E861
-  STX $0C
-  STA $0D
-  STY $01
-  LDX #$40
-  LDY #$00
-: LDA ($0C),Y
-  STA VMDATAL ; PpuData_2007
-  INY
-  DEX
-  BNE :-
-  LDY $01
-  RTS
+; e81b we move this for various reasons
+JMP @nes_e81b_replacement
+
+nops 4 * 16 + 3
 
 ; e861
 : STA VMDATAL ; PpuData_2007
@@ -1618,9 +1599,12 @@ nops 56
   nops 6
   RTS  
 
-.byte $A9, $0E, $D0
-.byte $E8, $A5, $26, $6A, $6A, $18, $69, $03, $18, $69, $20, $85, $26, $60
+LDA #$0E
+BNE @set_mirroring
 
+JSL nes_eb21_replacement
+nops 8
+RTS
 ; eb2e - sprite stuff, we DMA our sprites during NMI in bank_snes, so 
 ; we can nop all this
 
@@ -1896,9 +1880,12 @@ nops 56
   PHA
   LDA $B6
   PHA
-
+  
   INC A
   ORA #$A0
+  PHA
+  PLB
+
   STA JMP_REDIRECT_LB + 2               
   LDA #.hibyte(@post_jump_loc - 1)                 
   PHA                      
@@ -1965,17 +1952,90 @@ nops 56
   NOP    
   RTS
 
-.byte $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $BF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $BF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $BF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $BF, $FF, $FF
 
+@nes_e81b_replacement:
+             
+  JSR $EA4B   
+  STA $00
+
+; disable video while we do stuff
+  LDA INIDISP_STATE
+  ORA #$80
+  STA INIDISP 
+
+  ; increment on L byte
+  LDA VMAIN_STATE
+  AND $7F                
+  STA VMAIN
+
+  LDA $00
+  STA VMADDH ; PpuAddr_2006    
+  LDA #$00                 
+  STA VMADDL ; PpuAddr_2006  
+
+  STZ BG1VOFS
+  LDA $00
+  CMP #$24
+  LDA #$00
+  BCC :+
+  INC A
+: STA BG1VOFS 
+
+  JSR $EA4B                
+  JSR @nes_e83b               
+  JSR $EA4B                
+  TAX                      
+  JSR $EA4B         
+
+  JMP @nes_e84b     
+
+ @nes_e83b: 
+  LDX #$00                 
+  JSR @nes_e861_replacement                
+  JSR @nes_e861_replacement                
+  JSR @nes_e861_replacement                 
+  LDX #$C0                 
+  JMP @nes_e861_replacement       
+
+ @nes_e84b:  
+  ; loads attributes       
+  STX $0C                  
+  STA $0D 
+  LDA $00
+  PHA
+  LDA $01
+  PHA                 
+  PHY         
+  STZ COLUMN_1_DMA
+  STZ COL_ATTR_HAS_VALUES
+  jsl load_0x40_attributes_from_ram_for_pause 
+  PLY
+  PLA
+  STA $01
+  PLA
+  STA $00
+  PHK
+  PLB
+  RTS       
+
+@nes_e861_replacement:   
+: STA VMDATAL ; PpuData_2007  
+  DEX                      
+  BNE :-                
+  RTS   
+
+@nes_cb4e_replacement:
+  LDA $BE
+  JSR $C17F
+  JSR $7F33
+  JSR $7F36
+  JSR $7F39
+  JSR $7F3C
+  JSL convert_nes_attributes_and_immediately_dma_them
+  STZ VMAIN
+  LDA #$06
+  JMP $C17F   
+.byte $FF, $FF, $FF
 
 ; F300 - bank 7
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00

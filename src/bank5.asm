@@ -268,32 +268,18 @@ nops 3 ;   LDA $2002
   RTS
 
 ; 8C12 - 8C47 - attributes for fortress level rooms
-  JSR $8DA1
-  LDA $00
-  CLC
-  ADC #$C0
-  STA $01
-  LDA #$23
-  STA $02
-  LDA $1A
-  AND #$01
-  BNE :+
-  LDA #$27 ; #$2B
-  STA $02
-: nops 3 ; LDA $2002
-  LDA $02
-  STA VMADDH
-  LDA $01
-  STA VMADDL
-  JSR $8DA1
-  TAX
-  LDY #$07
-: LDA $03B0,X
-  STA VMDATAL
-  INX
-  DEY
-  BPL :-
-  RTS
+    JSL nes_9537_copy
+    JSL convert_nes_attributes_and_immediately_dma_them
+    ; converting attributes leaves us with VMAIN incrementing on 2119, but we
+    ; need to increment on 2118
+    STZ VMAIN
+    LDA #$A6
+    PHA
+    PLB
+    ; 8C1D - 8C46
+    nops 38
+
+    RTS
 
 ; 8C48
   LDA $FD

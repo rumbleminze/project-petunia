@@ -204,9 +204,9 @@ initialize_registers:
   STA HDMAEN
 
   JSR dma_oam_table
-;   JSR disable_attribute_buffer_copy
-;   JSR check_and_copy_attribute_buffer
-;   JSR write_one_off_vrams
+  JSR disable_attribute_buffer_copy
+  JSR check_and_copy_attribute_buffer
+  JSR write_one_off_vrams
   RTL
 
 clearvm:
@@ -251,8 +251,13 @@ clearvm_to_12:
   .include "tiles.asm"
   .include "hardware-status-switches.asm"
   .include "scrolling.asm"
-
+  .include "attributes.asm"
 
 
 
   .include "hdma_scroll_lookups.asm"
+
+.segment "PRGA0C"
+fixeda0:
+.include "bank7.asm"
+fixeda0_end:

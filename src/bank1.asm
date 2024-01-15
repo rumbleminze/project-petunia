@@ -680,7 +680,7 @@ LDA RDNMI ; LDA PpuStatus_2002
 
 ; writes attributes
   JSR $EF77
-  nops 3 ; LDA PpuStatus_2002  
+ ;  nops 3 ; LDA PpuStatus_2002  used below to JSR to attributes
   LDA #$23
   STA VMADDH
   LDA #$C0
@@ -698,7 +698,7 @@ LDA RDNMI ; LDA PpuStatus_2002
   LDA $46
   CMP #$16
   BNE :-
-  ; TODO: handle attribute writes
+  JSR jsr_to_handle_title_screen_a236_attributes
   RTS
 
 .byte $85, $00, $0A, $0A, $18, $65, $00, $AA, $A0, $00, $BD, $7A, $A2
@@ -1022,8 +1022,14 @@ ac4d_replacement:
   JSL turn_off_forced_blank_and_store
   RTS
 
-.byte $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+jsr_to_handle_title_screen_a236_attributes:
+  JSL handle_title_screen_a236_attributes
+  LDA #$A2
+  PHA
+  PLB
+  RTS
+
+.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF

@@ -503,44 +503,13 @@ nes_8139:
 
 
 ;951D
-  LDA $0482
-  STA VMADDH
-  LDA $0481
-  STA VMADDL
-  LDY #$00
-: LDA $0483,Y
-  STA VMDATAL
-  INY
-  CPY #$40
-  BCC :-
+  JSL nes_951d_copy
+  nops 21
   RTS
 
 ; 9537
-  JSR $96C6
-  LDA $00
-  CLC
-  ADC #$C0
-  STA $01
-  LDA #$23
-  STA $02
-  LDA $1A
-  AND #$01
-  BNE :+
-  LDA #$27 ; #$2B
-  STA $02
-: nops 3 ; LDA PpuStatus_2002
-  LDA $02
-  STA VMADDH
-  LDA $01
-  STA VMADDL
-  JSR $96C6
-  TAX
-  LDY #$07
-: LDA $03B0,X
-  STA VMDATAL
-  INX
-  DEY
-  BPL :-
+  JSL nes_9537_copy
+  nops 49
   RTS
 
 ; 956D
@@ -604,16 +573,54 @@ nes_8139:
 .byte $01, $98, $AA, $BD, $F0, $03, $29, $0F, $85, $02, $A5, $01, $AA, $BD, $B0, $03
 .byte $29, $F0, $05, $02, $85, $02, $A5, $01, $AA, $A5, $02, $9D, $B0, $03, $C8, $C0
 .byte $08, $90, $D8, $60, $AD, $D1, $04, $29, $01, $0A, $A8, $B9, $E8, $7B, $85, $64
-.byte $B9, $E9, $7B, $85, $65, $60, $A5, $FD, $29, $E0, $4A, $4A, $85, $00, $60, $20
-.byte $B7, $95, $A9, $00, $85, $5C, $8D, $D2, $04, $20, $3F, $97, $A9, $06, $20, $90
-.byte $CA, $A9, $00, $8D, $D2, $04, $EE, $D1, $04, $20, $42, $97, $A9, $06, $20, $90
-.byte $CA, $20, $2A, $97, $A9, $FF, $85, $1A, $A9, $EE, $85, $FD, $20, $6D, $95, $20
+.byte $B9, $E9, $7B, $85, $65, $60, $A5, $FD, $29, $E0, $4A, $4A, $85, $00, $60
 
+;96cf
+  JSR $95B7                
+  LDA #$00                 
+  STA $5C                  
+  STA $04D2                
+  JSR $973F                
+  LDA #$06                 
+  JSR $CA90                
+  LDA #$00                 
+  STA $04D2                
+  INC $04D1                
+  JSR $9742                
+  LDA #$06                 
+  JSR $CA90                
+  JSR $972A                
+  LDA #$FF                 
+  STA $1A                  
+  LDA #$EE                 
+  STA $FD                  
+: JSR $956D                
+  JSR $963E  
+ 
+  JSR level_load_tile_and_attributes   
+  NOP
+  NOP
+  NOP          
+  ; JSR $9537                
+  ; JSR $951D  
 
-; 9700 - bank 2
-.byte $3E, $96, $20, $1D, $95, $20, $37, $95, $A5, $FD, $38, $E9, $10, $85, $FD, $A5
-.byte $1A, $E9, $00, $85, $1A, $C9, $FE, $B0, $E3, $A9, $FF, $85, $1A, $A9, $EE, $85
-.byte $FD, $60, $20, $3F, $97, $A9, $06, $20, $90, $CA, $A0, $0F, $B9, $00, $05, $99
+  LDA $FD                  
+  SEC                      
+  SBC #$10                 
+  STA $FD                  
+  LDA $1A                  
+  SBC #$00                 
+  STA $1A                  
+  CMP #$FE                 
+  BCS :-                
+  LDA #$FF                 
+  STA $1A                  
+  LDA #$EE                 
+  STA $FD                  
+  RTS      
+
+; 9722 - bank 2
+.byte $20, $3F, $97, $A9, $06, $20, $90, $CA, $A0, $0F, $B9, $00, $05, $99
 .byte $E0, $06, $88, $10, $F7, $60, $A5, $5C, $09, $40, $85, $5C, $68, $68, $60, $20
 .byte $B7, $95, $A9, $00, $8D, $D2, $04, $AD, $30, $01, $0A, $A8, $B9, $F0, $7B, $85
 .byte $00, $B9, $F1, $7B, $85, $01, $AD, $D1, $04, $0A, $A8, $B1, $00, $85, $49, $C8
@@ -653,10 +660,42 @@ nes_8139:
 .byte $CF, $04, $A5, $4F, $29, $02, $F0, $0B, $A9, $AA, $2D, $CE, $04, $0D, $CF, $04
 .byte $8D, $CF, $04, $A5, $4F, $29, $01, $F0, $0B, $A9, $55, $2D, $CE, $04, $0D, $CF
 .byte $04, $8D, $CF, $04, $AD, $CF, $04, $91, $66, $EE, $CD, $04, $AD, $CD, $04, $CD
-.byte $D0, $04, $B0, $03, $4C, $B8, $98, $60, $A9, $10, $85, $0A, $E6, $1A, $20, $6D
-.byte $95, $20, $3E, $96, $20, $1D, $95, $20, $37, $95, $A5, $FD, $38, $E9, $10, $85
-.byte $FD, $A5, $1A, $E9, $00, $85, $1A, $C6, $0A, $10, $E3, $A5, $FD, $18, $69, $10
-.byte $85, $FD, $A5, $1A, $69, $00, $85, $1A, $60, $00, $00, $00, $00, $00, $00, $00
+.byte $D0, $04, $B0, $03, $4C, $B8, $98, $60
+
+  LDA #$10
+  STA $0A
+  INC $1A
+  ; JSL reset_to_stored_screen_offsets
+: JSR $956D
+  JSR $963E
+   
+  JSR level_load_tile_and_attributes
+  nops 3
+  ; JSR $951D
+  ; JSR $9537
+  LDA $FD
+  SEC
+  SBC #$10
+  STA $FD
+  LDA $1A
+  SBC #$00
+  STA $1A
+  DEC $0A
+  BPL :-
+  LDA $FD
+  CLC
+  ADC #$10
+  STA $FD
+  LDA $1A
+  ADC #$00
+  STA $1A
+  RTS
+
+
+
+
+; 9979
+.byte $00, $00, $00 ; , $00, $00, $00, $00 used for JSL above
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $4C, $FA, $99, $4C, $78, $9A, $4C, $BB, $AD, $4C, $40, $DF, $4C, $3E, $AB, $4C
@@ -1365,13 +1404,41 @@ nes_8139:
 .byte $02, $01, $01, $0A, $01, $01, $01, $01, $03, $05, $03, $01, $00, $03, $05, $03
 .byte $01, $01, $05, $01, $01, $02, $01, $01, $03, $01, $01, $00, $01, $03, $01, $01
 .byte $01, $02, $01, $FF, $FF, $FF, $F7, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $DF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 
+
+level_load_tile_and_attributes:
+                       
+  JSR $951D  
+  JSR $9537   
+  JSL convert_nes_attributes_and_immediately_dma_them
+  LDA #$A3
+  PHA
+  PLB
+
+  RTS
+
+full_screen_load_common:
+  JSR $AC7B
+  JSR $AD2A
+  JSR $ABF3
+  JSR $AC47
+
+  JSL convert_nes_attributes_and_immediately_dma_them
+  LDA #$A3
+  PHA
+  PLB
+
+  LDA $FE
+  CLC
+  ADC #$10
+  STA $FE
+  LDA $1B
+  ADC #$00
+  STA $1B
+  RTS
 
 ; BF00 - bank 2
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
