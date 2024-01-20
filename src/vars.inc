@@ -32,13 +32,13 @@ VOFS_LB             = $FD
 VOFS_HB             = $0805
 
 REUSABLE_CALC_BYTE  = $0808
+LEVEL_SELECT_INDEX  = $0809
+CHEATS_ENABLED      = $080A
 CURRENT_ATTRIBUTES  = $03B0
 
 ; mostly actual nes stuff above
 ; all my stuff below
 
-LAST_ATTRIB_LOC_LB  = $E0
-LAST_ATTRIB_LOC_HB  = $E1
 SPRITE_LOOP_JUNK    = $E2
 tmp_dat             = $E2
 

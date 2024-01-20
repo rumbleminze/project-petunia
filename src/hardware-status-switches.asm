@@ -98,7 +98,11 @@ enable_nmi_and_store:
 
     RTL
 
-
+reset_tm_state:
+    LDA TM_STATE
+    STA TM
+    RTL
+    
 disable_nmi_and_store:
     LDA NMITIMEN_STATE
     AND #$7F
@@ -154,6 +158,13 @@ set_vram_increment_to_32_and_store:
     ORA #$01
     STA VMAIN
     STA VMAIN_STATE
+
+    RTL
+
+set_vram_increment_to_32_no_store:
+    LDA VMAIN_STATE
+    ORA #$01
+    STA VMAIN
 
     RTL
 

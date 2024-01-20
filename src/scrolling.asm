@@ -113,6 +113,7 @@ setup_hdma:
 scroll_rollover:
   LDA #$EF  
   STA $FD
+
   LDA $5C
   ORA #$80
   STA $5C
@@ -154,4 +155,77 @@ handle_horizontal_scroll_wrap:
   ORA #$80
   STA $5C
 
+  RTL
+
+
+; copy of 02:AC47
+horizontal_attribute_scroll_handle:
+  JSR nes_02_ada9_copy
+  LDY #$00
+  STZ COL_ATTR_VM_COUNT
+  STZ COL_ATTR_LB_SET
+
+: INC COL_ATTR_VM_COUNT
+  TYA
+  ASL A
+  ASL A
+  ASL A
+  CLC
+  ADC $00
+  STA $03
+  CLC
+  ADC #$C0
+  PHA
+  LDA $1B
+  EOR #$01
+  AND #$01
+  ASL A
+  ASL A
+  ORA #$23  
+  PHA
+  LDA COL_ATTR_LB_SET
+  BNE :+
+  PLA
+  STA COL_ATTR_VM_HB
+  PLA  
+  STA COL_ATTR_VM_LB  
+  INC COL_ATTR_LB_SET
+  BRA :++
+: PLA  
+  PLA
+: LDX $03
+  LDA $03B0,X
+  STA COL_ATTR_VM_START, Y
+  INY
+  CPY #$08
+  BCC :---
+  LDA #$00
+
+  STA COL_ATTR_VM_START, Y
+  INC COL_ATTR_HAS_VALUES
+  ; would normall do this during screen but for now just do it in line
+  JSR convert_column_of_tiles
+
+  RTL
+
+nes_02_ada9_copy:
+  LDA #$00
+  STA $00
+  LDA $FE
+  AND #$E0
+  ASL A
+  ROL $00
+  ASL A
+  ROL $00
+  ASL A
+  ROL $00
   RTS
+
+credits_scroll_rollover:
+  INC $1A
+  LDA #$00
+  STA $FD
+  PHA
+  JSR flip_bg1_bit
+  PLA
+  RTL

@@ -78,11 +78,12 @@ initialize_registers:
   STA CGWSEL
   STZ CGADSUB
 
-  LDA #$E0
-  STA COLDATA
   ; STZ SETINI
   STZ NMITIMEN
   STZ NMITIMEN_STATE
+  STZ VMAIN_STATE
+  
+  STZ SNES_OAM_TRANSLATE_NEEDED
 
   LDA #$FF
   STA WRIO   
@@ -105,7 +106,8 @@ initialize_registers:
   STZ UNPAUSE_BG1_HOFS_LB
   STZ UNPAUSE_BG1_HOFS_HB
   STZ EXTRA_VRAM_UPDATE
-
+  STZ LEVEL_SELECT_INDEX
+  
   setAXY8
   LDA #$00
   LDY #$0F
@@ -118,8 +120,16 @@ initialize_registers:
 : DEY
   STA $0900, y
   BNE :-
-
+  
+  JSR clear_zp 
+  JSR clear_buffers
   JSR clearvm
+  
+  LDA #$E0
+  STA COLDATA
+  LDA #$0F
+  STA INIDISP_STATE
+
   JSR zero_oam  
   JSR dma_oam_table
   JSL zero_all_palette
@@ -169,10 +179,9 @@ initialize_registers:
 ;   STZ ATTRIBUTE_DMA
 ;   STZ COL_ATTR_HAS_VALUES
 ;   STZ COLUMN_1_DMA
-
   JSL upload_sound_emulator_to_spc
   JSL load_base_tiles
-;   JSR do_intro
+  JSR do_intro
   JSR clearvm_to_12
 
   LDA #$A1
@@ -210,20 +219,38 @@ initialize_registers:
   RTL
 
 clearvm:
-  setAXY16
-  ldx #$2000
-  stx VMADDL 
-	
-	lda #$0000
-	
-	LDY #$0000
-	clear_loop:
-		sta VMDATAL
-		iny
-		CPY #(32*64)
-		BNE clear_loop
-  
-  setAXY8
+  LDA #$80
+  STA VMAIN
+
+  ; fixed A value, increment B
+  LDA #$09
+  sta DMAP0
+
+  LDA #$00
+  STA VMADDH
+  LDA #$00
+  STZ VMADDL
+
+  LDA #$18
+  STA BBAD0
+
+  LDA #$A0
+  STA A1B0
+
+  LDA #>dma_values
+  STA A1T0H
+  LDA #<dma_values
+  STA A1T0L
+
+  LDA #$00
+  STA DAS0H  
+  STZ DAS0L
+
+  LDA #$01
+  STA MDMAEN
+
+  LDA VMAIN_STATE
+  STA VMAIN
   RTS
 
 clearvm_to_12:
@@ -243,6 +270,32 @@ clearvm_to_12:
   setAXY8
   RTS
 
+clear_zp:
+  LDA #$00
+  LDY #$00
+
+: STA $00, Y
+  INY
+  BNE :-
+  RTS
+
+clear_buffers:
+  LDA #$00
+  LDY #$00
+
+: STA $1A00, Y
+  STA $1700, Y
+  STA $1800, Y
+  STA $0800, Y
+  STA $0900, Y
+  STA $0A00, Y
+  DEY
+  BNE :-
+  RTS
+
+
+dma_values:
+  .byte $00, $12
   
   .include "intro_screen.asm"
   .include "palette_updates.asm"
@@ -252,9 +305,6 @@ clearvm_to_12:
   .include "hardware-status-switches.asm"
   .include "scrolling.asm"
   .include "attributes.asm"
-
-
-
   .include "hdma_scroll_lookups.asm"
 
 .segment "PRGA0C"

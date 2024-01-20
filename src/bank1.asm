@@ -639,17 +639,72 @@
 
 
 ; A100 - bank 1
-.byte $A5, $B2, $20, $2B, $EE, $09, $A1, $71, $A1, $A9, $00, $85, $B2, $20, $E7, $A1
-.byte $A5, $B2, $AA, $85, $AF, $18, $A9, $05, $7D, $6E, $A1, $85, $08, $A9, $60, $69
-.byte $00, $85, $09, $A0, $07, $B1, $08, $99, $20, $01, $88, $10, $F8, $18, $A9, $0D
-.byte $7D, $6E, $A1, $85, $08, $A9, $60, $69, $00, $85, $09, $A0, $1C, $B1, $08, $8D
-.byte $30, $01, $88, $B1, $08, $85, $A0, $88, $A9, $0F, $85, $A6, $8D, $71, $01, $88
-.byte $B1, $08, $85, $AA, $8D, $70, $01, $88, $B1, $08, $99, $3E, $01, $99, $57, $01
-.byte $88, $10, $F5, $A9, $00, $85, $38, $4C, $6D, $C0, $E6, $A0, $D0, $F5, $00, $27
-.byte $4E, $A9, $03, $85, $B2, $A5, $B2, $38, $E9, $03, $8D, $00, $61, $20, $26, $A8
-.byte $A9, $02, $85, $B1
+.byte $A5, $B2, $20, $2B, $EE, $09, $A1, $71, $A1
 
-LDA RDNMI ; LDA PpuStatus_2002
+; A109 - A16C - level load code
+  JMP level_load_additions
+  nops 7
+return_to_level_load:
+  STA $AF
+  CLC
+  LDA #$05
+  ADC $A16E,X
+  STA $08
+  LDA #$60
+  ADC #$00
+  STA $09
+  LDY #$07
+  ; copy 8 bytes from 6005 - 600B to 120 - 127
+: LDA ($08),Y
+  STA $0120,Y
+  DEY
+  BPL :-
+  CLC
+  LDA #$0D
+  ADC $A16E,X
+  STA $08
+  LDA #$60
+  ADC #$00
+  STA $09
+  LDY #$1C
+  LDA ($08),Y
+  STA $0130
+  DEY
+  LDA ($08),Y
+  STA $A0
+  DEY
+  LDA #$0F
+  STA $A6
+  STA $0171
+  DEY
+  LDA ($08),Y
+  STA $AA
+  STA $0170
+  DEY
+: LDA ($08),Y
+  STA $013E,Y
+  STA $0157,Y
+  DEY
+  BPL :-
+: LDA #$00
+  STA $38
+  JMP $C06D
+  INC $A0
+  BNE :-
+
+; level indexes?
+.byte $00, $27, $4E
+
+  LDA #$03
+  STA $B2
+  LDA $B2
+  SEC
+  SBC #$03
+  STA $6100
+  JSR $A826
+  LDA #$02
+  STA $B1
+  LDA RDNMI ; LDA PpuStatus_2002
 
 .byte $10, $FB, $20, $42, $EE, $20, $01, $EF, $A5
 .byte $00, $A5, $B1, $D0, $FA, $20, $F0, $EE, $20, $C6, $AB, $D0, $03, $4C, $09, $A1
@@ -856,13 +911,81 @@ LDA RDNMI ; LDA PpuStatus_2002
 .byte $24, $2A, $0A, $0F, $31, $1C, $0C, $0F, $27, $06, $31, $0F, $20, $22, $02, $0F
 .byte $27, $17, $07, $0F, $2C, $11, $0A, $0F, $02, $27, $15, $0F, $20, $26, $07, $0F
 .byte $31, $02, $15, $0F, $12, $24, $31, $0F, $05, $16, $38, $20, $6B, $A7, $20, $70
-.byte $A7, $20, $7C, $A7, $A9, $04, $85, $B2, $4C, $AD, $A7, $A9, $00, $85, $B2, $60
-.byte $A9, $CB, $85, $08, $A9, $A7, $85, $09, $20, $CB, $E7, $60, $20, $F9, $E3, $4C
-.byte $82, $A7, $A2, $00, $BD, $90, $A7, $9D, $30, $02, $E8, $E0, $04, $90, $F5, $60
-.byte $27, $09, $00, $18, $A5, $00, $A5, $B1, $C9, $01, $F0, $01, $60, $A5, $F6, $0A
-.byte $0A, $0A, $B0, $09, $0A, $B0, $01, $60, $A9, $00, $85, $B1, $60, $A6, $B2, $E0
-.byte $01, $90, $04, $A2, $00, $F0, $01, $E8, $86, $B2, $BD, $C7, $A7, $8D, $30, $02
-.byte $BD, $C9, $A7, $8D, $33, $02, $60, $60, $70, $50, $50, $01, $20, $12, $E6, $A7
+.byte $A7, $20, $7C, $A7
+
+  LDA #$04
+  STA $B2
+  JMP select_pushed
+
+.byte $A9, $00, $85, $B2, $60
+
+; a770 - defines where our menu options are read from
+  LDA #<new_menu_options ; #$CB
+  STA $08
+  LDA #>new_menu_options
+  STA $09
+  JSR $E7CB
+  RTS
+
+  JSR $E3F9
+  JMP $A782
+  LDX #$00
+: LDA $A790,X
+  STA $0230,X
+  INX
+  CPX #$04
+  BCC :-
+  RTS
+
+.byte $27, $09, $00, $18
+
+  LDA $00
+  LDA $B1
+  CMP #$01
+  BEQ :+
+  RTS
+
+; handle input on title screen
+: JMP title_screen_input
+  nops 39
+; return_to_title_screen:
+;   LDA $F6
+;   ASL
+
+;   ASL
+;   ASL
+;   ; select has been pushed
+;   BCS select_pushed
+;   ASL
+;   ; start has been pushed
+;   BCS start_pushed
+;   RTS
+
+; start_pushed:
+; ;   LDA $B2
+; ;   CMP #$01
+; ;   BCC :+
+; ;   rts
+; ; : 
+;   LDA #$00
+;   STA $B1
+;   RTS
+
+; select_pushed:
+;   LDX $B2
+;   CPX #$01
+;   BCC :+
+;   LDX #$00
+;   BEQ :++
+; : INX
+; : STX $B2
+;   LDA menu_option_sprite_locations,X
+;   STA $0230
+;   LDA menu_option_sprite_locations + 4,X
+;   STA $0233
+;   RTS  
+
+.byte $60, $70, $50, $50, $01, $20, $12, $E6, $A7
 .byte $04, $8C, $01, $05, $28, $29, $16, $27, $29, $04, $CC, $01, $08, $18, $24, $23
 .byte $29, $1E, $23, $2A, $1A, $00, $00, $80, $A0, $A0, $A0, $A0, $20, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
@@ -1029,33 +1152,212 @@ jsr_to_handle_title_screen_a236_attributes:
   PLB
   RTS
 
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+new_menu_options:
+.byte $01, $20, $12, $E6, $A7
+; ?, starting lb, #$20 / #$24 + for HB, length, characters
+.byte $04, $8C, $01, $05, $28, $29, $16, $27, $29
+.byte $04, $CC, $01, $08, $18, $24, $23, $29, $1E, $23, $2A, $1A
+.byte $04, $0C, $02, $09, $18, $1D, $1A, $16, $29, $12, $24, $1B, $1B
+.byte $04, $4C, $02, $03, $01, $0F, $01
+.byte $00 ; end
 
+
+menu_option_sprite_locations:
+.byte $60, $70, $80, $90, $50, $50, $50, $50
+
+
+level_load_additions:
+  ; original code
+  LDA #$00
+  STA $B2
+  JSR $A1E7
+  LDA $B2
+  TAX
+
+  PHA
+  
+  .if DEBUG_MOD > 0
+    
+    LDA CHEATS_ENABLED
+    BEQ :+
+    
+    ; max str
+    LDA #$04
+    STA $6021
+
+    ; max hearts
+    LDA #$E7
+    STA $6019
+
+    LDA #$03
+    STA $601A
+    
+    ; max score
+    LDA #$04
+    STA $6015
+
+    ; max health
+    LDA #$04
+    STA $6026
+
+    ; hammers
+    LDA #$20
+    STA $601E
+
+     ; feathers
+    LDA #$20
+    STA $601F
+
+    ; wine
+    LDA #$48
+    STA $6020
+
+    ; special weapons
+    LDA #$02
+    STA $600D
+    STA $600E
+    STA $600F
+
+    LDA #$01
+    STA $6010
+    INC 
+    STA $6011
+    INC
+    STA $6012
+
+  .else
+    nops 62
+  .endif
+: PLA
+
+  JMP return_to_level_load
+
+
+level_select_values:
+; world, level, display 1, display 2 
+.byte $02, $00, $01, $01
+.byte $02, $01, $01, $02
+.byte $02, $02, $01, $03
+.byte $03, $00, $01, $04
+
+.byte $04, $00, $02, $01
+.byte $04, $01, $02, $02
+.byte $04, $02, $02, $03
+.byte $05, $00, $02, $04
+
+.byte $06, $00, $03, $01
+.byte $06, $01, $03, $02
+.byte $06, $02, $03, $03
+.byte $07, $00, $03, $04
+
+.byte $08, $00, $04, $01
+.byte $09, $00, $1a, $19
+
+next_level:
+  INC LEVEL_SELECT_INDEX
+  LDA LEVEL_SELECT_INDEX
+  CMP #$0E
+  BCC :+
+  STZ LEVEL_SELECT_INDEX
+  LDA #$00
+: ASL
+  ASL
+  TAY
+  LDA level_select_values, Y
+  STA $6028
+  
+  LDA level_select_values + 1, Y
+  STA $6029
+   
+  LDA level_select_values + 2, Y
+  PHA
+
+  LDA level_select_values + 3, Y
+  LDY #$4E
+  LDX #$22 
+  jsl add_extra_vram_update
+
+  LDY #$4C
+  PLA
+  jsl add_extra_vram_update
+
+  rts
+
+title_screen_input:
+  LDA $F6
+  CMP #$01
+  BNE :+
+  LDA $B2
+  CMP #$02
+  BEQ toggle_cheats
+  CMP #$03
+  BNE :+
+  BRA next_level 
+
+: ASL  
+  ASL
+  ASL
+  ; select has been pushed
+  BCS select_pushed
+  ASL
+  ; start has been pushed
+  BCS start_pushed
+  RTS
+
+toggle_cheats:
+  LDX #$22
+  LDY #$13
+
+  LDA CHEATS_ENABLED
+  EOR #$01  
+  STA CHEATS_ENABLED
+  BEQ :+
+  ; switch to ON_
+
+  LDA #$23 ; N
+  jsl add_extra_vram_update
+
+  LDA #$12 ; space
+  LDX #$22
+  LDY #$14 
+  jsl add_extra_vram_update
+
+  BRA :++
+
+  ; switch to OFF
+: LDA #$1B ; F
+  jsl add_extra_vram_update
+  LDX #$22
+  LDY #$14 
+  jsl add_extra_vram_update
+
+: RTS
+
+start_pushed:
+  LDA $B2
+  CMP #$01
+  BCC :+
+  rts
+: LDA #$00
+  STA $B1
+  RTS
+
+select_pushed:
+  LDX $B2
+  CPX #$03
+  BCC :+
+  LDX #$00
+  BEQ :++
+: INX
+: STX $B2
+  LDA menu_option_sprite_locations,X
+  STA $0230
+  LDA menu_option_sprite_locations + 4, X
+  STA $0233
+  RTS
 
 ; AF00 - bank 1
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $80, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00

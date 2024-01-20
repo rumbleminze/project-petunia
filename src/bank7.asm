@@ -109,6 +109,8 @@
   STA $00
   STA VMADDH ; PpuAddr_2006
   STA VMADDL ; PpuAddr_2006
+  STZ COL_ATTR_HAS_VALUES
+
   JSR $C17F
 
 ;   LDA #$8F
@@ -124,7 +126,6 @@
 ;   STA $01
 ;   LDX #$20
 ;   JSR $C170
-  nops 1
   BRA @c120
 
 : 
@@ -134,8 +135,6 @@
 ;   STA $01
 ;   LDX #$20
 ;   JSR $C170
-  nops 1
-
   LDA $A0
   TAX
   LDA $C152,X
@@ -150,7 +149,7 @@
 ; this block copies the stage specific tiles
   JSL load_level_specific_tiles
 ;   JSL turn_off_forced_blank_and_store
-  nops 21
+  nops 20
 ;   LDA #$0C
 ;   STA PpuAddr_2006
 ;   LDA #$00
@@ -731,13 +730,13 @@ nops 19
   JMP $C6C5
 
   ; infinite feathers
-  .if DEBUG_MOD > 0
-: nops 3
-  BRA @cc93
-  .else
+;   .if DEBUG_MOD > 0
+; : nops 3
+;   BRA @cc93
+;   .else
 : DEC $0150
   BPL @cc93
-  .endif
+  ; .endif
   
   LDA #$00
   STA $0701,X
@@ -1826,8 +1825,24 @@ RTS
   RTS
 
 .byte $A5, $00, $18, $69, $20, $85, $00, $A5, $01, $69, $00
-.byte $85, $01, $60, $A9, $20, $D0, $05, $20, $73, $EF, $A9, $28, $A2, $12, $A0, $00
-.byte $4C, $76, $EB, $A9, $00, $F0, $02, $A9, $1E, $8D, $01, $20, $60, $05, $07, $08
+.byte $85, $01, $60
+
+; 0xEF73
+  LDA #$20                 
+  BNE :+               
+  JSR $EF73                
+  LDA #$24                 
+: LDX #$12                 
+  LDY #$00                 
+  JMP $EB76
+
+  LDA #$00
+  BEQ :+
+  LDA #$11 ; #$1E
+: STA TM ; $2001
+  RTS
+
+.byte $05, $07, $08
 .byte $06, $07, $08, $05, $06, $08, $0A, $05, $09, $05, $07, $06, $06, $04, $08, $00
 .byte $01, $02, $21, $10, $40, $35, $27, $76, $02, $01, $05, $39, $15, $63, $12, $07
 .byte $20, $18, $10, $25, $48, $50, $45, $60, $50, $70, $01, $00, $00, $00, $00, $01

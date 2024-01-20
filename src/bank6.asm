@@ -481,7 +481,9 @@ JMP nes_9411_end_of_level_score
   LDY #$01
   JMP $94E5
 
-.byte $A9, $00, $8D, $18, $01, $60, $AD, $63, $07, $F0, $13, $AD, $62, $07
+.byte $A9, $00, $8D, $18, $01, $60
+
+.byte $AD, $63, $07, $F0, $13, $AD, $62, $07
 .byte $D0, $09, $A9, $0D, $8D, $E2, $04, $EE, $62, $07, $60, $AD, $E2, $04, $D0, $FA
 .byte $4C, $3D, $93
 
@@ -637,15 +639,48 @@ nes_95BD:
 ;   LDA $0100
 ;   STA $2000
   nops 9
+early_rts:
   RTS
   
-.byte $A5, $A0, $C9, $02, $90, $F9, $4A, $B0, $32, $4A, $90, $F3, $C9, $02, $B0, $EF
-.byte $0A, $AA, $BD, $07, $99, $85, $00, $BD, $08, $99, $85, $01, $A9, $00, $85, $02
-.byte $A9, $70, $85, $03, $A2, $0F, $A0, $00, $B1, $00, $91, $02, $C8, $D0, $F9, $E6
+; .byte $A5, $A0, $C9, $02, $90, $F9, $4A, $B0, $32, $4A, $90, $F3, $C9, $02, $B0, $EF
+; .byte $0A, $AA, $BD, $07, $99, $85, $00, $BD, $08, $99, $85, $01, $A9, $00, $85, $02
+; .byte $A9, $70, $85, $03, $A2, $0F, $A0, $00, $B1, $00, $91, $02, $C8, $D0, $F9, $E6
+  LDA $A0                  
+  CMP #$02                 
+  BCC early_rts                
+  LSR A                    
+  BCS nes990b                
+  LSR A                    
+  BCC early_rts                
+  CMP #$02                 
+  BCS early_rts                
+  ASL A                    
+  TAX                      
+  LDA $9907,X              
+  STA $00                  
+  LDA $9908,X              
+  STA $01                  
+  LDA #$00                 
+  STA $02                  
+  LDA #$70                 
+  STA $03                  
+  LDX #$0F                 
+  LDY #$00                 
+: LDA ($00),Y              
+  STA ($02),Y              
+  INY                      
+  BNE :-
+  INC $01                  
+  INC $03                  
+  DEX                      
+  BNE :-                
+  RTS         
 
-
-; 9900 - bank 6
-.byte $01, $E6, $03, $CA, $D0, $F2, $60, $40, $99, $90, $A7, $C9, $04, $B0, $C0, $0A
+; 9900 - bank 6                
+nes9907:
+.byte $40, $99, $90, $A7
+nes990b:
+.byte $C9, $04, $B0, $C0, $0A
 .byte $AA, $BD, $1C, $99, $85, $00, $BD, $1D, $99, $85, $01, $4C, $EC, $98, $F9, $B0
 .byte $ED, $B3, $C1, $B6, $85, $C8, $A9, $C4, $48, $A9, $CC, $48, $A5, $C8, $20, $F7
 .byte $CA, $60, $85, $C8, $A9, $C6, $48, $A9, $66, $48, $A5, $C8, $20, $F7, $CA, $60
@@ -1270,6 +1305,12 @@ nes_95BD:
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
+; a7:ba00
+; going to put some duplicates here so we write them twice
+; TOTAL_SCORE
+.byte $20, $E5, $29, $24, $29, $16, $21, $12, $28, $18, $24, $27, $1A, $FF
+; SCORE
+.byte $21, $0B, $28, $18, $24, $27, $1A, $FF
 
 ; BA00 - bank 6
 ; score display re-write
@@ -1324,8 +1365,7 @@ power_up_dupe:
 .byte $FE, $CC, $21, $25, $24, $2C, $1A
 .byte $27, $12, $2A, $25, $0E, $FF
 
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FB, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF

@@ -786,7 +786,7 @@ dma_column_attributes:
   LDA C1_ATTR_DMA_VMADDL
   STA VMADDL
 
-  LDA #$20
+  LDA #$40
   STA MDMAEN
 
   INC C1_ATTR_DMA_VMADDL
