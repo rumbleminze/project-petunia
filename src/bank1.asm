@@ -905,14 +905,53 @@ return_to_level_load:
 
 
 ; A700 - bank 1
-.byte $0A, $0A, $0A, $0A, $18, $69, $2B, $85, $20, $A9, $A7, $69, $00, $85, $21, $A0
-.byte $00, $A2, $10, $B1, $20, $99, $90, $03, $C8, $CA, $D0, $F7, $60, $A2, $00, $B9
-.byte $4B, $A7, $99, $A0, $03, $C8, $C0, $10, $D0, $F5, $60, $0F, $20, $10, $00, $0F
-.byte $24, $2A, $0A, $0F, $31, $1C, $0C, $0F, $27, $06, $31, $0F, $20, $22, $02, $0F
-.byte $27, $17, $07, $0F, $2C, $11, $0A, $0F, $02, $27, $15, $0F, $20, $26, $07, $0F
-.byte $31, $02, $15, $0F, $12, $24, $31, $0F, $05, $16, $38, $20, $6B, $A7, $20, $70
-.byte $A7, $20, $7C, $A7
+; populate palette for BG tiles
+  ASL
+  ASL
+  ASL
+  ASL
+  CLC
+  ADC #$2B
+  STA $20
+  LDA #$A7
+  ADC #$00
+  STA $21
+  LDY #$00
+  LDX #$10
+: LDA ($20),Y
+  STA $0390,Y
+  INY
+  DEX
+  BNE :-
+  RTS
 
+; populate palette for sprites
+  LDX #$00
+: LDA $A74B,Y
+  STA $03A0,Y
+  INY
+  CPY #$10
+  BNE:-
+  RTS
+; palettes $a72b
+.byte $0F, $20, $10, $00
+.byte $0F, $24, $2A, $0A
+.byte $0F, $31, $1C, $0C
+.byte $0F, $27, $06, $31
+
+.byte $0F, $20, $22, $02
+.byte $0F, $27, $17, $07
+.byte $0F, $2C, $11, $0A
+.byte $0F, $02, $27, $15
+
+.byte $0F, $20, $26, $07
+.byte $0F, $31, $02, $15
+.byte $0F, $12, $24, $31
+.byte $0F, $05, $16, $38
+
+  JSR $A76B
+  JSR $A770
+  JSR $A77C
   LDA #$04
   STA $B2
   JMP select_pushed

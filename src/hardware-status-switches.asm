@@ -81,6 +81,8 @@ update_values_for_ppu_mask:
     RTL
 
 enable_nmi_and_store:
+    ; make sure any NMI flags are clear
+    LDA RDNMI
     LDA NMITIMEN_STATE
     ORA #$80
     STA NMITIMEN_STATE

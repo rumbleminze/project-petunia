@@ -3,7 +3,7 @@ write_palette_data:
   PHX
   PHY
   PHA
-  
+
   setAXY8
   LDA #$A0
   
@@ -60,7 +60,7 @@ skip_writing_four_empties:
   PHA
   PLB
 
-
+exit_routine:
   PLA
   PLY  
   PLX
