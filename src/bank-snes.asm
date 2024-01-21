@@ -211,7 +211,7 @@ initialize_registers:
 
   LDA #%00001000
   STA HDMAEN
-  JSL write_palette_data
+  ; JSL write_palette_data
   JSR dma_oam_table
   JSR disable_attribute_buffer_copy
   JSR check_and_copy_attribute_buffer

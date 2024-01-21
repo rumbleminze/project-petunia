@@ -1757,8 +1757,8 @@ RTS
 ;   STA VMADDL
 ;   STA VMADDH
 ;   STA VMADDL
-  nops 37
-  ; JSL write_palette_data
+  nops 33
+  JSL write_palette_data
   JMP $EBC9
 
 ; ee6a

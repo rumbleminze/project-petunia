@@ -59,8 +59,6 @@ skip_writing_four_empties:
   ORA #$A0
   PHA
   PLB
-
-exit_routine:
   PLA
   PLY  
   PLX
