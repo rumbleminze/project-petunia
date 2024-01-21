@@ -1045,11 +1045,11 @@ nops 19
 .byte $85, $01, $BD, $01, $07, $29, $F8, $4A, $4A, $4A, $A8, $A5, $A6, $38
 
 ; sets damage to do nothing if debug is on
-.if DEBUG_MOD > 0
-    .byte $ea, $ea
-.else
+; .if DEBUG_MOD > 0
+    ; .byte $ea, $ea
+; .else
     .byte $F1, $00
-.endif
+; .endif
 
 .byte $B0, $02, $A9, $00, $85, $A6, $68, $A8, $60, $90, $13, $B9, $03, $07, $18, $69
 .byte $04, $99, $03, $07, $BD, $03, $07, $38, $E9, $04, $9D, $03, $07, $60, $B9, $03

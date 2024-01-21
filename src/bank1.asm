@@ -1322,6 +1322,37 @@ next_level:
 
   rts
 
+prev_level:
+  DEC LEVEL_SELECT_INDEX
+  LDA LEVEL_SELECT_INDEX
+  CMP #$FF
+  BNE :+
+  LDA #$0D
+  STA LEVEL_SELECT_INDEX
+: ASL
+  ASL
+  TAY
+  LDA level_select_values, Y
+  STA $6028
+  
+  LDA level_select_values + 1, Y
+  STA $6029
+   
+  LDA level_select_values + 2, Y
+  PHA
+
+  LDA level_select_values + 3, Y
+  LDY #$4E
+  LDX #$22 
+  jsl add_extra_vram_update
+
+  LDY #$4C
+  PLA
+  jsl add_extra_vram_update
+
+  rts
+
+
 title_screen_input:
   LDA $F6
   CMP #$01
@@ -1330,8 +1361,17 @@ title_screen_input:
   CMP #$02
   BEQ toggle_cheats
   CMP #$03
-  BNE :+
+  BNE :++
   BRA next_level 
+
+: CMP #$02
+  BNE :+
+  LDA $B2
+  CMP #$02
+  BEQ toggle_cheats
+  CMP #$03
+  BNE :+
+  BRA prev_level
 
 : ASL  
   ASL
@@ -1396,11 +1436,7 @@ select_pushed:
   RTS
 
 ; AF00 - bank 1
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
 

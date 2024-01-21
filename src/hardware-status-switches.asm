@@ -125,6 +125,8 @@ disable_nmi_no_store:
     RTL
 
 reset_nmi_status:
+    ; make sure any NMI flags are clear
+    LDA RDNMI
     LDA NMITIMEN_STATE
     STA NMITIMEN
     RTL
