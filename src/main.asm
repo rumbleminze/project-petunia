@@ -23,8 +23,9 @@
 .include "bank4.asm"
 .include "bank5.asm"
 .include "bank6.asm"
-.include "bank_msu.asm"
-
+.if ENABLE_MSU > 0
+     .include "bank_msu.asm"
+.endif
 
 .include "base_tiles.asm"
 .include "title_screen_tiles.asm"

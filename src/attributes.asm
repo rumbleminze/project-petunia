@@ -232,7 +232,12 @@ load_0x40_attributes_from_ram_for_pause:
   ; mute MSU
   ; if this needs to go to the e2 bank
   ; JSL @mute_nsf
-  .byte $22, .lobyte(stop_nsf), .hibyte(stop_nsf), $e8
+  .if ENABLE_MSU > 0
+    .byte $22, .lobyte(stop_nsf), .hibyte(stop_nsf), $e8
+  .else
+    LDX #$00
+    LDY #$00
+  .endif
 
   LDA #$C0
 : STA ATTR_NES_VM_ADDR_LB

@@ -1554,20 +1554,27 @@ a038:
   STA $038D
   LDA $0350
   TAY
-  ; JSL e2:msu_check
-  .byte $22, .lobyte(msu_check), .hibyte(msu_check), $e8
-  NOP
-  NOP
-  ; LDA $ABAB,Y
-  ; TAY
-  ; LDX #$00
+
+  .if ENABLE_MSU > 0
+    ; JSL e2:msu_check
+    .byte $22, .lobyte(msu_check), .hibyte(msu_check), $e8
+    NOP
+    NOP
+  .else
+    LDA $ABAB,Y
+    TAY
+    LDX #$00
+  .endif
 
 : ; JSL e2:nsf_mute
-  .byte $22, .lobyte(mute_nsf), .hibyte(mute_nsf), $e8
-  NOP
-  NOP
-  ; LDA $AC88,Y
-  ; STA $032B,X
+  .if ENABLE_MSU > 0
+    .byte $22, .lobyte(mute_nsf), .hibyte(mute_nsf), $e8
+    NOP
+    NOP
+  .else 
+    LDA $AC88,Y
+    STA $032B,X
+  .endif
 
   INY
   INX

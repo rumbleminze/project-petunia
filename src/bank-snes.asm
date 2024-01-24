@@ -194,8 +194,7 @@ initialize_registers:
     LDA RDNMI
     JSL update_values_for_ppu_mask
     JSL infidelitys_scroll_handling
-
-  JSL setup_hdma    
+    JSL setup_hdma    
 
   LDA #$7E
   STA A1B3
@@ -211,7 +210,10 @@ initialize_registers:
 
   LDA #%00001000
   STA HDMAEN
-  ; JSL write_palette_data
+  .if ENABLE_MSU > 0
+    ; JSL msu_nmi_check
+    .byte $22, .lobyte(msu_nmi_check), .hibyte(msu_nmi_check), $e8
+  .endif 
   JSR dma_oam_table
   JSR disable_attribute_buffer_copy
   JSR check_and_copy_attribute_buffer

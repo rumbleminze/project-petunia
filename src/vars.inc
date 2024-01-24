@@ -1,6 +1,6 @@
 ; set to 1 to enable debug cheats
 .define DEBUG_MOD 1
-
+.define ENABLE_MSU 1
 
 
 ; Value determines where we're at

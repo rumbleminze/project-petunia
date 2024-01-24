@@ -11,10 +11,11 @@
 .DEFINE MSU_VOLUME      $2006
 .DEFINE MSU_CONTROL     $2007
 
-.DEFINE CURRENT_NSF     $7E09FF
-.DEFINE REMAPPED_NSF    $7E09FE
-.DEFINE LOOP_VALUE      $7E09FD
-.DEFINE MSU_ENABLE      $7E09FC
+.DEFINE CURRENT_NSF     $09FF
+.DEFINE REMAPPED_NSF    $09FE
+.DEFINE LOOP_VALUE      $09FD
+.DEFINE MSU_ENABLE      $09FC
+.DEFINE MSU_TRIGGER     $09FB
 
 ;___  ___  _____   _   _      ___   ______   _____    ___  
 ;|  \/  | /  ___| | | | |    / _ \  | ___ \ |  ___|  / _ \ 
@@ -43,7 +44,15 @@ msu_available:
   TAY				; native code --> get track-id here !!!
   LDX #$00		; native code
   STA CURRENT_NSF		; store current nsf track-id for later retrieval
+  LDA #$01
+  STA MSU_TRIGGER
+: RTL
 
+msu_nmi_check:
+  LDA MSU_TRIGGER
+  BEQ :-
+  STZ MSU_TRIGGER
+  LDA CURRENT_NSF
   CMP #$00			; is this boss or room full of enemies?
   BEQ boss_room
   CMP #$0D			; is it stage 3-1 thru 3-3 music?
