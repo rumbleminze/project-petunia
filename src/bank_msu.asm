@@ -29,6 +29,7 @@ msu_check:
   LDA MSU_ID		; load first byte of msu-1 identification string
   CMP #$53		; is it "M" present from "MSU-1" string?
   BEQ msu_available
+  ; fall through to default
   PLA
   LDA $ABAB,Y		; native code
   TAY				; native code
@@ -39,19 +40,25 @@ msu_check:
 msu_available:
   LDA #$00		; clear disable/enable nsf music flag
   STA MSU_ENABLE		; clear disable/enable nsf music flag
+
   PLA
-  LDA $ABAB,Y		; native code
-  TAY				; native code --> get track-id here !!!
-  LDX #$00		; native code
+  LDA $ABAB,Y		    ; native code
+  TAY				        ; native code --> get track-id here !!!
+  LDX #$00		      ; native code
   STA CURRENT_NSF		; store current nsf track-id for later retrieval
+
   LDA #$01
   STA MSU_TRIGGER
+  LDA #$FF		      ; load max msu-1 volume byte
+  STA MSU_ENABLE		; set mute NSF flag (writing FF in RAM location)
+
 : RTL
 
 msu_nmi_check:
   LDA MSU_TRIGGER
   BEQ :-
   STZ MSU_TRIGGER
+
   LDA CURRENT_NSF
   CMP #$00			; is this boss or room full of enemies?
   BEQ boss_room
@@ -122,7 +129,7 @@ msu_routine:
   STA REMAPPED_NSF		; store current re-mapped nsf track-id for later retrieval
 
   stz MSU_VOLUME		; drop volume to zero; reduce STAtic/noise during track changes in sd2snes
-  STA MSU_TRACK		; store current valid NSF track-ID
+  STA MSU_TRACK		  ; store current valid NSF track-ID
   stz MSU_TRACK + 1	; must zero out high byte or current msu-1 track will not play !!!
 
 msu_status:		; check msu ready status (required for sd2snes hardware compatibility)
@@ -134,20 +141,21 @@ msu_status:		; check msu ready status (required for sd2snes hardware compatibili
   CMP #$08		; is PCM track present after attempting to play using STA $2004?
   BNE play_msu
   BRA end_routine
-play_msu:		; play PCM track and mute NSF music
+
+play_msu:		          ; play PCM track and mute NSF music
   LDA REMAPPED_NSF		; restore re-mapped NSF track
-  CMP #$09        ; if current track number is greater than 8, it is a no-loop track
+  CMP #$09            ; if current track number is greater than 8, it is a no-loop track
   bcs loop_no
-  LDA #$03		; load loop byte
+  LDA #$03		        ; load loop byte
   BRA loop_yes
 loop_no:
-  LDA #$01		; load no-loop byte
+  LDA #$01		        ; load no-loop byte
 loop_yes:
   STA LOOP_VALUE		; store current loop value (debug purposes)
   STA MSU_CONTROL		; write current loop value
-  LDA #$FF		        ; load max msu-1 volume byte
+  LDA #$FF		      ; load max msu-1 volume byte
   STA MSU_VOLUME		; write max volume value
-  STA MSU_ENABLE		; set mute NSF flag (writing FF in RAM location)
+  ; STA MSU_ENABLE		; set mute NSF flag (writing FF in RAM location)
 end_routine:
   LDA CURRENT_NSF		; restore original nsf track-id
   RTL
