@@ -1414,7 +1414,7 @@ toggle_cheats:
 
 start_pushed:
   LDA $B2
-  CMP #$01
+  CMP #$02
   BCC :+
   rts
 : LDA #$00
