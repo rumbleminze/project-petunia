@@ -38,12 +38,12 @@ nes_80d2:
   LDA $37
   BNE nes_8139
 
-  JSL set_ppu_mask_to_accumulator ; STA PpuMask_2001
+  jslb set_ppu_mask_to_accumulator, $a0 ; STA PpuMask_2001
   JSR $946A
   JSR $EBC9
 ;   LDA $FF
 ;   STA PpuMask_2001
-  JSL set_ppu_mask_to_stored_value
+  jslb set_ppu_mask_to_stored_value, $a0
 
   JSR $956D
   JSR $963E
@@ -456,7 +456,7 @@ nes_8139:
 ;   AND #$7F
 ;   STA $0100
 ;   STA PpuControl_2000
-  jsl disable_nmi_and_store
+  jslb disable_nmi_and_store, $a0
   nops 7
 
   JSR $9722
@@ -468,7 +468,7 @@ nes_8139:
 ;   ORA #$80
 ;   STA $0100
 ;   STA PpuControl_2000
-  jsl enable_nmi_and_store
+  jslb enable_nmi_and_store, $a0
   nops 7
 
   PLA
@@ -491,7 +491,7 @@ nes_8139:
   LDA $FD
   CMP #$F0
   BCC :+
-  jsl scroll_rollover
+  jslb scroll_rollover, $a0
   nops 6
 
 : RTS
@@ -503,12 +503,12 @@ nes_8139:
 
 
 ;951D
-  JSL nes_951d_copy
+  jslb nes_951d_copy, $a0
   nops 21
   RTS
 
 ; 9537
-  JSL nes_9537_copy
+  jslb nes_9537_copy, $a0
   nops 49
   RTS
 
@@ -665,7 +665,7 @@ nes_8139:
   LDA #$10
   STA $0A
   INC $1A
-  ; JSL reset_to_stored_screen_offsets
+  ; jslb reset_to_stored_screen_offsets
 : JSR $956D
   JSR $963E
    
@@ -695,7 +695,7 @@ nes_8139:
 
 
 ; 9979
-.byte $00, $00, $00 ; , $00, $00, $00, $00 used for JSL above
+.byte $00, $00, $00 ; , $00, $00, $00, $00 used for jslb above
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 .byte $4C, $FA, $99, $4C, $78, $9A, $4C, $BB, $AD, $4C, $40, $DF, $4C, $3E, $AB, $4C
@@ -740,7 +740,7 @@ nes_8139:
   JSR $AB71
   JSR $EBC9
   
-  JSL set_ppu_mask_to_stored_value
+  jslb set_ppu_mask_to_stored_value, $a0
   nops 1
   ; LDA $FF
   ; STA PpuMask_2001
@@ -1093,7 +1093,7 @@ nes_9acd:
   LDA $5C
   BPL :+
   
-  jsl disable_nmi_and_store
+  jslb disable_nmi_and_store, $a0
   ; LDA $0100
   ; AND #$7F
   ; STA $0100
@@ -1108,7 +1108,7 @@ nes_9acd:
   PLA
   PLA
 
-  jsl enable_nmi_and_store
+  jslb enable_nmi_and_store, $a0
   ; LDA $0100
   ; ORA #$80
   ; STA $0100
@@ -1123,12 +1123,12 @@ nes_9acd:
 
   INC $FE
   BNE :+
-  JSL handle_horizontal_scroll_wrap
+  jslb handle_horizontal_scroll_wrap, $a0
   nops 4
 : RTS
 
 
-  jsl set_vram_increment_to_32_no_store
+  jslb set_vram_increment_to_32_no_store, $a0
   ; LDA PPU_CONTROL_STATE
   ; ORA #$04
   ; STA $2000
@@ -1168,14 +1168,14 @@ nes_9acd:
   CPY #$1E
   BCC :-
 
-  JSL reset_vmain_to_stored_state
+  jslb reset_vmain_to_stored_state, $a0
   nops 2
 
   RTS
 
 ; AC47 - bank 2
 ; AC47 - AC7A - attribute handling
-  JSL horizontal_attribute_scroll_handle
+  jslb horizontal_attribute_scroll_handle, $a0
   LDA #$A3
   PHA
   PLB
@@ -1582,7 +1582,7 @@ level_load_tile_and_attributes:
                        
   JSR $951D  
   JSR $9537   
-  JSL convert_nes_attributes_and_immediately_dma_them
+  jslb convert_nes_attributes_and_immediately_dma_them, $a0
   LDA #$A3
   PHA
   PLB
@@ -1595,7 +1595,7 @@ full_screen_load_common:
   JSR $ABF3
   JSR $AC47
 
-  JSL convert_nes_attributes_and_immediately_dma_them
+  jslb convert_nes_attributes_and_immediately_dma_them, $a0
   LDA #$A3
   PHA
   PLB

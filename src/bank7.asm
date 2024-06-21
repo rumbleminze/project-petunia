@@ -2,7 +2,7 @@
 ; C000 - Main entry point
   SEI
   CLD
-  JSL set_ppu_control_to_0_and_store ;   LDA #$00
+  jslb set_ppu_control_to_0_and_store, $a0 ;   LDA #$00
   nops 1                             ;   STA PpuControl_2000
 
   ; since we're not storing this
@@ -57,7 +57,7 @@
   JSR $C846
   JSR $EE6A
 
-  JSL set_ppu_control_to_0_and_store      ;   LDA #$00
+  jslb set_ppu_control_to_0_and_store, $a0     ;   LDA #$00
   nops 4                                  ;   STA PpuControl_2000
                                           ;   STA PPU_CONTROL_STATE 
   STZ TM                                  ;   STA PpuMask_2001
@@ -101,9 +101,9 @@
 ; c0c9
 : LDA RDNMI
   BPL :-
-  JSL disable_nmi_no_store
+  jslb disable_nmi_no_store, $a0
 
-  JSL force_blank_and_store
+  jslb force_blank_and_store, $a0
   LDA #$00
   TAY
   STA $00
@@ -121,7 +121,7 @@
   BNE :+
 
   ; this block copies the title screen tiles
-  JSL load_title_tiles
+  jslb load_title_tiles, $a0
 ;   LDA #$A0
 ;   STA $01
 ;   LDX #$20
@@ -130,7 +130,7 @@
 
 : 
   ; this block copies the base level tiles
-  JSL load_base_tiles
+  jslb load_base_tiles, $a0
 ;   LDA #$80
 ;   STA $01
 ;   LDX #$20
@@ -147,8 +147,7 @@
 
 
 ; this block copies the stage specific tiles
-  JSL load_level_specific_tiles
-;   JSL turn_off_forced_blank_and_store
+  jslb load_level_specific_tiles, $a0
   nops 20
 ;   LDA #$0C
 ;   STA PpuAddr_2006
@@ -202,7 +201,7 @@
 ;   LDA $0100
 ;   AND #$7F
 ;   STA $2000
-  JSL disable_nmi_no_store
+  jslb disable_nmi_no_store, $a0
   nops 4
 
   PLA
@@ -233,7 +232,7 @@
 ;   STA $FFFF
 ;   LDA $2002
 
-  JSL reset_nmi_status
+  jslb reset_nmi_status, $a0
   nops 1
 
   RTS
@@ -250,7 +249,7 @@
 .byte $10, $FB, $20
 .byte $42, $EE, $20, $2E, $EB, $20, $01, $EF, $A5, $A3, $D0, $FC
 
-  jsl update_ppu_control_store_to_10
+  jslb update_ppu_control_store_to_10, $a0
 ;   LDA #$10
 ;   STA $0100
 ;   STA PpuControl_2000
@@ -268,12 +267,12 @@
 .byte $00, $8A, $95, $00, $E8, $E4, $F1, $90, $F9, $60
 
 @c24a:
-  JSL update_ppu_control_store_to_10
+  jslb update_ppu_control_store_to_10, $a0
 
   ;LDA #$10                 
   ;STA PPU_CONTROL_STATE    
 
-  JSL update_ppu_mask_store_to_1e
+  jslb update_ppu_mask_store_to_1e, $a0
   ;LDA #$1E
   ;STA PPU_MASK_STATE     
   nops 1
@@ -495,7 +494,7 @@ nops 56
 ; CA90
   PHA
 
-  JSL disable_nmi_no_store
+  jslb disable_nmi_no_store, $a0
 ;   LDA $0100
 ;   AND #$7F
 ;   STA PpuControl_2000
@@ -549,7 +548,7 @@ nops 56
 ; CAC7
 @cac7:
   PHA
-  JSL disable_nmi_no_store
+  jslb disable_nmi_no_store, $a0
   PLA
   STA $B8
 
@@ -571,7 +570,7 @@ nops 56
 : LDA $B8
   PHA
 
-  JSL reset_nmi_status
+  jslb reset_nmi_status, $a0
 
   PLA
   RTS
@@ -584,7 +583,7 @@ nops 56
 ;   LDA $0100
 ;   AND #$7F
 ;   STA PpuControl_2000
-  JSL disable_nmi_no_store
+  jslb disable_nmi_no_store, $a0
   nops 3
 
   PLA
@@ -642,7 +641,7 @@ nops 56
 ;   LDA PpuStatus_2002
 ;   LDA $0100
 ;   STA PpuControl_2000
-  JSL reset_nmi_status
+  jslb reset_nmi_status, $a0
   nops 5
 
   PLA
@@ -1193,7 +1192,7 @@ nops 19
   JSR $E1F6
   JSR $EE42
 
-  JSL no_scroll_screen_enable
+  jslb no_scroll_screen_enable, $a0
   nops 15 ;   LDA PpuStatus_2002
 ;   LDA #$00
 ;   STA PpuScroll_2005
@@ -1341,12 +1340,12 @@ nops 19
 
 ; e7cb
   LDY #$00
-  JSL force_blank_no_store   
+  jslb force_blank_no_store, $a0
 : JSR $EA4B
   BNE :+
   nops 3 ; LDA PpuStatus_2002
   
-  JSL set_vram_increment_to_1_and_store
+  jslb set_vram_increment_to_1_and_store, $a0
 
   nops 3
 ;   LDA $0100
@@ -1520,9 +1519,9 @@ nops 4 * 16 + 3
   AND #$80
   
   BEQ :+
-  JSL set_vram_increment_to_32_and_store
+  jslb set_vram_increment_to_32_and_store, $a0
   BRA :++
-: JSL set_vram_increment_to_1_and_store
+: jslb set_vram_increment_to_1_and_store, $a0
 :
 
   TXA
@@ -1601,7 +1600,7 @@ nops 4 * 16 + 3
 LDA #$0E
 BNE @set_mirroring
 
-JSL nes_eb21_replacement
+jslb nes_eb21_replacement, $a0
 nops 8
 RTS
 ; eb2e - sprite stuff, we DMA our sprites during NMI in bank_snes, so 
@@ -1626,12 +1625,12 @@ RTS
   STY $02
 
   ; LDA PpuStatus_2002
-  JSL force_blank_no_store
+  jslb force_blank_no_store, $a0
 ; Set Vram Inc to 1
 ;   LDA $0100
 ;   AND #$FB
 ;   STA PpuControl_2000
-  JSL set_vram_increment_to_1
+  jslb set_vram_increment_to_1, $a0
 
 
   LDA $00
@@ -1667,7 +1666,7 @@ RTS
 : LDX $01
 ;   LDA $0100
 ;   STA PpuControl_2000
-  JSL reset_vmain_and_inidisp    
+  jslb reset_vmain_and_inidisp, $a0    
   nops 2
   RTS
 
@@ -1688,9 +1687,8 @@ RTS
   AND #$FC
   ORA $00
   STA PPU_CONTROL_STATE
-  JSL infidelitys_scroll_handling
-  JSL reset_to_stored_screen_offsets
-  ; JSL setup_hdma
+  jslb infidelitys_scroll_handling, $a0
+  jslb reset_to_stored_screen_offsets, $a0
   nops 8
   RTS
 
@@ -1758,7 +1756,7 @@ RTS
 ;   STA VMADDH
 ;   STA VMADDL
   nops 33
-  JSL write_palette_data
+  jslb write_palette_data, $a0
   JMP $EBC9
 
 ; ee6a
@@ -1773,8 +1771,8 @@ RTS
 .byte $E8, $E8, $D0, $F4, $60, $A9, $00, $85, $FD, $85, $1A, $85, $FE, $85, $1B, $60
 
 ; EEF0
-  JSL disable_nmi_and_store
-  JSL force_blank_and_store
+  jslb disable_nmi_and_store, $a0
+  jslb force_blank_and_store, $a0
 ;   LDA $0100
 ;   AND #$7F
 ;   STA $0100
@@ -1785,8 +1783,8 @@ RTS
   RTS
 
 ; EF01 - bank 7
-  JSL enable_nmi_and_store
-  JSL set_ppu_mask_to_stored_value
+  jslb enable_nmi_and_store, $a0
+  jslb set_ppu_mask_to_stored_value, $a0
   nops 8
 ;   LDA $0100
 ;   ORA #$80
@@ -1914,7 +1912,7 @@ RTS
   JML (JMP_REDIRECT_LB)
 
 @post_jump_loc:
-  JSL disable_nmi_no_store
+  jslb disable_nmi_no_store, $a0
   PLA                      
   STA $B6
   INC A
@@ -1929,9 +1927,9 @@ RTS
   STA JMP_REDIRECT_LB + 1
   JML (JMP_REDIRECT_LB)
 @bank_switch_jump2:
-  JSL reset_nmi_status
+  jslb reset_nmi_status, $a0
   PLA
-  JSL translate_nes_sprites_to_oam
+  jslb translate_nes_sprites_to_oam, $a0
   setAXY16
   PLY
   PLX
@@ -1943,7 +1941,7 @@ RTS
 @switch_bank_to_a:
   PHA                      
   ; disable NMI
-  JSL disable_nmi_no_store    
+  jslb disable_nmi_no_store, $a0 
   PLA                      
   STA $B6
   INC A
@@ -1961,7 +1959,7 @@ RTS
 @bank_switch_jump_3:
 ;  re-enable NMI
   ;  LDA PpuStatus_2002  
-  JSL reset_nmi_status 
+  jslb reset_nmi_status, $a0 
 
   NOP
   NOP    
@@ -2023,7 +2021,7 @@ RTS
   PHY         
   STZ COLUMN_1_DMA
   STZ COL_ATTR_HAS_VALUES
-  jsl load_0x40_attributes_from_ram_for_pause 
+  jslb load_0x40_attributes_from_ram_for_pause, $a0 
   PLY
   PLA
   STA $01
@@ -2046,7 +2044,7 @@ RTS
   JSR $7F36
   JSR $7F39
   JSR $7F3C
-  JSL convert_nes_attributes_and_immediately_dma_them
+  jslb convert_nes_attributes_and_immediately_dma_them, $a0
   STZ VMAIN
   LDA #$06
   JMP $C17F   

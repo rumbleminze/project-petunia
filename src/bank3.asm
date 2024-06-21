@@ -25,7 +25,7 @@ nops 3 ;   LDA $2002
   STA TM ; $2001
   JSR $9701
   JSR $EBC9
-  JSL set_ppu_mask_to_stored_value
+  jslb set_ppu_mask_to_stored_value, $a0
 ;   LDA $FF
 ;   STA $2001
   nops 1
@@ -468,7 +468,7 @@ nops 3 ;   LDA $2002
 ;   AND #$7F
 ;   STA $0100
 ;   STA PpuControl_2000
-  jsl disable_nmi_and_store
+  jslb disable_nmi_and_store, $a0
   nops 7
 
   JSR $99B9
@@ -480,7 +480,7 @@ nops 3 ;   LDA $2002
 ;   ORA #$80
 ;   STA $0100
 ;   STA PpuControl_2000
-  jsl enable_nmi_and_store
+  jslb enable_nmi_and_store, $a0
   nops 7
 
 
@@ -505,7 +505,7 @@ nops 3 ;   LDA $2002
   CMP #$F0
   BCC :+
 
-  jsl scroll_rollover
+  jslb scroll_rollover, $a0
   nops 6
 ;   LDA #$EF
 ;   STA $FD
@@ -534,7 +534,7 @@ nops 3 ;   LDA $2002
   RTS
 
 ; 97CE
-  JSL veritcal_scroll_attribute_handle
+  jslb veritcal_scroll_attribute_handle, $a0
   STZ VMAIN
   LDA #$A4
   PHA
@@ -754,7 +754,7 @@ nops 3;    LDA PpuStatus_2002
 .byte $20, $A3, $B5, $AD, $D1, $04, $C9, $0F
 .byte $90, $06, $20, $42, $EE, $4C, $3B, $9D, $20, $C9, $EB
 
-  JSL reset_tm_state
+  jslb reset_tm_state, $a0
   nops 1
 ;   LDA $FF
 ;   STA TM ; PpuMask_2001
@@ -1243,7 +1243,7 @@ nops 3;    LDA PpuStatus_2002
 ; b5e6
   LDA $5C
   BPL :+
-    jsl disable_nmi_and_store
+    jslb disable_nmi_and_store, $a0
     nops 7
     ; LDA $0100
     ; AND #$7F
@@ -1256,7 +1256,7 @@ nops 3;    LDA PpuStatus_2002
   STA $41
   PLA
   PLA
-    jsl enable_nmi_and_store
+    jslb enable_nmi_and_store, $a0
     nops 7
     ; LDA $0100
     ; ORA #$80
@@ -1279,7 +1279,7 @@ nops 3;    LDA PpuStatus_2002
 ;   LDA $0100
 ;   ORA #$04
 ;   STA PpuControl_2000
-  jsl set_vram_increment_to_32_no_store
+  jslb set_vram_increment_to_32_no_store, $a0
   nops 7 ; LDA PpuStatus_2002
 
   LDA $0482
@@ -1317,13 +1317,13 @@ nops 3;    LDA PpuStatus_2002
 
 ;   LDA $0100
 ;   STA PpuControl_2000
-  jsl reset_vmain_to_stored_state
+  jslb reset_vmain_to_stored_state, $a0
   nops 2
 
   RTS
 
 ; b689 - b6b6 - attributes
-  JSL horizontal_attribute_scroll_handle
+  jslb horizontal_attribute_scroll_handle, $a0
   LDA #$A4
   PHA
   PLB
@@ -1591,7 +1591,7 @@ nops 3;    LDA PpuStatus_2002
 level_3_load_tiles_and_attributes:
   JSR $97B4
   JSR $97CE
-  JSL convert_nes_attributes_and_immediately_dma_them
+  jslb convert_nes_attributes_and_immediately_dma_them, $a0
   STZ VMAIN
   LDA #$A4
   PHA
@@ -1624,7 +1624,7 @@ handle_4_1_scroll_wrap:
 
 attributes_from_pause_w4:
   JSR $B689
-  JSL convert_nes_attributes_and_immediately_dma_them
+  jslb convert_nes_attributes_and_immediately_dma_them, $a0
   STZ VMAIN
   LDA #$A4
   PHA

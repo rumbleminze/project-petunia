@@ -268,8 +268,8 @@ nops 3 ;   LDA $2002
   RTS
 
 ; 8C12 - 8C47 - attributes for fortress level rooms
-    JSL nes_9537_copy
-    JSL convert_nes_attributes_and_immediately_dma_them
+    jslb nes_9537_copy, $a0
+    jslb convert_nes_attributes_and_immediately_dma_them, $a0
     ; converting attributes leaves us with VMAIN incrementing on 2119, but we
     ; need to increment on 2118
     STZ VMAIN

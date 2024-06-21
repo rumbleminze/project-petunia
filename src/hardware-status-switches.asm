@@ -132,8 +132,8 @@ reset_nmi_status:
     RTL
 
 reset_nmi_and_inidisp_status:
-    JSL reset_nmi_status
-    JSL reset_inidisp
+    jslb reset_nmi_status, $a0
+    jslb reset_inidisp, $a0
     RTL
 
 set_vram_increment_to_1:
@@ -173,8 +173,8 @@ set_vram_increment_to_32_no_store:
     RTL
 
 reset_vmain_and_inidisp:
-    JSL reset_vmain_to_stored_state
-    JSL reset_inidisp
+    jslb reset_vmain_to_stored_state, $a0
+    jslb reset_inidisp, $a0
     RTL
 
 reset_vmain_to_stored_state:
@@ -208,6 +208,6 @@ reset_inidisp:
     RTL
 
 disable_nmi_and_fblank_no_store:
-    JSL force_blank_no_store
-    JSL disable_nmi_no_store
+    jslb force_blank_no_store, $a0
+    jslb disable_nmi_no_store, $a0
     RTL

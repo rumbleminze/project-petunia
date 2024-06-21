@@ -19,7 +19,7 @@ nmi:
     PHY
     setAXY8 
 
-    JSL snes_nmi
+    jslb snes_nmi, $a0
     JML $A1C866
 _rti:
     rti

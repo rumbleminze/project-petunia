@@ -73,8 +73,6 @@ do_intro:
     JSR clearvm_to_12
     JSR write_intro_palette
     JSR write_intro_tiles
-    ; JSL set_middle_attributes_to_palette_0
-    ; JSL set_middle_attributes_to_palette_3
     LDA #$0F
     STA INIDISP
     LDX #$FF

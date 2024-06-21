@@ -729,7 +729,7 @@ return_to_level_load:
   LDA $FD
   CMP #$F0
   BNE :+
-  JSL title_screen_rollover
+  jslb title_screen_rollover, $a0
   nops 12
 : RTS
 
@@ -987,42 +987,7 @@ return_to_level_load:
 ; handle input on title screen
 : JMP title_screen_input
   nops 39
-; return_to_title_screen:
-;   LDA $F6
-;   ASL
 
-;   ASL
-;   ASL
-;   ; select has been pushed
-;   BCS select_pushed
-;   ASL
-;   ; start has been pushed
-;   BCS start_pushed
-;   RTS
-
-; start_pushed:
-; ;   LDA $B2
-; ;   CMP #$01
-; ;   BCC :+
-; ;   rts
-; ; : 
-;   LDA #$00
-;   STA $B1
-;   RTS
-
-; select_pushed:
-;   LDX $B2
-;   CPX #$01
-;   BCC :+
-;   LDX #$00
-;   BEQ :++
-; : INX
-; : STX $B2
-;   LDA menu_option_sprite_locations,X
-;   STA $0230
-;   LDA menu_option_sprite_locations + 4,X
-;   STA $0233
-;   RTS  
 
 .byte $60, $70, $50, $50, $01, $20, $12, $E6, $A7
 .byte $04, $8C, $01, $05, $28, $29, $16, $27, $29, $04, $CC, $01, $08, $18, $24, $23
@@ -1164,7 +1129,7 @@ return_to_level_load:
 
 ; AE00 - bank 1
 ac4d_replacement:
-  JSL force_blank_and_store
+  jslb force_blank_and_store, $a0
   LDA #$24 ; #$28
   LDX #$12
   LDY #$00
@@ -1181,11 +1146,11 @@ ac4d_replacement:
   CPX #$0F
   BCC :-
   JSR $EBC9
-  JSL turn_off_forced_blank_and_store
+  jslb turn_off_forced_blank_and_store, $a0
   RTS
 
 jsr_to_handle_title_screen_a236_attributes:
-  JSL handle_title_screen_a236_attributes
+  jslb handle_title_screen_a236_attributes, $a0
   LDA #$A2
   PHA
   PLB
@@ -1196,9 +1161,14 @@ new_menu_options:
 ; ?, starting lb, #$20 / #$24 + for HB, length, characters
 .byte $04, $8C, $01, $05, $28, $29, $16, $27, $29
 .byte $04, $CC, $01, $08, $18, $24, $23, $29, $1E, $23, $2A, $1A
+
+.if DEBUG_MOD > 0
 .byte $04, $0C, $02, $09, $18, $1D, $1A, $16, $29, $12, $24, $1B, $1B
 .byte $04, $4C, $02, $03, $01, $0F, $01
 .byte $00 ; end
+.else
+.byte $00 ; end
+.endif
 
 
 menu_option_sprite_locations:
@@ -1263,11 +1233,12 @@ level_load_additions:
     STA $6011
     INC
     STA $6012
+  : PLA
 
   .else
     nops 62
+    PLA
   .endif
-: PLA
 
   JMP return_to_level_load
 
@@ -1314,11 +1285,11 @@ next_level:
   LDA level_select_values + 3, Y
   LDY #$4E
   LDX #$22 
-  jsl add_extra_vram_update
+  jslb add_extra_vram_update, $a0
 
   LDY #$4C
   PLA
-  jsl add_extra_vram_update
+  jslb add_extra_vram_update, $a0
 
   rts
 
@@ -1344,11 +1315,11 @@ prev_level:
   LDA level_select_values + 3, Y
   LDY #$4E
   LDX #$22 
-  jsl add_extra_vram_update
+  jslb add_extra_vram_update, $a0
 
   LDY #$4C
   PLA
-  jsl add_extra_vram_update
+  jslb add_extra_vram_update, $a0
 
   rts
 
@@ -1394,21 +1365,21 @@ toggle_cheats:
   ; switch to ON_
 
   LDA #$23 ; N
-  jsl add_extra_vram_update
+  jslb add_extra_vram_update, $a0
 
   LDA #$12 ; space
   LDX #$22
   LDY #$14 
-  jsl add_extra_vram_update
+  jslb add_extra_vram_update, $a0
 
   BRA :++
 
   ; switch to OFF
 : LDA #$1B ; F
-  jsl add_extra_vram_update
+  jslb add_extra_vram_update, $a0
   LDX #$22
   LDY #$14 
-  jsl add_extra_vram_update
+  jslb add_extra_vram_update, $a0
 
 : RTS
 
@@ -1423,7 +1394,13 @@ start_pushed:
 
 select_pushed:
   LDX $B2
+
+.if DEBUG_MOD > 0
   CPX #$03
+.else
+  CPX #$01
+.endif
+  
   BCC :+
   LDX #$00
   BEQ :++

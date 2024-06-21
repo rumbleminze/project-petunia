@@ -103,7 +103,7 @@ nops 3 ;  LDA $2002
 ;   INC $1A
 ;   LDA #$00
 ;   STA $FD
-  JSL credits_scroll_rollover
+  jslb credits_scroll_rollover, $a0
   nops 2
 : AND #$07
   BNE :++
@@ -268,7 +268,7 @@ nops 3 ;  LDA $2002
   LDA #$00
   STA TM ; PPU Mask $2001
   JSR $81CB
-  jsl reset_tm_state
+  jslb reset_tm_state, $a0
   nops 1
 ;   LDA $FF
 ;   STA $2001
@@ -1556,8 +1556,7 @@ a038:
   TAY
 
   .if ENABLE_MSU > 0
-    ; JSL e2:msu_check
-    .byte $22, .lobyte(msu_check), .hibyte(msu_check), $e8
+    jslb msu_check, $e8
     NOP
     NOP
   .else
@@ -1565,10 +1564,9 @@ a038:
     TAY
     LDX #$00
   .endif
-
-: ; JSL e2:nsf_mute
+:
   .if ENABLE_MSU > 0
-    .byte $22, .lobyte(mute_nsf), .hibyte(mute_nsf), $e8
+    jslb mute_nsf, $e8
     NOP
     NOP
   .else 
@@ -2037,7 +2035,7 @@ load_0x40_attributes_from_ram_for_ending:
   LDA #$01
   STA ATTR_NES_HAS_VALUES
   PHY
-  JSL convert_nes_attributes_and_immediately_dma_them
+  jslb convert_nes_attributes_and_immediately_dma_them, $a0
   LDA #$A5
   PHA
   PLB

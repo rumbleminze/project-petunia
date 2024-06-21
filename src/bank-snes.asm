@@ -132,7 +132,7 @@ initialize_registers:
 
   JSR zero_oam  
   JSR dma_oam_table
-  JSL zero_all_palette
+  jslb zero_all_palette, $a0
 
   STA OBSEL
   LDA #$11
@@ -192,9 +192,9 @@ initialize_registers:
 
   snes_nmi:
     LDA RDNMI
-    JSL update_values_for_ppu_mask
-    JSL infidelitys_scroll_handling
-    JSL setup_hdma    
+    jslb update_values_for_ppu_mask, $a0
+    jslb infidelitys_scroll_handling, $a0
+    jslb setup_hdma, $a0
 
   LDA #$7E
   STA A1B3
@@ -210,9 +210,10 @@ initialize_registers:
 
   LDA #%00001000
   STA HDMAEN
+
+
   .if ENABLE_MSU > 0
-    ; JSL msu_nmi_check
-    .byte $22, .lobyte(msu_nmi_check), .hibyte(msu_nmi_check), $e8
+    jslb msu_nmi_check, $e8
   .endif 
   JSR dma_oam_table
   JSR disable_attribute_buffer_copy

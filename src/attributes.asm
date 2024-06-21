@@ -95,7 +95,7 @@ nes96c6_copy:
     STA ATTR_NES_HAS_VALUES
 
     PHX
-    JSL convert_nes_attributes_and_immediately_dma_them
+    jslb convert_nes_attributes_and_immediately_dma_them, $a0
     PLX
 
     DEX
@@ -136,7 +136,7 @@ nes96c6_copy:
 
     PHX
     PHY
-    JSL convert_nes_attributes_and_immediately_dma_them
+    jslb convert_nes_attributes_and_immediately_dma_them, $a0
     PLY
     PLX
 
@@ -230,10 +230,8 @@ load_0x40_attributes_from_ram_for_pause:
   ; LDX #$00
   ; LDY #$00
   ; mute MSU
-  ; if this needs to go to the e2 bank
-  ; JSL @mute_nsf
   .if ENABLE_MSU > 0
-    .byte $22, .lobyte(stop_nsf), .hibyte(stop_nsf), $e8
+    jslb stop_nsf, $e8
   .else
     LDX #$00
     LDY #$00
@@ -258,7 +256,7 @@ load_0x40_attributes_from_ram_for_pause:
   LDA #$01
   STA ATTR_NES_HAS_VALUES
   PHY
-  JSL convert_nes_attributes_and_immediately_dma_them
+  jslb convert_nes_attributes_and_immediately_dma_them, $a0
   PLY
   LDA #$E0
   LDX #$00
@@ -291,7 +289,7 @@ load_0x40_attributes_for_lvl3:
   LDA #$01
   STA ATTR_NES_HAS_VALUES
   PHY
-  JSL convert_nes_attributes_and_immediately_dma_them
+  jslb convert_nes_attributes_and_immediately_dma_them, $a0
   PLY
   LDA #$E0
   LDX #$00
@@ -321,9 +319,9 @@ convert_attributes_inf:
   LDX #$00
   JSR disable_attribute_hdma
   LDA #$A1
-  STA $00
+  STA $20
   LDA #$09
-  STA $01
+  STA $21
   STZ ATTR_DMA_SRC_DB
   STZ ATTR_DMA_SRC_DB + 1
   LDA #$18
@@ -332,7 +330,7 @@ convert_attributes_inf:
   STA ATTR_DMA_SRC_HB + 1
   LDY #$00  
 inf_9497:
-  LDA ($00),Y ; $00.w is $09A1 to start
+  LDA ($20),Y ; $00.w is $09A1 to start
   ; early rtl
   BEQ check_and_copy_nes_attributes_to_buffer + 5
   AND #$03
@@ -340,7 +338,7 @@ inf_9497:
   BEQ :+
   JMP inf_9700
 : INY
-  LDA ($00),Y
+  LDA ($20),Y
   AND #$F0
   CMP #$C0
   BEQ :+
@@ -357,14 +355,14 @@ inf_9497:
   TAY
   LDA attr_lookup_table_1_inf_9450,Y
   PLY
-  LDA ($00),Y
+  LDA ($20),Y
   AND #$0F
   ASL A
   ASL a
   ASL a
   ASL A
   STA ATTR_DMA_VMADDL,X
-  LDA ($00),Y
+  LDA ($20),Y
   AND #$30
   LSR
   LSR
@@ -373,7 +371,7 @@ inf_9497:
   ORA #$20
   XBA
   DEY
-  LDA ($00),Y
+  LDA ($20),Y
   CMP #$24
   BMI :+
   LDA #$00
@@ -389,14 +387,14 @@ inf_9497:
   STA ATTR_DMA_VMADDH,X
 : INY
   INY
-  LDA ($00),Y
+  LDA ($20),Y
   AND #$3F
   PHX
   TAX
   LDA attr_lookup_table_2_inf_95C0 + 15,X
   PLX
   STA ATTR_DMA_SIZE_LB,X
-  LDA ($00),Y
+  LDA ($20),Y
   AND #$3F  
   CMP #$0F
   BPL :+
@@ -410,50 +408,50 @@ inf_9497:
   ; LDA #$80
   ; STA ATTR_DMA_SIZE_LB
   ; STZ ATTR_DMA_SIZE_HB
-  LDA ($00),Y
+  LDA ($20),Y
   STA ATTRIBUTE_DMA + 14
   STA ATTRIBUTE_DMA + 15
   LDA ATTRIBUTE_DMA + 2,X
-  STA $03
+  STA $23
   LDA ATTRIBUTE_DMA + 4,X
-  STA $02
+  STA $22
   INY
   INY
   TYX
   LDA #$A0
-  STA $00
+  STA $20
   TYA
   CLC
-  ADC $00
-  STA $00
+  ADC $20
+  STA $20
   BRA :+
 inf_952D:  
-  INC $00
+  INC $20
 : JSR inf_9680
   NOP
-  LDA ($00,X)
+  LDA ($20,X)
   PHA
   AND #$03
   TAX
   LDA attr_lookup_table_1_inf_9450,X
-  STA ($02),Y
+  STA ($22),Y
   INY
-  STA ($02),Y
+  STA ($22),Y
   LDY #$20
-  STA ($02),Y
+  STA ($22),Y
   INY
-  STA ($02),Y
+  STA ($22),Y
   LDY #$02
   PLA
   PHA
   AND #$0C
-  STA ($02),Y
+  STA ($22),Y
   INY
-  STA ($02),Y
+  STA ($22),Y
   LDY #$22
-  STA ($02),Y
+  STA ($22),Y
   INY
-  STA ($02),Y
+  STA ($22),Y
   LDY #$40
   PLA
   PHA
@@ -464,13 +462,13 @@ inf_952D:
   LSR
   TAX
   LDA attr_lookup_table_1_inf_9450,X
-  STA ($02),Y
+  STA ($22),Y
   INY
-  STA ($02),Y
+  STA ($22),Y
   LDY #$60
-  STA ($02),Y
+  STA ($22),Y
   INY
-  STA ($02),Y
+  STA ($22),Y
   LDY #$42
   PLA
   AND #$C0
@@ -478,33 +476,33 @@ inf_952D:
   LSR
   LSR
   LSR
-  STA ($02),Y
+  STA ($22),Y
   INY
-  STA ($02),Y
+  STA ($22),Y
   LDY #$62
-  STA ($02),Y
+  STA ($22),Y
   INY
-  STA ($02),Y
-  LDA $02
+  STA ($22),Y
+  LDA $22
   CLC
   ADC #$04
-  STA $02
+  STA $22
   CMP #$20
   BEQ :+
   CMP #$A0
   BNE :++
 : CLC
   ADC #$60
-  STA $02
+  STA $22
   BNE :+
-  INC $03
+  INC $23
 : DEC ATTRIBUTE_DMA + 14
   LDA ATTRIBUTE_DMA + 14
   BEQ :+
   BRA inf_952D
 : JSR inf_9690
   NOP
-  LDA ($00,X)
+  LDA ($20,X)
   BNE inf_95b9
 
   STZ ATTR_NES_HAS_VALUES
@@ -528,9 +526,9 @@ disable_attribute_hdma:
   RTS
 
 inf_9680:
-  LDA $00
+  LDA $20
   BNE :+
-  INC $01
+  INC $21
 : LDX #$00
   LDY #$00
   RTS
@@ -539,39 +537,39 @@ inf_9680:
 inf_9690:
   LDA #$FF
   STA ATTRIBUTE_DMA
-  INC $00
+  INC $20
   LDX #$00
   RTS
 
 inf_9700:
   INY
   INY
-  LDA $02
+  LDA $22
   PHA
-  STY $02
-  LDA ($00),Y
+  STY $22
+  LDA ($20),Y
   AND #$3F
   CLC
-  ADC $02
+  ADC $22
   INC
   TAY
   PLA
-  STA $02
+  STA $22
   JMP inf_9497
 
 inf_9720:
-  LDA $02
+  LDA $22
   PHA
-  STZ $02
-: LDA $00
+  STZ $22
+: LDA $20
   CMP #$A1
   BEQ :+
-  DEC $00
-  INC $02
+  DEC $20
+  INC $22
   BRA :-
-: LDY $02
+: LDY $22
   PLA
-  STA $02
+  STA $22
   JMP inf_9497
 
 ; this replaces EB21 in bank 2 so we can do more stuff in the main loop
@@ -616,7 +614,7 @@ copy_full_screen_attributes:
   LDA #$01
   STA ATTR_NES_HAS_VALUES
   PHY
-  JSL convert_nes_attributes_and_immediately_dma_them
+  jslb convert_nes_attributes_and_immediately_dma_them, $a0
   PLY
   LDA #$E0
   LDX #$00
