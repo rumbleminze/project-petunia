@@ -231,7 +231,7 @@ load_0x40_attributes_from_ram_for_pause:
   ; LDY #$00
   ; mute MSU
   .if ENABLE_MSU > 0
-    jslb stop_nsf, $e8
+    jslb stop_nsf, $b2
   .else
     LDX #$00
     LDY #$00

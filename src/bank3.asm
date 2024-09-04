@@ -276,13 +276,36 @@ nops 3 ;   LDA $2002
 .byte $42, $F8, $F8, $D6, $42, $00, $F8, $D5, $42, $08, $00, $D4, $42, $00, $00, $D3
 .byte $42, $08, $A2, $60, $A0, $00, $20, $DF, $8D, $A2, $70, $A0, $20, $20, $DF, $8D
 .byte $A2, $80, $A0, $40, $20, $DF, $8D, $A2, $90, $A0, $60, $20, $DF, $8D, $60, $20
-.byte $EC, $8D, $C8, $C8, $C8, $C8, $98, $29, $1F, $D0, $F4, $60, $B9, $9B, $76, $C9
-.byte $FF, $F0, $29, $CD, $30, $01, $D0, $23, $AD, $D1, $04, $D9, $9C, $76, $D0, $1B
+.byte $EC, $8D, $C8, $C8, $C8, $C8, $98, $29, $1F, $D0, $F4, $60
 
+;8DEC - platform logic
+  LDA LVL_PLATFORMS,Y
+  CMP #$FF
+  BEQ :++
+  CMP $0130
+  BNE :+
+  LDA $04D1
+  CMP LVL_PLATFORMS + 1,Y
+  BNE :+
+  LDA $FD
+  CMP LVL_PLATFORMS + 2,Y
+  BNE :+
+  LDA #$78
+  STA $0701,X
+  LDA #$0C
+  STA $0702,X
+  LDA #$00
+  STA $0700,X
+  LDA #$80
+  STA $0703,X
+: RTS
 
-; 8E00 - bank 3
-.byte $A5, $FD, $D9, $9D, $76, $D0, $14, $A9, $78, $9D, $01, $07, $A9, $0C, $9D, $02
-.byte $07, $A9, $00, $9D, $00, $07, $A9, $80, $9D, $03, $07, $60, $68, $68, $60, $A2
+: PLA
+  PLA
+  RTS
+
+; 8E1F - bank 3
+.byte $A2
 .byte $60, $20, $33, $8E, $A2, $70, $20, $33, $8E, $A2, $80, $20, $33, $8E, $A2, $90
 .byte $4C, $33, $8E, $BD, $01, $07, $29, $F8, $C9, $78, $D0, $20, $20, $49, $E0, $20
 .byte $E5, $85, $BD, $01, $07, $29, $07, $BD, $00, $07, $C9, $F8, $B0, $09, $20, $5D
@@ -652,10 +675,38 @@ nops 3 ;   LDA $2002
 
 
 .byte $20, $D6, $99, $A9, $06, $20, $90
-.byte $CA, $A0, $0F, $B9, $00, $05, $99, $E0, $06, $88, $10, $F7, $60, $A5, $5C, $09
-.byte $40, $85, $5C, $68, $68, $60, $20, $4E, $98, $A9, $00, $8D, $D2, $04, $AD, $30
-.byte $01, $0A, $A8, $B9, $2B, $77, $85, $00, $B9, $2C, $77, $85, $01, $AD, $D1, $04
-.byte $0A, $A8, $B1, $00, $85, $49, $C8, $B1, $00, $C9, $FF, $F0, $D0, $85, $4A, $20
+.byte $CA, $A0, $0F, $B9, $00, $05, $99, $E0, $06, $88, $10, $F7, $60
+
+w3_level_load_jump_loc:
+.byte $A5, $5C, $09
+.byte $40, $85, $5C, $68, $68, $60, $20, $4E, $98
+
+; World 3 level load
+  JMP $F400
+  ;LDA #$00
+  ;STA $04D2
+  nops 2
+
+  LDA $0130
+  ASL
+  TAY
+  LDA $772B,Y
+  STA $00
+  LDA $772C,Y
+  STA $01
+  LDA $04D1
+  ASL
+  TAY
+  LDA ($00),Y
+  STA $49
+  INY
+  LDA ($00),Y
+  CMP #$FF
+  BEQ w3_level_load_jump_loc
+  STA $4A
+
+; 99ff
+.byte $20
 
 
 ; 9A00 - bank 3
@@ -1423,11 +1474,39 @@ nops 3;    LDA PpuStatus_2002
 
 ; B800 - bank 3
 .byte $20, $66, $B8, $A9, $06, $20, $90
-.byte $CA, $A0, $0F, $B9, $00, $05, $99, $E0, $06, $88, $10, $F7, $60, $A5, $5C, $09
-.byte $40, $85, $5C, $68, $68, $60, $20, $F1, $B6, $A9, $00, $8D, $D2, $04, $AD, $30
-.byte $01, $0A, $A8, $B9, $7C, $BE, $85, $00, $B9, $7D, $BE, $85, $01, $AD, $D1, $04
-.byte $0A, $A8, $B1, $00, $85, $49, $C8, $B1, $00, $C9, $FF, $F0, $D0, $85, $4A, $20
-.byte $A2, $B8, $60, $AD, $D1, $04, $0A, $A8, $B9, $82, $BE, $85, $49, $B9, $83, $BE
+.byte $CA, $A0, $0F, $B9, $00, $05, $99, $E0, $06, $88, $10, $F7, $60
+
+last_screen_load_41:
+.byte $A5, $5C, $09
+.byte $40, $85, $5C, $68, $68, $60
+
+; level 4-1 load - b866
+  JSR $B6F1
+  jmp $F400
+  ; LDA #$00
+  ; STA $04D2
+  nops 2
+  LDA $0130
+  ASL
+  TAY
+  LDA $BE7C,Y
+  STA $00
+  LDA $BE7D,Y
+  STA $01
+  LDA $04D1
+  ASL
+  TAY
+  LDA ($00),Y
+  STA $49
+  INY
+  LDA ($00),Y
+  CMP #$FF
+  BEQ last_screen_load_41
+  STA $4A
+  JSR $B8A2
+  RTS
+
+.byte $AD, $D1, $04, $0A, $A8, $B9, $82, $BE, $85, $49, $B9, $83, $BE
 .byte $85, $4A, $20, $F7, $B6, $20, $D9, $B7, $20, $6B, $B9, $A0, $00, $B1, $49, $20
 .byte $78, $B9, $A0, $01, $B1, $49, $C9, $FD, $F0, $17, $85, $4D, $C8, $B1, $49, $85
 .byte $4E, $C8, $B1, $49, $85, $4F, $98, $48, $20, $D2, $B8, $68, $A8, $C8, $4C, $B4

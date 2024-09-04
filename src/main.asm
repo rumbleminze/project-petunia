@@ -11,7 +11,7 @@
 .segment "CODE"
 .include "resetvector.asm"
 
-.segment "EMPTY_SPACE"
+.segment "RO_SPACE"
 .include "2a03_emulator_first_8000.asm"
 .include "2a03_emulator_second_8000.asm"
 
@@ -26,6 +26,7 @@
 .if ENABLE_MSU > 0
      .include "bank_msu.asm"
 .endif
+.include "randomizer.asm"
 
 .include "base_tiles.asm"
 .include "title_screen_tiles.asm"

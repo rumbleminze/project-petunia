@@ -1556,7 +1556,7 @@ a038:
   TAY
 
   .if ENABLE_MSU > 0
-    jslb msu_check, $e8
+    jslb msu_check, $b2
     NOP
     NOP
   .else
@@ -1566,7 +1566,7 @@ a038:
   .endif
 :
   .if ENABLE_MSU > 0
-    jslb mute_nsf, $e8
+    jslb mute_nsf, $b2
     NOP
     NOP
   .else 

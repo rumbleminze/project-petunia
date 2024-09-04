@@ -267,10 +267,36 @@ nes_8139:
 .byte $4C, $CD, $C4, $A0, $52, $D0, $EE, $A0, $54, $D0, $EA, $A2, $60, $A0, $00, $20
 .byte $44, $8B, $A2, $70, $A0, $20, $20, $44, $8B, $A2, $80, $A0, $40, $20, $44, $8B
 .byte $A2, $90, $A0, $60, $20, $51, $8B, $C8, $C8, $C8, $C8, $98, $29, $1F, $D0, $F4
-.byte $60, $B9, $60, $7B, $C9, $FF, $F0, $29, $CD, $30, $01, $D0, $23, $AD, $D1, $04
-.byte $D9, $61, $7B, $D0, $1B, $A5, $FD, $D9, $62, $7B, $D0, $14, $A9, $78, $9D, $01
-.byte $07, $A9, $0C, $9D, $02, $07, $A9, $00, $9D, $00, $07, $A9, $80, $9D, $03, $07
-.byte $60, $68, $68, $60, $A2, $60, $20, $98, $8B, $A2, $70, $20, $98, $8B, $A2, $80
+.byte $60
+
+;8b51
+; Changes where we load platform information World 1
+; normally lvl_platforms is $7B60
+  LDA LVL_PLATFORMS,Y
+  CMP #$FF
+  BEQ :++
+  CMP $0130
+  BNE :+
+  LDA $04D1
+  CMP LVL_PLATFORMS+1,Y
+  BNE :+
+  LDA $FD
+  CMP LVL_PLATFORMS+2,Y
+  BNE :+
+  LDA #$78
+  STA $0701,X
+  LDA #$0C
+  STA $0702,X
+  LDA #$00
+  STA $0700,X
+  LDA #$80
+  STA $0703,X
+: RTS
+: PLA
+  PLA
+  RTS
+
+.byte $A2, $60, $20, $98, $8B, $A2, $70, $20, $98, $8B, $A2, $80
 .byte $20, $98, $8B, $A2, $90, $4C, $98, $8B, $BD, $01, $07, $29, $F8, $C9, $78, $D0
 .byte $20, $20, $49, $E0, $20, $0D, $86, $BD, $01, $07, $29, $07, $BD, $00, $07, $C9
 .byte $F8, $B0, $09, $20, $C2, $8B, $20, $C0, $DB, $4C, $EA, $8B, $A9, $00, $9D, $01
@@ -621,10 +647,37 @@ nes_8139:
 
 ; 9722 - bank 2
 .byte $20, $3F, $97, $A9, $06, $20, $90, $CA, $A0, $0F, $B9, $00, $05, $99
-.byte $E0, $06, $88, $10, $F7, $60, $A5, $5C, $09, $40, $85, $5C, $68, $68, $60, $20
-.byte $B7, $95, $A9, $00, $8D, $D2, $04, $AD, $30, $01, $0A, $A8, $B9, $F0, $7B, $85
-.byte $00, $B9, $F1, $7B, $85, $01, $AD, $D1, $04, $0A, $A8, $B1, $00, $85, $49, $C8
-.byte $B1, $00, $C9, $FF, $F0, $D0, $85, $4A, $20, $C2, $95, $20, $B4, $96, $4C, $8E
+.byte $E0, $06, $88, $10, $F7, $60
+
+:
+.byte $A5, $5C, $09, $40, $85, $5C, $68, $68, $60
+
+  JSR $95B7 
+  ; - moved to our hijack  
+standard_level_1_creation:
+  JMP $F400 ; @load_level_1
+  ; LDA #$00
+  ; STA $04D2
+  nops 2
+  LDA $0130
+  ASL
+  TAY
+  LDA $7BF0,Y
+  STA $00
+  LDA $7BF1,Y
+  STA $01
+  LDA $04D1
+  ASL
+  TAY
+  LDA ($00),Y
+  STA $49
+  INY
+  LDA ($00),Y
+  CMP #$FF
+  BEQ :-
+end_of_level_creation:
+
+.byte $85, $4A, $20, $C2, $95, $20, $B4, $96, $4C, $8E
 .byte $97, $AD, $D1, $04, $0A, $A8, $B9, $F6, $7B, $85, $49, $B9, $F7, $7B, $85, $4A
 .byte $A5, $3A, $C9, $10, $90, $E2, $A0, $00, $20, $C9, $95, $20, $BB, $96, $20, $68
 .byte $98, $A0, $00, $B1, $49, $20, $73, $98, $A0, $01, $B1, $49, $C9, $FD, $F0, $17
@@ -1045,10 +1098,35 @@ nes_9acd:
 .byte $69, $A5, $01, $85, $6A, $60, $A2, $60, $A0, $00, $20, $53, $A9, $A2, $70, $A0
 .byte $20, $20, $53, $A9, $A2, $80, $A0, $40, $20, $53, $A9, $A2, $90, $A0, $60, $20
 .byte $53, $A9, $60, $20, $60, $A9, $C8, $C8, $C8, $C8, $98, $29, $1F, $D0, $F4, $60
-.byte $B9, $B3, $BD, $C9, $FF, $F0, $29, $CD, $30, $01, $D0, $23, $AD, $D1, $04, $D9
-.byte $B4, $BD, $D0, $1B, $A5, $FE, $D9, $B5, $BD, $D0, $14, $A9, $78, $9D, $01, $07
-.byte $A9, $C0, $9D, $02, $07, $A9, $80, $9D, $00, $07, $A9, $F8, $9D, $03, $07, $60
-.byte $68, $68, $60, $A2, $60, $20, $A4, $A9, $A2, $70, $20, $A4, $A9, $A2, $80, $20
+
+;a960 - read platform info from elsewhere
+; if we're not randomized, we will have copied the default over at this location
+  LDA LVL_PLATFORMS,Y
+  CMP #$FF
+  BEQ :++
+  CMP $0130
+  BNE :+
+  LDA $04D1
+  CMP LVL_PLATFORMS + 1,Y
+  BNE :+
+  LDA $FE
+  CMP LVL_PLATFORMS + 2,Y
+  BNE :+
+  LDA #$78
+  STA $0701,X
+  LDA #$C0
+  STA $0702,X
+  LDA #$80
+  STA $0700,X
+  LDA #$F8
+  STA $0703,X
+: RTS
+
+: PLA
+  PLA
+  RTS
+
+.byte $A2, $60, $20, $A4, $A9, $A2, $70, $20, $A4, $A9, $A2, $80, $20
 .byte $A4, $A9, $A2, $90, $BD, $01, $07, $29, $F8, $C9, $78, $D0, $1B, $20, $49, $E0
 .byte $20, $17, $9F, $BD, $01, $07, $29, $07, $BD, $03, $07, $C9, $08, $90, $0A, $20
 .byte $CC, $A9, $20, $C0, $DB, $20, $F4, $A9, $60, $4C, $1D, $DD, $A9, $00, $9D, $04
@@ -1239,11 +1317,39 @@ nes_9acd:
 
 ; AE00 - bank 2
 .byte $20, $24, $AE, $A9, $06, $20, $90, $CA, $A0
-.byte $0F, $B9, $00, $05, $99, $E0, $06, $88, $10, $F7, $60, $A5, $5C, $09, $40, $85
-.byte $5C, $68, $68, $60, $20, $AF, $AC, $A9, $00, $8D, $D2, $04, $AD, $30, $01, $0A
-.byte $A8, $B9, $04, $BB, $85, $00, $B9, $05, $BB, $85, $01, $AD, $D1, $04, $0A, $A8
-.byte $B1, $00, $85, $49, $C8, $B1, $00, $C9, $FF, $F0, $D0, $85, $4A, $20, $60, $AE
-.byte $60, $AD, $D1, $04, $0A, $A8, $B9, $0A, $BB, $85, $49, $B9, $0B, $BB, $85, $4A
+.byte $0F, $B9, $00, $05, $99, $E0, $06, $88, $10, $F7, $60
+
+:
+.byte $A5, $5C, $09, $40, $85
+.byte $5C, $68, $68, $60, $20, $AF, $AC
+
+standard_level_2_creation:
+  JMP $F400
+  ; LDA #$00
+  ; STA $04D2
+  nops 2
+
+  LDA $0130
+  ASL
+  TAY
+  LDA $BB04,Y
+  STA $00
+  LDA $BB05,Y
+  STA $01
+  LDA $04D1
+  ASL
+  TAY
+  LDA ($00),Y
+  STA $49
+  INY
+  LDA ($00),Y
+  CMP #$FF
+  BEQ :-
+  STA $4A
+  JSR $AE60
+  RTS
+
+.byte $AD, $D1, $04, $0A, $A8, $B9, $0A, $BB, $85, $49, $B9, $0B, $BB, $85, $4A
 .byte $20, $B5, $AC, $20, $97, $AD, $20, $29, $AF, $A0, $00, $B1, $49, $20, $36, $AF
 .byte $A0, $01, $B1, $49, $C9, $FD, $F0, $17, $85, $4D, $C8, $B1, $49, $85, $4E, $C8
 .byte $B1, $49, $85, $4F, $98, $48, $20, $90, $AE, $68, $A8, $C8, $4C, $72, $AE, $60

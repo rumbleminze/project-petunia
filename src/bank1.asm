@@ -1161,10 +1161,11 @@ new_menu_options:
 ; ?, starting lb, #$20 / #$24 + for HB, length, characters
 .byte $04, $8C, $01, $05, $28, $29, $16, $27, $29
 .byte $04, $CC, $01, $08, $18, $24, $23, $29, $1E, $23, $2A, $1A
+.byte $04, $0C, $02, $06, $27, $16, $23, $19, $24, $0A
 
 .if DEBUG_MOD > 0
-.byte $04, $0C, $02, $09, $18, $1D, $1A, $16, $29, $12, $24, $1B, $1B
-.byte $04, $4C, $02, $03, $01, $0F, $01
+.byte $04, $4C, $02, $09, $18, $1D, $1A, $16, $29, $12, $24, $1B, $1B
+.byte $04, $8C, $02, $03, $01, $0F, $01
 .byte $00 ; end
 .else
 .byte $00 ; end
@@ -1172,7 +1173,7 @@ new_menu_options:
 
 
 menu_option_sprite_locations:
-.byte $60, $70, $80, $90, $50, $50, $50, $50
+.byte $60, $70, $80, $90, $A0, $50, $50, $50, $50, $50
 
 
 level_load_additions:
@@ -1283,11 +1284,11 @@ next_level:
   PHA
 
   LDA level_select_values + 3, Y
-  LDY #$4E
+  LDY #$8E
   LDX #$22 
   jslb add_extra_vram_update, $a0
 
-  LDY #$4C
+  LDY #$8C
   PLA
   jslb add_extra_vram_update, $a0
 
@@ -1313,11 +1314,11 @@ prev_level:
   PHA
 
   LDA level_select_values + 3, Y
-  LDY #$4E
+  LDY #$8E
   LDX #$22 
   jslb add_extra_vram_update, $a0
 
-  LDY #$4C
+  LDY #$8C
   PLA
   jslb add_extra_vram_update, $a0
 
@@ -1330,17 +1331,19 @@ title_screen_input:
   BNE :+
   LDA $B2
   CMP #$02
-  BEQ toggle_cheats
+  BEQ toggle_randomization
   CMP #$03
+  BEQ toggle_cheats
+  CMP #$04
   BNE :++
   BRA next_level 
 
 : CMP #$02
   BNE :+
   LDA $B2
-  CMP #$02
-  BEQ toggle_cheats
   CMP #$03
+  BEQ toggle_cheats
+  CMP #$04
   BNE :+
   BRA prev_level
 
@@ -1354,9 +1357,24 @@ title_screen_input:
   BCS start_pushed
   RTS
 
+toggle_randomization:
+  LDX #$22
+  LDY #$11
+
+  LDA RANDOMIZE_ENABLED
+  BEQ :+
+  STZ RANDOMIZE_ENABLED
+  LDA #$0A
+  BRA :++
+: INC RANDOMIZE_ENABLED
+  LDA #$0E
+: jslb add_extra_vram_update, $a0
+
+  RTS
+
 toggle_cheats:
   LDX #$22
-  LDY #$13
+  LDY #$53
 
   LDA CHEATS_ENABLED
   EOR #$01  
@@ -1369,7 +1387,7 @@ toggle_cheats:
 
   LDA #$12 ; space
   LDX #$22
-  LDY #$14 
+  LDY #$54 
   jslb add_extra_vram_update, $a0
 
   BRA :++
@@ -1378,7 +1396,7 @@ toggle_cheats:
 : LDA #$1B ; F
   jslb add_extra_vram_update, $a0
   LDX #$22
-  LDY #$14 
+  LDY #$54 
   jslb add_extra_vram_update, $a0
 
 : RTS
@@ -1396,9 +1414,9 @@ select_pushed:
   LDX $B2
 
 .if DEBUG_MOD > 0
-  CPX #$03
+  CPX #$04
 .else
-  CPX #$01
+  CPX #$02
 .endif
   
   BCC :+
@@ -1408,17 +1426,13 @@ select_pushed:
 : STX $B2
   LDA menu_option_sprite_locations,X
   STA $0230
-  LDA menu_option_sprite_locations + 4, X
+  LDA menu_option_sprite_locations + 5, X
   STA $0233
   RTS
 
-; AF00 - bank 1
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-
 
 ; B000 - bank 1
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $FF;, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF

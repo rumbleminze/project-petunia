@@ -180,7 +180,7 @@ initialize_registers:
 ;   STZ COL_ATTR_HAS_VALUES
 ;   STZ COLUMN_1_DMA
   JSL upload_sound_emulator_to_spc
-  JSL load_base_tiles
+  jslb load_base_tiles, $a0
   JSR do_intro
   JSR clearvm_to_12
 
@@ -213,7 +213,7 @@ initialize_registers:
 
 
   .if ENABLE_MSU > 0
-    jslb msu_nmi_check, $e8
+    jslb msu_nmi_check, $b2
   .endif 
   JSR dma_oam_table
   JSR disable_attribute_buffer_copy

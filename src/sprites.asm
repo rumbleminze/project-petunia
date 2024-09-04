@@ -8,19 +8,21 @@ translate_nes_sprites_to_oam:
     ; PHY
     ; PHB
 
-
 :   setXY16
 	LDY #$0000
 
 sprite_loop:	
-	; byte 1, Tile index
-	LDA $201, Y
-	STA SNES_OAM_START + 2, y
-	; beq empty_sprite
-
+	
 	; byte 0, Tile Y position
 	LDA $200,Y
 	STA SNES_OAM_START + 1, y
+	CMP #$F0
+	beq next_sprite
+
+	
+	; byte 1, Tile index
+	LDA $201, Y
+	STA SNES_OAM_START + 2, y	
 
 	; byte 3, Tile X Position
 	LDA $203, Y
@@ -37,17 +39,8 @@ sprite_loop:
 	EOR #%00110000
 	ORA SPRITE_LOOP_JUNK
 	; LDA #%00010010
-
 	STA SNES_OAM_START + 3, y
-	; bra next_sprite
-
-	; empty_sprite:
-	; sta SNES_OAM_START, y
-	; lda #$f8 
-	; sta SNES_OAM_START + 1, y
-	; lda #$38
-	; sta SNES_OAM_START + 3, y
-
+	
 	next_sprite:
 	INY
 	INY
@@ -58,6 +51,7 @@ sprite_loop:
 
   setAXY8
     STZ SNES_OAM_TRANSLATE_NEEDED
+	
 	rtl
 
 dma_oam_table:

@@ -571,11 +571,12 @@ nops 56
   PHA
 
   jslb reset_nmi_status, $a0
-
+  ; time to overwrite with randomizer
+  jsr @write_randomization_overrides
+  nops 4
   PLA
   RTS
   
-  nops 7
 
 
 ; CAF7
@@ -657,12 +658,56 @@ nops 19
 ; .byte $A5, $BE
 ; .byte $20, $7F, $C1, $20, $33, $7F, $20, $36, $7F, $20, $39, $7F, $20, $3C, $7F, $A9
 ; .byte $06, $4C, $7F, $C1, 
-.byte $A9, $02, $D0, $20, $A9, $04, $D0, $1C, $A9, $08, $D0, $18
-.byte $A5, $3A, $F0, $1F, $C9, $10, $90, $2E, $AC, $2F, $01, $A5, $46, $D9, $90, $CB
-.byte $F0, $0A, $C9, $1B, $D0, $05, $A9, $40, $8D, $85, $03, $60, $A9, $20, $D0, $F8
-.byte $37, $2E, $07, $AD, $2F, $01, $C9, $01, $F0, $CA, $C9, $02, $F0, $CA, $C9, $03
-.byte $F0, $CA, $A9, $01, $D0, $E2, $A4, $3B, $C0, $22, $F0, $E0, $C0, $23, $F0, $DC
-.byte $A9, $01, $8D, $80, $03, $60, $20, $09, $7F, $A2, $20, $BD, $01, $07, $10, $7A
+
+@fixedCB64:
+  LDA #$02
+  BNE :+
+  LDA #$04
+  BNE :+
+  LDA #$08
+  BNE :+
+  LDA $3A
+  BEQ @fixedCB93
+  CMP #$10
+  BCC @fixedCBA6
+  LDY $012F
+  LDA $46
+  CMP BOSS_MUSIC_ROOM,Y
+  BEQ @fixedCB8C
+  CMP #$1B
+  BNE :++
+  LDA #$40
+: STA $0385
+: RTS
+
+
+; cb8c
+@fixedCB8C:
+  LDA #$20
+  BNE :--
+@fixedCB90:
+  .byte $37, $2E, $07
+@fixedCB93:
+  LDA $012F
+  CMP #$01
+  BEQ @fixedCB64
+  CMP #$02
+  BEQ @fixedCB64 + 4
+  CMP #$03
+  BEQ @fixedCB64 + 8
+  LDA #$01
+  BNE :--
+@fixedCBA6:
+  LDY $3B
+  CPY #$22
+  BEQ @fixedCB8C
+  CPY #$23
+  BEQ @fixedCB8C
+  LDA #$01
+  STA $0380
+  RTS
+
+.byte $20, $09, $7F, $A2, $20, $BD, $01, $07, $10, $7A
 .byte $29, $70, $F0, $03, $4C, $54, $CC, $BD, $00, $07, $C9, $E8, $90, $03, $4C, $7B
 .byte $CC, $C9, $10, $B0, $05, $A9, $10, $9D, $00, $07, $20, $B8, $DF, $20, $AB, $E0
 .byte $20, $B3, $CC, $BD, $01, $07, $29, $0F, $20, $2B, $EE, $F9, $CC, $F9, $CC, $F9
@@ -2069,80 +2114,282 @@ RTS
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
 
-; F400 - bank 7
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $EE, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $EC, $F7, $FF, $AA, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FB, $F7, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $F6, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FD, $FF, $FF, $FE, $2F, $31, $4D, $FF, $AE, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $7F, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $7F, $F4, $ED, $DF, $FF, $BB, $FF, $FF
-.byte $FF, $FF, $FF, $FB, $FF, $FF, $FF, $FB, $FF, $FF, $FF, $F7, $FF, $FE, $FF, $FF
-.byte $FF, $FF, $EF, $FF, $FF, $FE, $FF, $FF, $9B, $3D, $E1, $50, $FF, $AA, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FE, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $EF, $FF, $FF, $FF, $F9, $EE, $F4, $FF, $FA, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $DF, $FF, $BF, $FF, $FF, $FF, $FE, $DD, $FF, $FE, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $BF, $EC, $70, $E9, $FF, $AA, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $EF, $EF, $FF, $FF, $FA, $FF, $FF
+; F400 - bank 7 - randomization subroutines
+@randomize_level:
+  LDA CURRENT_WORLD
+  DEC
+  DEC
+  BEQ @load_level_1
+  DEC
+  DEC
+  BEQ @load_level_2
+  DEC
+  DEC
+  BEQ @load_level_3
+  JMP @load_level_4
+
+@load_level_1:
+  ; original code
+  LDA #$00
+  STA $04D2
+  ; check if we're randomizing
+  LDA RANDOMIZE_ENABLED
+  BNE :+
+  jslb copy_default_platform_data_w1, $a8
+  JMP $9745 ; standard_level_1_creation
+: LDA #.lobyte(world_1_screen_data)
+  STA PARAM_RULES_FP_LB
+
+  LDA #.hibyte(world_1_screen_data)
+  STA PARAM_RULES_FP_HB
+
+  LDA #.hibyte(w1_item_locations)
+  STA PARAM_ITEM_LOCS_HB
+
+  LDA #.lobyte(w1_item_locations)
+  STA PARAM_ITEM_LOCS_LB
+
+  LDA #LVL_1_1_SIZE
+  STA LVL_GEN_PARAM_SIZE
+
+  LDA #.lobyte(ENEMY_TABLE)
+  STA PARAM_ENEMY_TABLE1_LB
+
+  jslb scrolling_randomization, $a8
+  JMP $9766
+
+@load_level_2:
+  ; original code
+  LDA #$00
+  STA $04D2
+  ; check if we're randomizing
+  LDA RANDOMIZE_ENABLED
+  BNE :+  
+  jslb copy_default_platform_data_w2, $a8
+  JMP $AE2C
+: LDA #<world_2_screen_data
+  STA PARAM_RULES_FP_LB
+
+  LDA #>world_2_screen_data
+  STA PARAM_RULES_FP_HB
+
+  LDA #>w2_item_locations
+  STA PARAM_ITEM_LOCS_HB
+
+  LDA #<w2_item_locations
+  STA PARAM_ITEM_LOCS_LB
+
+  LDA #LVL_2_1_SIZE
+  STA LVL_GEN_PARAM_SIZE
+
+  LDA #.lobyte(ENEMY_TABLE_W2)
+  STA PARAM_ENEMY_TABLE1_LB
+
+  jslb scrolling_randomization, $a8
+  JSR @write_randomization_overrides
+  JMP $AE47
+
+@load_level_3:
+; original code
+  LDA #$00
+  STA $04D2
+  ; check if we're randomizing
+  LDA RANDOMIZE_ENABLED
+  BNE :+  
+  jslb copy_default_platform_data_w3, $a8
+  JMP $99DE
+: LDA #<world_3_screen_data
+  STA PARAM_RULES_FP_LB
+
+  LDA #>world_3_screen_data
+  STA PARAM_RULES_FP_HB
+
+  LDA #>w3_item_locations
+  STA PARAM_ITEM_LOCS_HB
+
+  LDA #<w3_item_locations
+  STA PARAM_ITEM_LOCS_LB
+
+  LDA #LVL_3_1_SIZE
+  STA LVL_GEN_PARAM_SIZE
+
+  LDA #.lobyte(ENEMY_TABLE_W3)
+  STA PARAM_ENEMY_TABLE1_LB
+
+  jslb scrolling_randomization, $a8
+  JSR @write_randomization_overrides
+  JMP $99F9
+
+@load_level_4:
+; original code
+  LDA #$00
+  STA $04D2
+  ; check if we're randomizing
+  LDA RANDOMIZE_ENABLED
+  BNE :+  
+  JMP $B86E
+: jslb world_4_randomizer, $a8
+  ; JSR @write_randomization_overrides
+  JMP $B889
+
+; .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $EE, $FF, $FF
+; .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $EC, $F7, $FF, $AA, $FF, $FF
+; .byte $FF, $FF, $FF, $FF, $FB, $F7, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $F6, $FF, $FF
+; .byte $FF, $FF, $FF, $FF, $FF, $FD, $FF, $FF, $FE, $2F, $31, $4D, $FF, $AE, $FF, $FF
+; .byte $FF, $FF, $FF, $FF, $FF, $7F, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+; .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $7F, $F4, $ED, $DF, $FF, $BB, $FF, $FF
+; .byte $FF, $FF, $FF, $FB, $FF, $FF, $FF, $FB, $FF, $FF, $FF, $F7, $FF, $FE, $FF, $FF
+; .byte $FF, $FF, $EF, $FF, $FF, $FE, $FF, $FF, $9B, $3D, $E1, $50, $FF, $AA, $FF, $FF
+; .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FE, $FF, $FF
+; .byte $FF, $FF, $FF, $FF, $FF, $EF, $FF, $FF, $FF, $F9, $EE, $F4, $FF, $FA, $FF, $FF
+; .byte $FF, $FF, $FF, $FF, $DF, $FF, $BF, $FF, $FF, $FF, $FE, $DD, $FF, $FE, $FF, $FF
+; .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $BF, $EC, $70, $E9, $FF, $AA, $FF, $FF
+.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF;, $FF, $FF, $EF, $EF, $FF, $FF, $FA, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $AB, $F5, $ED, $FD, $FF, $AA, $FF, $FF
 .byte $FF, $7F, $FF, $FF, $FF, $FF, $FF, $FF, $7F, $FD, $FF, $FF, $FF, $FA, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FE, $FF, $FF, $EE, $5A, $DA, $C0, $FF, $AA, $FF, $FF
 
 
-; F500 - bank 7
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $10, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+; F500 - bank 7 - Randomizer Enemy load tables
+@write_randomization_overrides:
+  pha
+  LDA CURRENT_SCREEN ; on do these on the first screen load
+  BNE :+
+  LDA RANDOMIZE_ENABLED
+  BNE :++
+: PLA
+  RTS
+: LDA CURRENT_WORLD
+  CMP #$08
+  BEQ :--
+
+  phy
+  phx
+
+  ; back up current values  
+  LDA $00
+  PHA
+  LDA $01
+  PHA
+  LDA $02
+  PHA
+  LDA $03
+  PHA
+
+  LDY CURRENT_WORLD
+  
+  LDA #<(@randomization_overrides)
+  STA $00
+  INY
+
+  LDA #>(@randomization_overrides)
+  STA $01
+
+@next_data_overwrite_set:
+  LDY #$00
+  ; target LB
+  LDA ($00), Y
+  STA $02
+  ; target HB
+  CLC
+  INC $00
+  BCC :+
+  INC $01
+: LDA ($00), Y
+  STA $03
+
+  ; size
+  INC $00
+  BCC :+
+  INC $01
+: LDA ($00), Y
+  BEQ @done_write_randomization_override_sets
+  TAX
+
+  INC $00
+  BCC :+
+  INC $01
+: 
+  ; read/write data
+  LDA ($00), y
+  STA ($02), y  
+  INY
+  DEX
+  BNE :-
+
+  TYA
+  CLC
+  ADC $00
+  STA $00
+  BCC :+
+  INC $01
+: BRA @next_data_overwrite_set
+
+@done_write_randomization_override_sets:
+; items
+  LDA LVL_ITEM_COUNT
+  STA $7E07
+  BEQ :++
+  ; x4
+  ASL
+  ASL
+  TAX
+  LDY #$00
+: LDA LVL_ITEM_COUNT + 1, Y
+  STA $7E08, Y
+  INY
+  DEX
+  BNE :-
+:
+@exit_overwrites:
+  PLA
+  STA $03
+  PLA
+  STA $02
+  PLA 
+  STA $01
+  PLA
+  STA $00
+  PLX
+  PLY
+  PLA
+  RTS
+ 
+@randomization_overrides:
+; enemy table 1
+.byte $D0, $7C, $06, $80, $61, $80, $61, $80, $61
+; enemy table 2
+.byte $07, $7D, $04, $0B, $7D, $0B, $7D
+; platform reads that we ignore
+.byte $0B, $7D, $2F
+repeat $00, $2F
+
+; other stuff 
+; Enemy Table 3
+.byte $3A, $7D, $06, $A0, $61, $A0, $61, $A0, $61
+; enemy table 4
+.byte $6F, $7D, $21, $C0, $61, $C0, $61, $C0, $61
+; enemy positions
+.byte $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38
+.byte $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38
+
+; Doors
+.byte $56, $7F, $02, $00, $61
+; end
+.byte $FF, $FF, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $6F, $2A
 
-
 ; F600 - bank 7
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $F7, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FE, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $F7, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $BF, $FF, $FF
-
+repeat $FF, ($40 - 7)
+repeat $FF, $40
+repeat $FF, $40
+repeat $FF, $40
 
 ; F700 - bank 7
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+repeat $00, $40
+repeat $00, $40
+repeat $00, $40
+repeat $00, $40
 
 
 ; F800 - bank 7
