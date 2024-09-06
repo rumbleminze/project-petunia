@@ -341,10 +341,31 @@ RTS
 .byte $AD, $EB
 .byte $04, $C9, $05, $B0, $28, $A5, $71, $F0, $24, $A5, $70, $F0, $20, $AE, $2F, $01
 .byte $E0, $03, $90, $02, $A2, $02, $AD, $52, $01, $C9, $05, $90, $02, $A9, $04, $18
-.byte $7D, $F0, $8F, $AA, $BD, $BA, $EF, $18, $69, $01, $8D, $EC, $04, $60, $A2, $00
-.byte $AD, $EB, $04, $C9, $05, $B0, $1B, $BD, $EE, $04, $38, $E9, $05, $A8, $B9, $E9
-.byte $8F, $18, $6D, $EC, $04, $A8, $B9, $A2, $EF, $9D, $F1, $04, $E8, $E0, $03, $90
-.byte $E6, $60, $BD, $3E, $01, $30, $06, $BD, $B4, $EF, $4C, $E0, $8F, $BD, $B7, $EF
+.byte $7D, $F0, $8F, $AA, $BD, $BA, $EF, $18, $69, $01, $8D, $EC, $04, $60
+
+; 8FAE - shop price loading
+  LDX #$00
+  LDA $04EB
+  CMP #$05
+  BCS black_market_price_load
+  JMP shop_price_load_new
+  nops 24
+; : LDA $04EE,X
+;   SEC
+;   SBC #$05
+;   TAY
+;   LDA $8FE9,Y
+;   CLC
+;   ADC $04EC
+;   TAY
+;   LDA $EFA2,Y
+;   STA $04F1,X
+;   INX
+;   CPX #$03
+;   BCC :-
+;   RTS
+black_market_price_load:
+.byte $BD, $3E, $01, $30, $06, $BD, $B4, $EF, $4C, $E0, $8F, $BD, $B7, $EF
 .byte $9D, $F1, $04, $E8, $E0, $03, $90, $EA, $60, $00, $03, $06, $09, $0C, $0F, $12
 .byte $00, $05, $0A, $0F, $A5, $3A, $20, $2B, $EE, $90, $80, $F7, $E0, $6F, $80, $83
 
@@ -592,19 +613,38 @@ nes_95BD:
   STX $04E2
   RTS
 
-.byte $AD, $E2, $04, $F0, $26, $30, $24, $EE, $E3, $04, $AD, $E3
-.byte $04, $29
 
-; text delay
-; .byte $07
-.byte $01
+write_text:
+  LDA $04E2
+  BEQ :++
+  BMI :++
+  
+  jsr text_delay
+  ; INC $04E3
+  ; LDA $04E3
+  ; ; text delay
+  ; AND #$01
+  nops 5
 
-.byte $D0, $1A, $AC, $E4, $04, $D0, $03, $20, $A1, $96, $20, $CC, $96
-.byte $C9, $FC, $B0, $0C, $20, $EC, $96, $EE, $E4, $04, $A9, $01, $8D, $81, $03, $60
-
-
+  BNE :++
+  LDY $04E4
+  BNE :+
+  JSR $96A1
+: JSR $96CC
+  CMP #$FC
+  BCS :++
+  JSR $96EC
+  INC $04E4
+  LDA #$01
+  STA $0381
+: RTS
+:
+  BNE :+
+  JSR $961A
+  RTS
+:
 ; 9600 - bank 6
-.byte $D0, $04, $20, $1A, $96, $60, $C9, $FD, $D0, $03, $4C, $42, $96, $C9, $FE, $D0
+.byte $C9, $FD, $D0, $03, $4C, $42, $96, $C9, $FE, $D0
 .byte $06, $20, $65, $96, $4C, $ED, $95, $4C, $8A, $96, $AD, $E5, $04, $D0, $0C, $EE
 .byte $E4, $04, $20, $CC, $96, $8D, $E6, $04, $CE, $E4, $04, $EE, $E5, $04, $AD, $E5
 .byte $04, $CD, $E6, $04, $90, $0B, $A9, $00, $8D, $E5, $04, $8D, $E6, $04, $EE, $E4
@@ -1481,23 +1521,56 @@ repeat $00, 64
 
 
 ; BD00 - bank 6
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+.DEFINE ORIGINAL_PRICES $EFA2
+rando_prices:
+.byte $04, $02, $05 ; chalice, discount, increased
+.byte $16, $10, $24 ; bottle, discount, increased
+.byte $01, $01, $02 ; hammer, discount, increased
+.byte $12, $07, $20 ; feather
+.byte $99, $99, $99 ; torch
+.byte $99, $99, $99 ; pencil
 
+shop_price_load_new:
+: LDA $04EE,X
+  SEC
+  SBC #$05
+  TAY
+  LDA $8FE9,Y
+  CLC
+  ADC $04EC
+  TAY
+
+  LDA RANDOMIZE_ENABLED
+  BEQ :+
+  LDA rando_prices, Y
+  BRA :++
+: LDA ORIGINAL_PRICES,Y
+: STA $04F1,X
+
+  INX
+  CPX #$03
+  BCC :---
+  RTS
+
+
+text_delay:
+  INC $04E3
+  LDA RANDOMIZE_ENABLED
+  BEQ :+
+  ; speedy text
+  LDA $04E3
+  ; text delay
+  AND #$01
+  RTS
+  ; slow text
+: LDA $04E3
+  AND #$07
+  RTS
+
+; repeat $00, 64
+repeat $00, 53
+repeat $00, 64
+repeat $00, 64
 
 ; BE00 - bank 6
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF

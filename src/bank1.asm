@@ -959,12 +959,14 @@ return_to_level_load:
 .byte $A9, $00, $85, $B2, $60
 
 ; a770 - defines where our menu options are read from
-  LDA #<new_menu_options ; #$CB
-  STA $08
-  LDA #>new_menu_options
-  STA $09
-  JSR $E7CB
-  RTS
+  jmp load_menu_options
+  nops 9
+  ; LDA #<new_menu_options ; #$CB
+  ; STA $08
+  ; LDA #>new_menu_options
+  ; STA $09
+  ; JSR $E7CB
+  ; RTS
 
   JSR $E3F9
   JMP $A782
@@ -1161,15 +1163,15 @@ new_menu_options:
 ; ?, starting lb, #$20 / #$24 + for HB, length, characters
 .byte $04, $8C, $01, $05, $28, $29, $16, $27, $29
 .byte $04, $CC, $01, $08, $18, $24, $23, $29, $1E, $23, $2A, $1A
-.byte $04, $0C, $02, $06, $27, $16, $23, $19, $24, $0A
+.byte $04, $0C, $02, $09, $27, $16, $23, $19, $24, $12, $3E, $35, $35
 
-.if DEBUG_MOD > 0
-.byte $04, $4C, $02, $09, $18, $1D, $1A, $16, $29, $12, $24, $1B, $1B
+; .if DEBUG_MOD > 0
+.byte $04, $4C, $02, $09, $18, $1D, $1A, $16, $29, $12, $3E, $35, $35
 .byte $04, $8C, $02, $03, $01, $0F, $01
 .byte $00 ; end
-.else
-.byte $00 ; end
-.endif
+; .else
+; .byte $00 ; end
+; .endif
 
 
 menu_option_sprite_locations:
@@ -1324,8 +1326,112 @@ prev_level:
 
   rts
 
+; konami code data
+CODE_INDEX  = $0820
+JOYPAD1     = $0822
+JOYTRIGGER1 = $0824
+JOYHELD1    = $0826
+buttons     = $0828
+KONAMI_CODE_ENABLED = $082A
+OPTIONS_HIDDEN = $082C
+
+UP_BUTTON       = $08
+DOWN_BUTTON     = $04
+LEFT_BUTTON     = $02
+RIGHT_BUTTON    = $01
+
+A_BUTTON        = $80
+B_BUTTON        = $40
+START_BUTTON    = $10
+SELECT_BUTTON   = $20
+
+CURR_GAME_INPUT = $F6
+
+code_values:
+.byte UP_BUTTON, UP_BUTTON, DOWN_BUTTON, DOWN_BUTTON
+.byte LEFT_BUTTON, RIGHT_BUTTON, LEFT_BUTTON, RIGHT_BUTTON
+.byte B_BUTTON, A_BUTTON
+.byte $FF
+
+check_for_code_input:
+    lda CURR_GAME_INPUT
+    beq :++
+    sta JOYTRIGGER1
+    lda CODE_INDEX
+    tay
+
+    lda code_values, y
+    cmp JOYTRIGGER1
+    beq :+
+    stz CODE_INDEX
+    bra :++
+    ; correct input
+:   INY
+    INC CODE_INDEX
+    LDA code_values, y
+    CMP #$FF
+    BNE :+
+    jsr code_effect
+
+:   
+    rts
+
+code_effect:
+  LDA #$01
+  STA KONAMI_CODE_ENABLED
+  phy
+  LDY #$08
+  jsr update_cheat_options_palette_to_y
+  ply
+  rts
+
+hide_cheat_options:
+  LDY #$10
+  jsr update_cheat_options_palette_to_y
+  rts
+
+update_cheat_options_palette_to_y:
+  LDA #$22
+  STA VMADDH
+  LDA #$4C
+  STA VMADDL
+
+  LDA #$80
+  STA VMAIN
+
+  TYA
+  STA VMDATAH
+  STA VMDATAH
+  STA VMDATAH
+  STA VMDATAH
+  STA VMDATAH
+  STA VMDATAH
+  STA VMDATAH
+  STA VMDATAH
+  STA VMDATAH
+
+  LDA #$22
+  STA VMADDH
+  LDA #$8C
+  STA VMADDL
+
+  TYA
+  STA VMDATAH
+  STA VMDATAH
+  STA VMDATAH
+
+  jslb reset_vmain_to_stored_state, $a0
+
+  rts
+
 
 title_screen_input:
+  lda OPTIONS_HIDDEN
+  bne :+
+  jsr hide_cheat_options
+  inc OPTIONS_HIDDEN
+:
+  jsr check_for_code_input
   LDA $F6
   CMP #$01
   BNE :+
@@ -1336,7 +1442,7 @@ title_screen_input:
   BEQ toggle_cheats
   CMP #$04
   BNE :++
-  BRA next_level 
+  JMP next_level 
 
 : CMP #$02
   BNE :+
@@ -1345,7 +1451,7 @@ title_screen_input:
   BEQ toggle_cheats
   CMP #$04
   BNE :+
-  BRA prev_level
+  JMP prev_level
 
 : ASL  
   ASL
@@ -1359,16 +1465,28 @@ title_screen_input:
 
 toggle_randomization:
   LDX #$22
-  LDY #$11
+  LDY #$13
 
   LDA RANDOMIZE_ENABLED
   BEQ :+
   STZ RANDOMIZE_ENABLED
-  LDA #$0A
+  LDA #$35
+  jslb add_extra_vram_update, $a0
+
+  LDX #$22
+  LDY #$14
+  jslb add_extra_vram_update, $a0
   BRA :++
+
 : INC RANDOMIZE_ENABLED
-  LDA #$0E
-: jslb add_extra_vram_update, $a0
+  LDA #$3D
+  jslb add_extra_vram_update, $a0
+
+  LDX #$22
+  LDY #$14
+  LDA #$12
+  jslb add_extra_vram_update, $a0
+: 
 
   RTS
 
@@ -1382,7 +1500,7 @@ toggle_cheats:
   BEQ :+
   ; switch to ON_
 
-  LDA #$23 ; N
+  LDA #$3d ; N
   jslb add_extra_vram_update, $a0
 
   LDA #$12 ; space
@@ -1393,7 +1511,7 @@ toggle_cheats:
   BRA :++
 
   ; switch to OFF
-: LDA #$1B ; F
+: LDA #$35 ; F
   jslb add_extra_vram_update, $a0
   LDX #$22
   LDY #$54 
@@ -1410,45 +1528,48 @@ start_pushed:
   STA $B1
   RTS
 
-select_pushed:
+select_pushed_wcheats:
   LDX $B2
-
-.if DEBUG_MOD > 0
   CPX #$04
-.else
-  CPX #$02
-.endif
-  
   BCC :+
   LDX #$00
-  BEQ :++
+  BRA update_sprite_locations
 : INX
-: STX $B2
+  BRA update_sprite_locations
+
+select_pushed:
+  LDA KONAMI_CODE_ENABLED
+  BNE select_pushed_wcheats
+
+  LDX $B2
+  CPX #$02
+  BCC :+
+  LDX #$00
+  BRA update_sprite_locations
+: INX
+
+update_sprite_locations:
+  STX $B2
   LDA menu_option_sprite_locations,X
   STA $0230
   LDA menu_option_sprite_locations + 5, X
   STA $0233
   RTS
 
+load_menu_options:
+  LDA #<new_menu_options ; #$CB
+  STA $08
+  LDA #>new_menu_options
+  STA $09
+  JSR $E7CB
+  jsr hide_cheat_options
+  RTS
 
 ; B000 - bank 1
-.byte $FF;, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-
+; repeat $FF, $40
+; repeat $FF, $40
+; repeat $FF, 64
+repeat $FF, (64-34)
 
 ; B100 - bank 1
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00

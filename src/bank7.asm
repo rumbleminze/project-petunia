@@ -2156,7 +2156,7 @@ RTS
   STA PARAM_ENEMY_TABLE1_LB
 
   jslb scrolling_randomization, $a8
-  JMP $9766
+  JMP $9762
 
 @load_level_2:
   ; original code
