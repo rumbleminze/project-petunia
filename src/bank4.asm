@@ -1409,6 +1409,7 @@ a038:
 .byte $8D, $8B, $03, $8D, $8C, $03, $8D, $8D, $03, $60
 
 ; A35A - sound stuff, I've changed the writes from $40__ to $0A__
+; needs to mute MSU if it's playing
   LDA #$10
   STA $0A00
   STA $0A04
@@ -1554,31 +1555,11 @@ a038:
   STA $038D
   LDA $0350
   TAY
+  LDA $ABAB,Y
 
-  .if ENABLE_MSU > 0
-    jslb msu_check, $b2
-    NOP
-    NOP
-  .else
-    LDA $ABAB,Y
-    TAY
-    LDX #$00
-  .endif
-:
-  .if ENABLE_MSU > 0
-    jslb mute_nsf, $b2
-    NOP
-    NOP
-  .else 
-    LDA $AC88,Y
-    STA $032B,X
-  .endif
+  jsr queue_track
+  nops 13
 
-  INY
-  INX
-  TXA
-  CMP #$0D
-  BNE :-
   LDA #$01
   STA $0340
   STA $0341
@@ -2051,19 +2032,61 @@ load_0x40_attributes_from_ram_for_ending:
 
   RTS  
 
-.byte $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $7F, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $BF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+local_msu_check:
+  jslb msu_check, $b2
+  rts
 
+local_mute_nsf:
+  jslb mute_nsf, $b2
+  rts
+
+queue_track:
+
+  .if ENABLE_MSU > 0
+  
+    ; msu_check returns NSF_STOP if we will play MSU for this track
+    PHA
+    jsr local_msu_check
+    CMP #$EE
+    BNE fallback
+    jsr local_mute_nsf
+    PLA
+    rts
+
+fallback:
+    PLA ; get the original value back
+    TAY
+    LDX #$00
+  : LDA $AC88,Y
+    STA $032B,X
+    INY
+    INX
+    TXA
+    CMP #$0D
+    BNE :-
+    rts
+
+  .else
+    ; non msu version
+    TAY
+    LDX #$00
+  : LDA $AC88,Y
+    STA $032B,X
+    INY
+    INX
+    TXA
+    CMP #$0D
+    BNE :-
+    rts
+    
+    nops 100 ; not right but needs to be adjusted down
+    
+  .endif
+
+
+repeat $FF, 10
+repeat $FF, 64
+repeat $FF, 64
 
 ; BD00 - bank 4
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00

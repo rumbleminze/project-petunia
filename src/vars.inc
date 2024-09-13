@@ -1,7 +1,7 @@
 ; set to 1 to enable debug cheats
 .define DEBUG_MOD 1
-.define ENABLE_MSU 0
-
+.define ENABLE_MSU 1
+.define ENABLE_MSU_MOVIE 0
 
 ; Value determines where we're at
 ; 00 - title screen
@@ -35,6 +35,7 @@ REUSABLE_CALC_BYTE  = $0808
 LEVEL_SELECT_INDEX  = $0809
 CHEATS_ENABLED      = $080A
 RANDOMIZE_ENABLED   = $080B
+.DEFINE MSU_SELECTED    $081C
 CURRENT_ATTRIBUTES  = $03B0
 
 ; mostly actual nes stuff above

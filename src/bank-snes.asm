@@ -135,7 +135,7 @@ initialize_registers:
   jslb zero_all_palette, $a0
 
   STA OBSEL
-  LDA #$11
+  LDA #$61
   STA BG12NBA
   LDA #$77
   STA BG34NBA
@@ -181,9 +181,29 @@ initialize_registers:
 ;   STZ COLUMN_1_DMA
   JSL upload_sound_emulator_to_spc
   jslb load_base_tiles, $a0
+  ; jslb poc_bg2, $ab
   JSR do_intro
-  JSR clearvm_to_12
 
+  .if ENABLE_MSU > 0
+  LDA $2002
+  CMP #$53
+  BNE :+
+  jslb check_for_all_tracks_present, $b2
+  ; jslb do_intro, $b2
+  :
+  .endif
+
+  JSR clearvm_to_12
+  .if ENABLE_MSU = 1
+    STZ $2000
+    STZ $2002
+    STZ $2003
+    STZ $2004
+    STZ $2005
+    STZ $2006
+    STZ $2007
+
+  .endif
   LDA #$A1
   PHA
   PLB 
@@ -192,6 +212,13 @@ initialize_registers:
 
   snes_nmi:
     LDA RDNMI
+    .if ENABLE_MSU = 1
+        ; LDA #$FF
+        ; :		; check msu ready status (required for sd2snes hardware compatibility)
+        ;   bit $2000
+        ;   bvs :-
+        jslb msu_nmi_check, $b2
+    .endif
     jslb update_values_for_ppu_mask, $a0
     jslb infidelitys_scroll_handling, $a0
     jslb setup_hdma, $a0
@@ -211,10 +238,6 @@ initialize_registers:
   LDA #%00001000
   STA HDMAEN
 
-
-  .if ENABLE_MSU > 0
-    jslb msu_nmi_check, $b2
-  .endif 
   JSR dma_oam_table
   JSR disable_attribute_buffer_copy
   JSR check_and_copy_attribute_buffer

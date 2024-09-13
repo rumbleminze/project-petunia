@@ -24,10 +24,11 @@
 .include "bank5.asm"
 .include "bank6.asm"
 .if ENABLE_MSU > 0
-     .include "bank_msu.asm"
+     .include "msu.asm"
 .endif
 .include "randomizer.asm"
 
 .include "base_tiles.asm"
 .include "title_screen_tiles.asm"
 .include "level_specific_tiles.asm"
+; .include "backgrounds.asm"
