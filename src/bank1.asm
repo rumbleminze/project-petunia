@@ -768,13 +768,13 @@ return_to_level_load:
 ; I've subtracted 0x400 from anything with a VMH addr > 23, since
 ; our 2nd BG page is 2400 instead of 2800
 .byte $E7, $21, $E8, $A2, $12
-.byte $C0, $2B, $FA, $A2, $40 ; attributes
+.byte $C0, $27, $FA, $A2, $40 ; attributes
 .byte $35, $24, $3A, $A3, $04
 .byte $53, $24, $3E, $A3, $08
 .byte $72, $24, $4B, $A3, $0E
 .byte $80, $24, $59, $A3, $20
 .byte $A0, $24, $79, $A3, $20
-.byte $C0, $24, $99, $A3, $05 ; also attributes, but smaller because it's just 'push start button'
+.byte $C0, $24, $99, $A3, $05
 .byte $E0, $24, $9E, $A3, $04
 .byte $00, $25, $A2, $A3, $80
 .byte $80, $25, $22, $A4, $80

@@ -135,7 +135,7 @@ initialize_registers:
   jslb zero_all_palette, $a0
 
   STA OBSEL
-  LDA #$61
+  LDA #$31
   STA BG12NBA
   LDA #$77
   STA BG34NBA
@@ -158,6 +158,7 @@ initialize_registers:
   STA WOBJSEL
   
   lda #%00010001
+  STA TM_STATE
   STA TM
   LDA #$01
   STA MEMSEL
@@ -182,6 +183,9 @@ initialize_registers:
   JSL upload_sound_emulator_to_spc
   jslb load_base_tiles, $a0
   ; jslb poc_bg2, $ab
+  jslb setup_bg2, $ab
+  ; jslb load_background_a, $ab
+  jslb disable_bg2, $ab
   JSR do_intro
 
   .if ENABLE_MSU > 0
@@ -222,6 +226,7 @@ initialize_registers:
     jslb update_values_for_ppu_mask, $a0
     jslb infidelitys_scroll_handling, $a0
     jslb setup_hdma, $a0
+    jslb handle_bg2_paralax, $ab
 
   LDA #$7E
   STA A1B3
@@ -290,7 +295,7 @@ clearvm_to_12:
 	:
 		sta VMDATAL
 		iny
-		CPY #(32*64)
+		CPY #(32*64 - 1)
 		BNE :-
   
   setAXY8

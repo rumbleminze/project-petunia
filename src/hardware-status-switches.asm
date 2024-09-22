@@ -34,6 +34,16 @@ set_ppu_mask_to_stored_value:
     RTL
 
 set_ppu_mask_to_accumulator:
+    CMP #$1E
+    BEQ update_ppu_mask_to_1e
+    CMP #$00
+    BEQ update_ppu_mask_to_00
+
+    PHA
+    LDA TM_STATE
+    AND #$02
+    STA TM_STATE
+    PLA
     PHA
     AND #$18
     CMP #$18
@@ -50,16 +60,31 @@ set_ppu_mask_to_accumulator:
         BRA :++
 :   LDA #$00    
 :    
+    ORA TM_STATE
     STA TM
+    STA TM_STATE
     PLA
     RTL
-    
-    
-update_ppu_mask_store_to_1e:
-    LDA #$1E
-    STA PPU_MASK_STATE
+
+ update_ppu_mask_to_00:    
     ; turns on BG and sprites
-    LDA #$11
+    LDA TM_STATE
+    AND #$02        ; keep track of if bg2 is on
+    STA TM
+    RTL       
+    
+update_ppu_mask_to_1e:
+    ; turns on BG and sprites
+    LDA TM_STATE
+    AND #$02        ; keep track of if bg2 is on
+    ORA #$11
+    STA TM
+    RTL
+
+update_ppu_mask_store_to_1e:
+    LDA #$1e    
+    STA PPU_MASK_STATE
+    jslb update_ppu_mask_to_1e, $a0
     STA TM_STATE
     RTL
 
@@ -76,8 +101,12 @@ update_values_for_ppu_mask:
     LDA #$01
     ORA REUSABLE_CALC_BYTE
     STA REUSABLE_CALC_BYTE
-    : LDA REUSABLE_CALC_BYTE
+    : 
+    LDA TM_STATE
+    AND #$02
+    ORA REUSABLE_CALC_BYTE
     STA TM
+    STA TM_STATE
     RTL
 
 enable_nmi_and_store:

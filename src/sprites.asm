@@ -36,7 +36,7 @@ sprite_loop:
 	STA SPRITE_LOOP_JUNK
 	PLA
 	AND #$F0
-	EOR #%00110000
+	ORA #%00110000 ; sprites are always prioritized over bg
 	ORA SPRITE_LOOP_JUNK
 	; LDA #%00010010
 	STA SNES_OAM_START + 3, y

@@ -12,9 +12,24 @@
 .byte $7F, $20, $42, $EE, $20, $2E, $EF, $20, $CA, $EE, $20, $E5, $EE, $A9, $08, $20
 .byte $90, $CA, $20, $63, $81, $20, $53, $C4, $20, $3D, $C8, $20, $70, $CB, $A9, $60
 .byte $85, $43, $20, $01, $EF, $20, $21, $EB, $24, $AB, $70, $13, $30, $14, $20, $98
-.byte $E1, $20, $D7, $EA, $20, $C8, $94, $4C, $95, $80, $E6, $A0, $4C, $6D, $C0, $4C
-.byte $A0, $C0, $20, $F0, $EE, $20, $89, $EA, $EE, $30, $01, $AD, $30, $01, $C9, $03
-.byte $B0, $E8, $4C, $68, $80, $60
+.byte $E1, $20, $D7, $EA, $20, $C8, $94, $4C, $95, $80
+
+nes_80aa:
+  INC $A0
+  JMP $C06D
+  JMP $C0A0
+nes_80b2:
+  JSR $EEF0
+  JSR MOVE_TO_NEXT_LEVEL_LOC
+  ; JSR $EA89
+  ; INC $0130
+  nops 3
+  LDA $0130
+  CMP #$03
+  BCS nes_80aa
+  JMP $8068
+  RTS
+
 
 nes_80c6:
   JSR $EE9B

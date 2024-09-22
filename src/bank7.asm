@@ -148,7 +148,8 @@
 
 ; this block copies the stage specific tiles
   jslb load_level_specific_tiles, $a0
-  nops 20
+  jslb load_current_background, $ab
+  nops 16
 ;   LDA #$0C
 ;   STA PpuAddr_2006
 ;   LDA #$00
@@ -1616,9 +1617,22 @@ nops 4 * 16 + 3
 .byte $00, $00, $00, $01, $01, $02, $02, $02, $07, $06, $05
 .byte $04, $03, $02, $01, $00, $15, $12, $0F, $0C, $09, $06, $03, $00, $80, $96, $98
 .byte $40, $42, $0F, $A0, $86, $01, $10, $27, $00, $E8, $03, $00, $64, $00, $00, $0A
-.byte $00, $00, $01, $00, $00, $A0, $04, $D0, $05, $20, $BB, $EA, $A0, $17, $B9, $3E
-.byte $01, $99, $57, $01, $88, $10, $F7, $A5, $AA, $8D, $70, $01, $A5, $A6, $8D, $71
-.byte $01, $60, $20, $BB, $EA, $A0, $17, $B9, $57, $01, $99, $3E, $01, $88, $10, $F7
+.byte $00, $00, $01, $00, $00, $A0, $04, $D0, $05
+
+; ea89 - first routing on next level load
+  JSR $EABB
+  LDY #$17
+: LDA $013E,Y
+  STA $0157,Y
+  DEY
+  BPL :-
+  LDA $AA
+  STA $0170
+  LDA $A6
+  STA $0171
+  RTS
+
+.byte  $20, $BB, $EA, $A0, $17, $B9, $57, $01, $99, $3E, $01, $88, $10, $F7
 .byte $AD, $70, $01, $85, $AA, $AD, $71, $01, $85, $A6, $60, $A0, $0C, $A9, $00, $99
 .byte $31, $01, $88, $10, $FA, $60, $AD, $4F, $01, $C9, $63, $B0, $09, $EE, $4F, $01
 .byte $A9, $01, $20, $F0, $E2, $18, $60, $A5, $3A, $29, $F0, $D0, $F9, $A5, $3B, $29
@@ -1637,13 +1651,14 @@ nops 4 * 16 + 3
   ; #$0F = Horizontal mirroring (for vertical levels)
   ; #$0E = Vertical mirroring (for horizontal levels)
 @set_mirroring:
+  STA BANK_SWITCH_CTRL_REGS
   AND #$01
   BEQ :+
   LDA #$22
   BRA :++
 : LDA #$21
 : STA BG1SC
-  nops 6
+  nops 3
   RTS  
 
 LDA #$0E
@@ -1690,7 +1705,7 @@ RTS
   CMP #$20
   BCS :+
   LDX $02
-: LDY #$00
+: LDY #$FF
   LDA $01
 : STA VMDATAL
   STZ VMDATAH
@@ -1885,8 +1900,8 @@ RTS
 
   LDA #$00
   BEQ :+
-  LDA #$11 ; #$1E
-: STA TM ; $2001
+  LDA #$1E
+: jsr @store_ppu_mask_value ; STA TM ; $2001
   RTS
 
 .byte $05, $07, $08
@@ -2449,8 +2464,66 @@ repeat $00, $40
 
   rts
 
-repeat $FF, (64-32)
-repeat $FF, $40
+@convert_a_to_vmaddh_range:
+  PHA
+  LDA BANK_SWITCH_CTRL_REGS
+  AND #$01
+  BEQ @store_vmaddh_for_vertical_mirroring
+
+  PLA
+  CMP #$28
+  BMI :+
+  AND #$23
+  ORA #$04
+  BRA @store
+
+: CMP #$24
+  BMI @store
+  AND #$23
+
+@store:
+  RTS
+
+@store_vmaddh_for_vertical_mirroring:
+  PLA
+  ; 20-23 = 20-23
+  ; 24-27 = 24-27
+  ; 28-2B = 20-23
+  ; 2C-2F = 24-27
+  AND #$27
+  BRA @store
+
+@store_vmaddh_to_proper_range:
+    jsr @convert_a_to_vmaddh_range
+    STA VMADDH
+    RTS
+
+@store_ppu_mask_value:
+  jslb set_ppu_mask_to_accumulator, $a0
+  rts
+
+@handle_mirroring_update:
+  STA BANK_SWITCH_CTRL_REGS
+  AND #$01
+  BEQ :+
+  LDA #$22
+  BRA :++
+: LDA #$21
+: STA BG1SC
+  jslb setup_bg2, $ab
+  RTS  
+
+.ifndef MOVE_TO_NEXT_LEVEL_LOC
+MOVE_TO_NEXT_LEVEL_LOC = $FA60
+.endif
+@move_to_next_level:
+  JSR $EA89
+  INC $0130
+  jslb load_current_background, $ab
+  rts
+
+; repeat $FF, $40
+repeat $FF, (64 - 43)
 repeat $FF, $40
 repeat $FF, $40
 
