@@ -1651,15 +1651,17 @@ nops 4 * 16 + 3
   ; #$0F = Horizontal mirroring (for vertical levels)
   ; #$0E = Vertical mirroring (for horizontal levels)
 @set_mirroring:
-  STA BANK_SWITCH_CTRL_REGS
-  AND #$01
-  BEQ :+
-  LDA #$22
-  BRA :++
-: LDA #$21
-: STA BG1SC
-  nops 3
-  RTS  
+  JMP @handle_mirroring_update
+  nops 17
+;   STA BANK_SWITCH_CTRL_REGS
+;   AND #$01
+;   BEQ :+
+;   LDA #$22
+;   BRA :++
+; : LDA #$21
+; : STA BG1SC
+;   nops 3
+;   RTS  
 
 LDA #$0E
 BNE @set_mirroring

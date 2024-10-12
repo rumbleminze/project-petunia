@@ -11,6 +11,12 @@ reset_to_stored_screen_offsets:
   ; STA VOFS_HB
 
   STZ STORED_OFFSETS_SET
+  ; re-enable BG2  
+  LDA TM_STATE
+  ORA #$02
+  STA TM_STATE
+  STA TM
+
 : RTL
 
 no_scroll_screen_enable:
@@ -32,6 +38,12 @@ no_scroll_screen_enable:
   LDA PPU_CONTROL_STATE               
   AND #$FC                 
   STA PPU_CONTROL_STATE
+
+  LDA TM_STATE
+  AND #$FD
+  STA TM
+  STA TM_STATE
+
   RTL 
 
 

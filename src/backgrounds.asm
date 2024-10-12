@@ -1,19 +1,27 @@
 .segment "PRGAB"
 
-
-
 .define LAST_SCREEN_SEEN 
 .define IS_SCROLLING $0B00
 .define UPDATE_DONE $0B01
-.define BG2_VOFS_LB $0B02
-.define BG2_VOFS_HB $0B03
+.define BG2_OFS_LB $0B02  ; used for both H and V OFS since we only ever update 1 on BG2
+.define BG2_OFS_HB $0B03
 .define foo $FF01
 
 .define BG_INFO bg_info_table
 
 
 bg_index:
-.byte (lvl11 - bg_info_table), (lvl12 - bg_info_table), (lvl13 - bg_info_table)
+.byte (lvl11 - bg_info_table)
+.byte (lvl12 - bg_info_table)
+.byte (lvl13 - bg_info_table)
+.byte (dungeons - bg_info_table)
+.byte (lvl21 - bg_info_table)
+.byte (lvl22 - bg_info_table)
+.byte (lvl23 - bg_info_table)
+.byte (lvl31 - bg_info_table)
+.byte (lvl32 - bg_info_table)
+.byte (lvl33 - bg_info_table)
+.byte $FF
 
 bg_info_table:
 ; contains:
@@ -26,33 +34,105 @@ bg_info_table:
 ; starting HOFFS
 lvl11:
 .byte <level_1_1_snes_bg_tiles, >level_1_1_snes_bg_tiles, ^level_1_1_snes_bg_tiles, $80, $FF
-.byte $28, $FF, <world_1_lvl_1_snes_bg_tilemap_upper, >world_1_lvl_1_snes_bg_tilemap_upper, ^world_1_lvl_1_snes_bg_tilemap_upper
-.byte $2C, $FF, <world_1_lvl_1_snes_bg_tilemap_lower, >world_1_lvl_1_snes_bg_tilemap_lower, ^world_1_lvl_1_snes_bg_tilemap_lower
+.byte $28, $00, <world_1_lvl_1_snes_bg_tilemap_upper, >world_1_lvl_1_snes_bg_tilemap_upper, ^world_1_lvl_1_snes_bg_tilemap_upper
+.byte $2C, $00, <world_1_lvl_1_snes_bg_tilemap_lower, >world_1_lvl_1_snes_bg_tilemap_lower, ^world_1_lvl_1_snes_bg_tilemap_lower
 .byte <world1_lvl1_palette, >world1_lvl1_palette
 .byte $0F ; every 16 pixels, scroll 1 px
 .byte $10, $01 ; start at voffs of $0140
-.byte $FF, $FF ; hoffs
-.byte $40, $FF ; 0040 max of 40 VOFFS movement NYI
+.byte $00, $00 ; hoffs
+.byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
 
 lvl12:
 .byte <level_1_2_snes_bg_tiles, >level_1_2_snes_bg_tiles, ^level_1_2_snes_bg_tiles, $80, $FF
-.byte $28, $FF, <world_1_lvl_2_snes_bg_tilemap_upper, >world_1_lvl_2_snes_bg_tilemap_upper, ^world_1_lvl_2_snes_bg_tilemap_upper
-.byte $2C, $FF, <world_1_lvl_2_snes_bg_tilemap_lower, >world_1_lvl_2_snes_bg_tilemap_lower, ^world_1_lvl_2_snes_bg_tilemap_lower
+.byte $28, $00, <world_1_lvl_2_snes_bg_tilemap_upper, >world_1_lvl_2_snes_bg_tilemap_upper, ^world_1_lvl_2_snes_bg_tilemap_upper
+.byte $2C, $00, <world_1_lvl_2_snes_bg_tilemap_lower, >world_1_lvl_2_snes_bg_tilemap_lower, ^world_1_lvl_2_snes_bg_tilemap_lower
 .byte <world1_lvl2_palette, >world1_lvl2_palette
 .byte $0D ; every 16 pixels, scroll 1 px
 .byte $10, $01 ; start at voffs of $0140
-.byte $FF, $FF ; hoffs
-.byte $FF, $FF ; 0040 max of 40 VOFFS movement NYI
+.byte $00, $00 ; hoffs
+.byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
+
 
 lvl13:
 .byte <level_1_3_snes_bg_tiles, >level_1_3_snes_bg_tiles, ^level_1_3_snes_bg_tiles, $80, $FF
-.byte $28, $FF, <world_1_lvl_3_snes_bg_tilemap_upper, >world_1_lvl_3_snes_bg_tilemap_upper, ^world_1_lvl_3_snes_bg_tilemap_upper
-.byte $2C, $FF, <world_1_lvl_3_snes_bg_tilemap_lower, >world_1_lvl_3_snes_bg_tilemap_lower, ^world_1_lvl_3_snes_bg_tilemap_lower
+.byte $28, $00, <world_1_lvl_3_snes_bg_tilemap_upper, >world_1_lvl_3_snes_bg_tilemap_upper, ^world_1_lvl_3_snes_bg_tilemap_upper
+.byte $2C, $00, <world_1_lvl_3_snes_bg_tilemap_lower, >world_1_lvl_3_snes_bg_tilemap_lower, ^world_1_lvl_3_snes_bg_tilemap_lower
 .byte <world1_lvl3_palette, >world1_lvl3_palette
 .byte $0D ; every 16 pixels, scroll 1 px
 .byte $10, $01 ; start at voffs of $0140
-.byte $FF, $FF ; hoffs
-.byte $FF, $FF ; 0040 max of 40 VOFFS movement NYI
+.byte $00, $00 ; hoffs
+.byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
+
+
+dungeons:
+.byte <dungeon_snes_bg_tiles, >dungeon_snes_bg_tiles, ^dungeon_snes_bg_tiles, $80, $FF
+.byte $28, $00, <dungeon_tilemap_upper, >dungeon_tilemap_upper, ^dungeon_tilemap_upper
+.byte $2C, $00, <dungeon_tilemap_lower, >dungeon_tilemap_lower, ^dungeon_tilemap_lower
+.byte <dungeon_palette, >dungeon_palette
+.byte $FF ; every 16 pixels, scroll 1 px
+.byte $00, $01 ; start at voffs of $0100
+.byte $00, $00 ; hoffs
+.byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
+
+lvl21:
+.byte <level_2_1_snes_bg_tiles, >level_2_1_snes_bg_tiles, ^level_2_1_snes_bg_tiles, $80, $FF
+.byte $28, $00, <world_2_lvl_1_snes_bg_tilemap_left, >world_2_lvl_1_snes_bg_tilemap_left, ^world_2_lvl_1_snes_bg_tilemap_left
+.byte $2C, $00, <world_2_lvl_1_snes_bg_tilemap_right, >world_2_lvl_1_snes_bg_tilemap_right, ^world_2_lvl_1_snes_bg_tilemap_right
+.byte <world2_lvl1_palette, >world2_lvl1_palette
+.byte $0F ; every 16 pixels, scroll 1 px
+.byte $00, $00 ; start at offs of $0000
+.byte $00, $00 ; hoffs
+.byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
+
+lvl22:
+.byte <level_2_2_snes_bg_tiles, >level_2_2_snes_bg_tiles, ^level_2_2_snes_bg_tiles, $80, $FF
+.byte $28, $00, <world_2_lvl_2_snes_bg_tilemap_left, >world_2_lvl_2_snes_bg_tilemap_left, ^world_2_lvl_2_snes_bg_tilemap_left
+.byte $2C, $00, <world_2_lvl_2_snes_bg_tilemap_right, >world_2_lvl_2_snes_bg_tilemap_right, ^world_2_lvl_2_snes_bg_tilemap_right
+.byte <world2_lvl2_palette, >world2_lvl2_palette
+.byte $0F ; every 16 pixels, scroll 1 px
+.byte $00, $00 ; start at offs of $0000
+.byte $00, $00 ; hoffs
+.byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
+
+lvl23:
+.byte <level_2_3_snes_bg_tiles, >level_2_3_snes_bg_tiles, ^level_2_3_snes_bg_tiles, $80, $FF
+.byte $28, $00, <world_2_lvl_3_snes_bg_tilemap_left, >world_2_lvl_3_snes_bg_tilemap_left, ^world_2_lvl_3_snes_bg_tilemap_left
+.byte $2C, $00, <world_2_lvl_3_snes_bg_tilemap_right, >world_2_lvl_3_snes_bg_tilemap_right, ^world_2_lvl_3_snes_bg_tilemap_right
+.byte <world2_lvl3_palette, >world2_lvl3_palette
+.byte $0F ; every 16 pixels, scroll 1 px
+.byte $00, $00 ; start at offs of $0000
+.byte $00, $00 ; hoffs
+.byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
+
+lvl31:
+.byte <level_3_1_snes_bg_tiles, >level_3_1_snes_bg_tiles, ^level_3_1_snes_bg_tiles, $80, $FF
+.byte $28, $00, <world_3_lvl_1_snes_bg_tilemap_upper, >world_3_lvl_1_snes_bg_tilemap_upper, ^world_3_lvl_1_snes_bg_tilemap_upper
+.byte $2C, $00, <world_3_lvl_1_snes_bg_tilemap_lower, >world_3_lvl_1_snes_bg_tilemap_lower, ^world_3_lvl_1_snes_bg_tilemap_lower
+.byte <world3_lvl1_palette, >world3_lvl1_palette
+.byte $0F ; every 16 pixels, scroll 1 px
+.byte $00, $01 ; start at offs of $0000
+.byte $00, $00 ; hoffs
+.byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
+
+lvl32:
+.byte <level_3_1_snes_bg_tiles, >level_3_1_snes_bg_tiles, ^level_3_1_snes_bg_tiles, $80, $FF
+.byte $28, $00, <world_3_lvl_1_snes_bg_tilemap_upper, >world_3_lvl_1_snes_bg_tilemap_upper, ^world_3_lvl_1_snes_bg_tilemap_upper
+.byte $2C, $00, <world_3_lvl_1_snes_bg_tilemap_lower, >world_3_lvl_1_snes_bg_tilemap_lower, ^world_3_lvl_1_snes_bg_tilemap_lower
+.byte <world3_lvl1_palette, >world3_lvl1_palette
+.byte $0F ; every 16 pixels, scroll 1 px
+.byte $00, $01 ; start at offs of $0000
+.byte $00, $00 ; hoffs
+.byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
+
+lvl33:
+.byte <level_3_1_snes_bg_tiles, >level_3_1_snes_bg_tiles, ^level_3_1_snes_bg_tiles, $80, $FF
+.byte $28, $00, <world_3_lvl_1_snes_bg_tilemap_upper, >world_3_lvl_1_snes_bg_tilemap_upper, ^world_3_lvl_1_snes_bg_tilemap_upper
+.byte $2C, $00, <world_3_lvl_1_snes_bg_tilemap_lower, >world_3_lvl_1_snes_bg_tilemap_lower, ^world_3_lvl_1_snes_bg_tilemap_lower
+.byte <world3_lvl1_palette, >world3_lvl1_palette
+.byte $0F ; every 16 pixels, scroll 1 px
+.byte $00, $01 ; start at offs of $0000
+.byte $00, $00 ; hoffs
+.byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
 
 ; each world has a different background
 ; World ($A0) Level ($0130)
@@ -60,14 +140,16 @@ lvl13:
 ;   2           1       - 1-2
 ;   2           2       - 1-3
 ;   3           0       - 1-4d
+
 level_bg_lookup:
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $00, $01, $02, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $03, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
-.byte $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $03, $FF, $FF, $03, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $04, $05, $06, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $03, $FF, $FF, $03, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $07, $08, $09, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $03, $FF, $FF, $03, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 
 
 load_current_background:
@@ -105,38 +187,64 @@ no_bg:
     PLA
     rtl
 
+handle_bg2_paralax_horizontal:
+    LDA HOFS_LB
+    AND #$1F
+    BNE dont_need_update
+
+    LDA UPDATE_DONE
+    BNE hbg2p_early_return
+
+    LDA #$01
+    STA UPDATE_DONE
+    INC BG2_OFS_LB
+    BNE :+
+    INC BG2_OFS_HB
+:   
+    LDA BG2_OFS_LB
+    STA BG2HOFS
+    LDA BG2_OFS_HB
+    STA BG2HOFS
+
+    rtl
 
 handle_bg2_paralax:
     LDA TM_STATE
     AND #$02
-    BEQ :++
+    BEQ hbg2p_early_return
+
+    LDA BANK_SWITCH_CTRL_REGS
+    AND #$01
+    BEQ handle_bg2_paralax_horizontal 
 
     LDA VOFS_LB
     AND #$0F
     BNE dont_need_update
 
     LDA UPDATE_DONE
-    BNE :++
-
+    BNE hbg2p_early_return
 
 increment_parallax:
     LDA #$01
     STA UPDATE_DONE      
-    DEC BG2_VOFS_LB
-    LDA BG2_VOFS_LB
+    DEC BG2_OFS_LB
+    LDA BG2_OFS_LB
     CMP #$FF
     BNE :+
-    DEC BG2_VOFS_HB
-:   LDA BG2_VOFS_LB
+    DEC BG2_OFS_HB
+:   
+    LDA BG2_OFS_LB
     STA BG2VOFS
-    LDA BG2_VOFS_HB
+    LDA BG2_OFS_HB
     STA BG2VOFS
-    BRA :+
+
+    BRA hbg2p_early_return
+
 
 dont_need_update:
     STZ UPDATE_DONE
 
-:
+hbg2p_early_return:
     rtl
 
 load_background_a:
@@ -145,22 +253,26 @@ load_background_a:
     TAY
     LDA bg_index, Y
     TAY
-    LDA bg_info_table + 18
+    LDA bg_info_table + 18, y
     STA BG2VOFS
-    STA BG2_VOFS_LB
-    LDA bg_info_table + 19
+    STA BG2_OFS_LB
+    LDA bg_info_table + 19, y
     STA BG2VOFS
-    STA BG2_VOFS_HB
+    STA BG2_OFS_HB
     STZ UPDATE_DONE
     INC UPDATE_DONE
     STZ IS_SCROLLING
     INC IS_SCROLLING
     
-    LDA bg_info_table + 20
+    LDA bg_info_table + 20, y
     STA BG2HOFS
-    LDA bg_info_table + 21
+    LDA bg_info_table + 21, y 
     STA BG2HOFS
 
+    PLA
+    PHA
+    jsr write_bg_palette_y
+    
 
     PLA
     PHA
@@ -169,10 +281,6 @@ load_background_a:
     PLA
     PHA
     jsr  write_bg_to_bg2
-    
-    PLA
-    PHA
-    jsr write_bg_palette_y
     
   
 
@@ -188,12 +296,12 @@ setup_bg2:
     BEQ:+
 
     
-    LDA #($28 + $01)
+    LDA #($28 + $02)
     STA BG2SC
     rtl
 
 :   
-    LDA #($28 + $02)
+    LDA #($28 + $01)
     STA BG2SC
     rtl
 
@@ -320,18 +428,18 @@ write_bg_palette_y:
     LDA #$40
     STA CGADD
 
-    LDA $FF
+    LDA $00
     PHA
     LDA $01
     PHA
 
     LDA bg_info_table + 15, Y
-    STA $FF
+    STA $00
     LDA bg_info_table + 16, Y
     STA $01
 
-    LDY #$FF
-:   LDA ($FF), Y
+    LDY #$00
+:   LDA ($00), Y
     STA CGDATA
     iny
     CPY #$20
@@ -339,7 +447,7 @@ write_bg_palette_y:
     PLA
     STA $01
     PLA 
-    STA $FF
+    STA $00
     rts
 
 
@@ -403,11 +511,27 @@ dma_tilemap_screen_to_bg2:
 ; palettes are 11 colors, reserving the first 5 for the NES palettes
 palettes:
 world1_lvl1_palette:
-.byte $03, $FF, $FF, $FF, $FF, $FF, $9F, $10, $96, $0C, $6F, $08, $DA, $10, $4A, $04
-.byte $92, $08, $26, $FF, $47, $04, $6C, $04, $DF, $29, $1C, $0D, $5F, $11, $48, $FF
+.byte $00, $00, $03, $00, $25, $04, $69, $0C, $6B, $0C, $4D, $08, $9F, $10, $DA, $10
+.byte $96, $08, $92, $08, $47, $04, $8D, $08, $DF, $29, $1D, $0D, $4A, $00, $5F, $11
+
 world1_lvl2_palette:
 .byte $49, $35, $07, $2D, $CC, $65, $8A, $65, $48, $65, $8B, $35, $70, $6A, $CE, $3D
 .byte $AA, $4D, $2F, $52, $2D, $6E, $84, $2C, $B3, $66, $F6, $72, $C3, $44, $26, $51
 world1_lvl3_palette:
 .byte $06, $15, $86, $08, $C6, $14, $C4, $10, $C8, $10, $49, $19, $C4, $08, $08, $15
 .byte $86, $21, $0A, $19, $C8, $29, $8A, $21, $33, $47, $CC, $29, $77, $57, $D0, $3A
+dungeon_palette:
+.byte $00, $00, $82, $10, $44, $00, $02, $10, $80, $00, $C6, $00, $04, $00, $06, $11
+.byte $84, $10, $FF, $7F, $84, $00, $86, $00, $4C, $29, $C8, $18, $C6, $20, $81, $04
+world2_lvl1_palette:
+.byte $2A, $7E, $28, $3A, $C8, $39, $C9, $5D, $6C, $7E, $2A, $3A, $C8, $5D, $E9, $5D
+.byte $86, $39, $0A, $7E, $4B, $7E, $46, $35, $A7, $39, $E8, $3D, $09, $42, $E8, $4D
+world2_lvl2_palette:
+.byte $80, $7C, $21, $1C, $8E, $3C, $84, $30, $63, $28, $46, $38, $42, $20, $67, $3C
+.byte $2C, $40, $29, $40, $4A, $44, $AF, $40, $62, $14, $12, $21, $97, $0D, $00, $00
+world2_lvl3_palette:
+.byte $42, $00, $A4, $25, $C5, $29, $C2, $14, $84, $21, $23, $1D, $27, $32, $06, $2E
+.byte $02, $19, $E2, $14, $68, $3A, $64, $21, $82, $04, $A9, $3E, $26, $32, $0E, $4F
+world3_lvl1_palette:
+.byte $00, $00, $A7, $20, $86, $28, $E9, $20, $A7, $1C, $86, $2C, $E7, $28, $08, $31
+.byte $29, $35, $6C, $3D, $6B, $3D, $4A, $39, $6A, $3D, $8B, $41, $49, $39, $C8, $20

@@ -2,16 +2,19 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 func main() {
 	inputFile := flag.String("in", "1-1_shorter_map16.bin", "input file to adjust")
-	outputFilename := flag.String("out", "1-1_shorter_map16_adjusted.bin", "output filename")
 	flag.Parse()
+	outputFilename := strings.Replace(*inputFile, ".bin", "_adj.bin", 1)
 
-	outputFile, _ := os.Create(*outputFilename)
+	println(fmt.Sprintf("outputing %s", outputFilename))
+	outputFile, _ := os.Create(outputFilename)
 	inputBytes, _ := ioutil.ReadFile(*inputFile)
 	for i := 0; i < len(inputBytes); i += 1 {
 		if i%2 == 1 {

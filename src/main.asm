@@ -38,3 +38,12 @@
 .include "background-lvl-1-1-tiles.asm"
 .include "background-lvl-1-2-tiles.asm"
 .include "background-lvl-1-3-tiles.asm"
+
+.include "background-dungeon-tiles.asm"
+
+.include "background-tilemaps-w2.asm"
+.include "background-lvl-2-1-tiles.asm"
+.include "background-lvl-2-2-tiles.asm"
+.include "background-lvl-2-3-tiles.asm"
+
+.include "background-lvl-3-1-tiles.asm"
