@@ -496,13 +496,20 @@ donewithmusic:
     RTL
 
 lvl_music_index:
-.byte $00, $00, $00, $37, $00, $2E, $00, $07
+.byte $37, $2E, $07
 
 set_default_music:
+	PHB
+	PHK
+	PLB
 	LDA CURRENT_LEVEL_IDX ; 3 = 1-4, 5 = 2-4, 7 = 3-4
+	SEC
+	SBC #$03
+	LSR
 	TAY
 	LDA lvl_music_index, Y
 	STA BOSS_MUSIC_ROOM, Y
+	PLB
 	rts
 
 grant_items:

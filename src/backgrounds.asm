@@ -21,6 +21,7 @@ bg_index:
 .byte (lvl31 - bg_info_table)
 .byte (lvl32 - bg_info_table)
 .byte (lvl33 - bg_info_table)
+.byte (lvl41 - bg_info_table)
 .byte $FF
 
 bg_info_table:
@@ -115,22 +116,32 @@ lvl31:
 .byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
 
 lvl32:
-.byte <level_3_1_snes_bg_tiles, >level_3_1_snes_bg_tiles, ^level_3_1_snes_bg_tiles, $80, $FF
-.byte $28, $00, <world_3_lvl_1_snes_bg_tilemap_upper, >world_3_lvl_1_snes_bg_tilemap_upper, ^world_3_lvl_1_snes_bg_tilemap_upper
-.byte $2C, $00, <world_3_lvl_1_snes_bg_tilemap_lower, >world_3_lvl_1_snes_bg_tilemap_lower, ^world_3_lvl_1_snes_bg_tilemap_lower
-.byte <world3_lvl1_palette, >world3_lvl1_palette
+.byte <level_3_2_snes_bg_tiles, >level_3_2_snes_bg_tiles, ^level_3_2_snes_bg_tiles, $80, $FF
+.byte $28, $00, <world_3_lvl_2_snes_bg_tilemap_upper, >world_3_lvl_2_snes_bg_tilemap_upper, ^world_3_lvl_2_snes_bg_tilemap_upper
+.byte $2C, $00, <world_3_lvl_2_snes_bg_tilemap_lower, >world_3_lvl_2_snes_bg_tilemap_lower, ^world_3_lvl_2_snes_bg_tilemap_lower
+.byte <world3_lvl2_palette, >world3_lvl2_palette
 .byte $0F ; every 16 pixels, scroll 1 px
 .byte $00, $01 ; start at offs of $0000
 .byte $00, $00 ; hoffs
 .byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
 
 lvl33:
-.byte <level_3_1_snes_bg_tiles, >level_3_1_snes_bg_tiles, ^level_3_1_snes_bg_tiles, $80, $FF
-.byte $28, $00, <world_3_lvl_1_snes_bg_tilemap_upper, >world_3_lvl_1_snes_bg_tilemap_upper, ^world_3_lvl_1_snes_bg_tilemap_upper
-.byte $2C, $00, <world_3_lvl_1_snes_bg_tilemap_lower, >world_3_lvl_1_snes_bg_tilemap_lower, ^world_3_lvl_1_snes_bg_tilemap_lower
-.byte <world3_lvl1_palette, >world3_lvl1_palette
+.byte <level_3_3_snes_bg_tiles, >level_3_3_snes_bg_tiles, ^level_3_3_snes_bg_tiles, $80, $FF
+.byte $28, $00, <world_3_lvl_3_snes_bg_tilemap_upper, >world_3_lvl_3_snes_bg_tilemap_upper, ^world_3_lvl_3_snes_bg_tilemap_upper
+.byte $2C, $00, <world_3_lvl_3_snes_bg_tilemap_lower, >world_3_lvl_3_snes_bg_tilemap_lower, ^world_3_lvl_3_snes_bg_tilemap_lower
+.byte <world3_lvl3_palette, >world3_lvl3_palette
 .byte $0F ; every 16 pixels, scroll 1 px
 .byte $00, $01 ; start at offs of $0000
+.byte $00, $00 ; hoffs
+.byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
+
+lvl41:
+.byte <level_4_1_snes_bg_tiles, >level_4_1_snes_bg_tiles, ^level_4_1_snes_bg_tiles, $80, $FF
+.byte $28, $00, <world_4_lvl_1_snes_bg_tilemap_left, >world_4_lvl_1_snes_bg_tilemap_left, ^world_4_lvl_1_snes_bg_tilemap_left
+.byte $2C, $00, <world_4_lvl_1_snes_bg_tilemap_right, >world_4_lvl_1_snes_bg_tilemap_right, ^world_4_lvl_1_snes_bg_tilemap_right
+.byte <world4_lvl1_palette, >world4_lvl1_palette
+.byte $0F ; every 16 pixels, scroll 1 px
+.byte $00, $00 ; start at offs of $0000
 .byte $00, $00 ; hoffs
 .byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
 
@@ -150,6 +161,8 @@ level_bg_lookup:
 .byte $03, $FF, $FF, $03, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $07, $08, $09, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 .byte $03, $FF, $FF, $03, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $0A, $FF, $FF, $03, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+.byte $FF, $FF, $FF, $03, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 
 
 load_current_background:
@@ -535,3 +548,12 @@ world2_lvl3_palette:
 world3_lvl1_palette:
 .byte $00, $00, $A7, $20, $86, $28, $E9, $20, $A7, $1C, $86, $2C, $E7, $28, $08, $31
 .byte $29, $35, $6C, $3D, $6B, $3D, $4A, $39, $6A, $3D, $8B, $41, $49, $39, $C8, $20
+world3_lvl2_palette:
+.byte $00, $00, $88, $20, $57, $5A, $C8, $20, $0A, $29, $57, $7B, $46, $10, $95, $51
+.byte $27, $08, $44, $0C, $85, $10, $25, $04, $D4, $58, $67, $14, $AF, $34, $21, $04
+world3_lvl3_palette:
+.byte $44, $0C, $86, $10, $7B, $6F, $8A, $59, $CD, $4D, $E5, $48, $06, $51, $07, $3D
+.byte $0F, $5E, $A4, $40, $08, $25, $4A, $31, $8C, $35, $94, $66, $F7, $6A, $22, $08
+world4_lvl1_palette:
+.byte $00, $00, $00, $18, $28, $39, $82, $34, $40, $28, $84, $40, $C5, $50, $42, $2C
+.byte $CA, $54, $CC, $6D, $C8, $54, $85, $4C, $0A, $59, $0C, $5D, $2C, $7E, $40, $1C

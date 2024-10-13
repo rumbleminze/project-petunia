@@ -47,3 +47,7 @@
 .include "background-lvl-2-3-tiles.asm"
 
 .include "background-lvl-3-1-tiles.asm"
+.include "background-lvl-3-2-tiles.asm"
+.include "background-lvl-3-3-tiles.asm"
+
+.include "background-lvl-4-1-tiles.asm"

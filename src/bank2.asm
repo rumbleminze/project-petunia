@@ -779,10 +779,24 @@ end_of_level_creation:
 .byte $EF, $20, $21, $7F, $20, $42, $EE, $20, $2E, $EF, $20, $CA, $EE, $20, $E5, $EE
 .byte $A9, $08, $20, $90, $CA, $20, $F7, $9A, $20, $53, $C4, $20, $3D, $C8, $20, $64
 .byte $CB, $A9, $60, $85, $43, $20, $01, $EF, $20, $21, $EB, $24, $AB, $70, $13, $30
-.byte $14, $20, $98, $E1, $20, $D7, $EA, $20, $B4, $AB, $4C, $38, $9A, $E6, $A0, $4C
-.byte $6D, $C0, $4C, $A0, $C0, $20, $F0, $EE, $20, $89, $EA, $EE, $30, $01, $AD, $30
-.byte $01, $C9, $03, $B0, $E8, $4C, $08, $9A, $60
+.byte $14, $20, $98, $E1, $20, $D7, $EA, $20, $B4, $AB, $4C, $38, $9A
 
+;9a4D
+: INC $A0
+  JMP $C06D
+  JMP $C0A0
+  JSR $EEF0
+  JSR MOVE_TO_NEXT_LEVEL_LOC
+  ; JSR $EA89
+  ; INC $0130
+  nops 3
+  LDA $0130
+  CMP #$03
+  BCS :-
+  JMP $9A08
+  RTS
+
+; 9a69
 : JSR $EE9B
   JSR $EE0E
   JSR $EEB8

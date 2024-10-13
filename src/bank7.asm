@@ -2524,8 +2524,18 @@ MOVE_TO_NEXT_LEVEL_LOC = $FA60
   jslb load_current_background, $ab
   rts
 
+.ifndef TRIGGER_CREDITS_LOC
+TRIGGER_CREDITS_LOC = $FA6B
+.endif
+@trigger_credits:
+  JSR $EA89
+  LDA #$09
+  STA $A0
+  jslb load_current_background, $ab
+  rts
+
 ; repeat $FF, $40
-repeat $FF, (64 - 43)
+repeat $FF, (64 - 55)
 repeat $FF, $40
 repeat $FF, $40
 
