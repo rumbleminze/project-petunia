@@ -1891,14 +1891,14 @@ RTS
 .byte $A5, $00, $18, $69, $20, $85, $00, $A5, $01, $69, $00
 .byte $85, $01, $60
 
-; 0xEF73
+; 0xEF73 - zero out all tiles to tile 12 (all black)
   LDA #$20                 
   BNE :+               
   JSR $EF73                
   LDA #$24                 
 : LDX #$12                 
   LDY #$00                 
-  JMP $EB76
+  jmp @turn_bg_black ; $EB76
 
   LDA #$00
   BEQ :+
@@ -2515,18 +2515,19 @@ repeat $00, $40
   jslb setup_bg2, $ab
   RTS  
 
-.ifndef MOVE_TO_NEXT_LEVEL_LOC
-MOVE_TO_NEXT_LEVEL_LOC = $FA60
-.endif
+; .ifndef MOVE_TO_NEXT_LEVEL_LOC
+; .endif
+; FA60
 @move_to_next_level:
   JSR $EA89
   INC $0130
   jslb load_current_background, $ab
   rts
 
-.ifndef TRIGGER_CREDITS_LOC
-TRIGGER_CREDITS_LOC = $FA6B
-.endif
+; .ifndef TRIGGER_CREDITS_LOC
+; TRIGGER_CREDITS_LOC = $FA6B
+; .endif
+
 @trigger_credits:
   JSR $EA89
   LDA #$09
@@ -2534,8 +2535,12 @@ TRIGGER_CREDITS_LOC = $FA6B
   jslb load_current_background, $ab
   rts
 
+@turn_bg_black:
+  jslb disable_bg2, $ab
+  JMP $EB76
+
 ; repeat $FF, $40
-repeat $FF, (64 - 55)
+repeat $FF, (64 - 62)
 repeat $FF, $40
 repeat $FF, $40
 

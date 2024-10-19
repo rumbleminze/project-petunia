@@ -1564,7 +1564,6 @@ load_menu_options:
   JSR $E7CB
   jsr hide_cheat_options
   RTS
-
 ; B000 - bank 1
 ; repeat $FF, $40
 ; repeat $FF, $40

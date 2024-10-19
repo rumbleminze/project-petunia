@@ -18,6 +18,8 @@ CURRENT_WORLD_INX   = $A0
 PPU_MASK_STATE      = $FF
 PPU_CONTROL_STATE   = $100
 
+MOVE_TO_NEXT_LEVEL_LOC = $FA60
+
 ; SNES Register Value storage
 .define NMITIMEN_STATE  $1706
 .define VMAIN_STATE     $1705

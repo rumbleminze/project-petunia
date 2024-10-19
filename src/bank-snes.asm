@@ -122,6 +122,7 @@ initialize_registers:
   BNE :-
   
   JSR clear_zp 
+  JSR clear_sram
   JSR clear_buffers
   JSR clearvm
   
@@ -182,9 +183,7 @@ initialize_registers:
 ;   STZ COLUMN_1_DMA
   JSL upload_sound_emulator_to_spc
   jslb load_base_tiles, $a0
-  ; jslb poc_bg2, $ab
   jslb setup_bg2, $ab
-  ; jslb load_background_a, $ab
   jslb disable_bg2, $ab
   JSR do_intro
 
@@ -324,6 +323,45 @@ clear_buffers:
   BNE :-
   RTS
 
+clear_sram:
+  LDA #$00
+  LDY #$00
+
+: STA $6000, Y
+  STA $6100, Y
+  STA $6200, Y
+  STA $6300, Y
+  STA $6400, Y
+  STA $6500, Y
+  STA $6600, Y
+  STA $6700, Y
+  STA $6800, Y
+  STA $6900, Y
+  STA $6A00, Y
+  STA $6B00, Y
+  STA $6C00, Y
+  STA $6D00, Y
+  STA $6E00, Y
+  STA $6F00, Y
+  STA $7000, Y
+  STA $7100, Y
+  STA $7200, Y
+  STA $7300, Y
+  STA $7400, Y
+  STA $7500, Y
+  STA $7600, Y
+  STA $7700, Y
+  STA $7800, Y
+  STA $7900, Y
+  STA $7A00, Y
+  STA $7B00, Y
+  STA $7C00, Y
+  STA $7D00, Y
+  STA $7E00, Y
+  STA $7F00, Y
+  DEY
+  BNE :-
+  RTS
 
 dma_values:
   .byte $00, $12

@@ -326,11 +326,14 @@ enable_bg2:
     rtl
 
 disable_bg2:
+    PHA
+
     LDA TM_STATE
     AND #$FD
     STA TM_STATE
     STA TM
     
+    PLA
     rtl
 
 ; setup_bg2:

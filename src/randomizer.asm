@@ -931,7 +931,55 @@ storerng_rb:
 	STA RNG_SEED + 1	
 	RTS
 
+double_check_RNG_seed_not_zero:
+	LDA RNG_SEED
+	BNE :+
+	LDA #$BE
+	STA RNG_SEED
+:	LDA RNG_SEED + 1
+	BNE :+
+	LDA #$EF
+	STA RNG_SEED + 1
+:	rts
+
+write_debug_info:
+	LDA #$20
+	STA VMADDH
+	LDA #$21
+	STA VMADDL
+
+	LDA #$12
+	STA VMDATAL
+
+	LDA RNG_SEED
+	STA VMDATAL
+
+	LDA RNG_SEED + 1
+	STA VMDATAL
+
+	LDA #$80
+	STA NMITIMEN
+:	LDA RDNMI
+	BPL :-
+
+	LDA #$7F
+	STA INIDISP
+
+	LDA #$11
+	STA TM
+
+:	LDA RDNMI
+	BPL :-
+
+	; jslb disable_nmi_and_fblank_no_store, $a0
+
+
+	rts
+
 generateLevel:
+
+	; jsr double_check_RNG_seed_not_zero
+	; jsr write_debug_info
 	; reset our variables
 	LDX #$63
 	STX PLATFORM_SCRNS_PTR + 1
