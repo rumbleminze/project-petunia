@@ -173,6 +173,10 @@ load_current_background:
     PHB
     PHK
     PLB
+
+    LDA NEW_BG2S_ENABLED
+    BEQ :+
+
     LDA $A0 ; world 0/1 - title, 2 - 11-13, 3 - 14, etc
     ASL
     ASL
@@ -185,7 +189,7 @@ load_current_background:
     BEQ no_bg
     jsr load_background_a
     
-    PLB
+:   PLB
     PLX
     PLY
     PLA
@@ -332,7 +336,7 @@ disable_bg2:
     AND #$FD
     STA TM_STATE
     STA TM
-    
+
     PLA
     rtl
 

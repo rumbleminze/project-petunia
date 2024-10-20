@@ -168,6 +168,8 @@ initialize_registers:
   ; LDA #$00
   STA SETINI
 
+  LDA #$01
+  STA NEW_BG2S_ENABLED
 
   lda #%0000000
   sta OBSEL
@@ -195,6 +197,7 @@ initialize_registers:
   ; jslb do_intro, $b2
   :
   .endif
+  jsr show_options_screen
 
   JSR clearvm_to_12
   .if ENABLE_MSU = 1
@@ -216,10 +219,6 @@ initialize_registers:
   snes_nmi:
     LDA RDNMI
     .if ENABLE_MSU = 1
-        ; LDA #$FF
-        ; :		; check msu ready status (required for sd2snes hardware compatibility)
-        ;   bit $2000
-        ;   bvs :-
         jslb msu_nmi_check, $b2
     .endif
     jslb update_values_for_ppu_mask, $a0
@@ -367,6 +366,7 @@ dma_values:
   .byte $00, $12
   
   .include "intro_screen.asm"
+  .include "options_screen.asm"
   .include "palette_updates.asm"
   .include "palette_lookup.asm"
   .include "sprites.asm"

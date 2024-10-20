@@ -22,10 +22,20 @@ palette_entry:
   LDA $0390, Y
   ASL A
   TAX
-  LDA palette_lookup, X
-  STA CGDATA
-  LDA palette_lookup + 1, X
-  STA CGDATA
+  LDA PALETTE_OPTION
+
+  BNE :+  
+    LDA palette_lookup, X
+    STA CGDATA
+    LDA palette_lookup + 1, X
+    STA CGDATA
+    bra :++
+: 
+    LDA alt_palette, X
+    STA CGDATA
+    LDA alt_palette + 1, X
+    STA CGDATA
+:
   INY
   ; every 4 we need to write a bunch of empty palette entries
   TYA

@@ -60,9 +60,76 @@ palette_lookup:
 .byte $7E, $53 ; $37 
 .byte $9C, $4B ; $38 nyi
 .byte $B9, $4B ; $39 nyi
-.byte $00, $00 ; $3A nyi
+.byte $D7, $57 ; $3A nyi
 .byte $D6, $67 ; $3B light greenish blue
 .byte $B6, $7B ; $3C nyi
-.byte $00, $00 ; $3D nyi
+.byte $F7, $5E ; $3D nyi
 .byte $00, $00 ; $3E Black
 .byte $00, $00 ; $3F Black
+
+alt_palette:
+.byte $CE, $39
+.byte $64, $44
+.byte $00, $54
+.byte $08, $4C
+.byte $11, $38
+.byte $15, $08
+.byte $14, $00
+.byte $2F, $00
+.byte $A8, $00
+.byte $00, $01
+.byte $40, $01
+.byte $E0, $08
+.byte $E3, $2C
+.byte $00, $00
+.byte $00, $00
+.byte $00, $00
+.byte $F7, $5E
+.byte $C0, $75
+.byte $E4, $74
+.byte $10, $78
+.byte $17, $5C
+.byte $1C, $2C
+.byte $BB, $00
+.byte $39, $05
+.byte $D1, $01
+.byte $40, $02
+.byte $A0, $02
+.byte $40, $1E
+.byte $00, $46
+.byte $00, $00
+.byte $00, $00
+.byte $00, $00
+.byte $FF, $7F
+.byte $E7, $7E
+.byte $4B, $7E
+.byte $39, $7E
+.byte $FE, $7D
+.byte $DF, $59
+.byte $DF, $31
+.byte $7F, $1E
+.byte $FE, $1E
+.byte $50, $0B
+.byte $69, $27
+.byte $EB, $4F
+.byte $A0, $6F
+.byte $EF, $3D
+.byte $00, $00
+.byte $00, $00
+.byte $FF, $7F
+.byte $95, $7F
+.byte $58, $7F
+.byte $3A, $7F
+.byte $1F, $7F
+.byte $1F, $6F
+.byte $FF, $5A
+.byte $7F, $57
+.byte $9F, $53
+.byte $FC, $53
+.byte $D5, $5F
+.byte $F6, $67
+.byte $F3, $7B
+.byte $18, $63
+.byte $00, $00
+.byte $00, $00
+
