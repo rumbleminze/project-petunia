@@ -1391,6 +1391,10 @@ hide_cheat_options:
   rts
 
 update_cheat_options_palette_to_y:
+  LDA INIDISP_STATE
+  ORA #$80
+  STA INIDISP
+
   LDA #$22
   STA VMADDH
   LDA #$4C
@@ -1420,6 +1424,7 @@ update_cheat_options_palette_to_y:
   STA VMDATAH
   STA VMDATAH
 
+  jslb reset_inidisp, $a0
   jslb reset_vmain_to_stored_state, $a0
 
   rts
@@ -1568,7 +1573,7 @@ load_menu_options:
 ; repeat $FF, $40
 ; repeat $FF, $40
 ; repeat $FF, 64
-repeat $FF, (64-34)
+repeat $FF, (64-46)
 
 ; B100 - bank 1
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00

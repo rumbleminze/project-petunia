@@ -147,13 +147,68 @@ nes_8139:
 .byte $01, $FD, $00, $AE, $01, $03, $F8, $9A, $01, $F4, $F8, $9A, $01, $FC, $F8, $9A
 .byte $01, $04, $F8, $9A, $01, $0C, $F8, $0E, $00, $FC, $F8, $0E, $40, $04, $00, $5C
 .byte $00, $FC, $00, $5C, $40, $04, $A2, $50, $A9, $80, $9D, $01, $07, $0A, $9D, $00
-.byte $07, $85, $A1, $60, $A2, $50, $BD, $01, $07, $10, $0C, $20, $0D, $86, $BD, $01
-.byte $07, $29, $0F, $F0, $03, $D0, $51, $60, $A5, $A1, $CD, $07, $7E, $90, $06, $A9
-.byte $00, $9D, $01, $07, $60, $85, $00, $0A, $0A, $A8, $B9, $08, $7E, $CD, $30, $01
-.byte $90, $17, $D0, $E3, $B9, $09, $7E, $CD, $D1, $04, $90, $0D, $D0, $D9, $B9, $0A
-.byte $7E, $29, $F0, $C5, $FD, $F0, $06, $90, $CE, $E6, $A1, $D0, $CB, $A9, $00, $9D
-.byte $00, $07, $B9, $0A, $7E, $0A, $0A, $0A, $0A, $9D, $03, $07, $A9, $81, $9D, $01
-.byte $07, $B9, $0B, $7E, $9D, $02, $07, $60, $BD, $00, $07, $C9, $F8, $B0, $11, $20
+.byte $07, $85, $A1, $60
+
+
+; 8434
+  LDX #$50
+  LDA $0701,X
+  BPL :+
+  JSR $860D
+  LDA $0701,X
+  AND #$0F
+  BEQ :++
+  BNE nes_8498
+: RTS
+
+; 8448
+: LDA $A1
+  ; check for item, this has been moved so we can edit it in the level randomization
+  CMP LVL_ITEM_COUNT
+  BCC nes_8455
+  LDA #$00
+  STA $0701,X
+  RTS
+
+; 8455
+nes_8455:
+  STA $00
+  ASL
+  ASL
+  TAY
+  ; check for item, this has been moved so we can edit it in the level randomization
+  ; LDA $7E08,Y
+  LDA LVL_ITEM_COUNT + 1, Y
+  CMP $0130
+  BCC :+
+  BNE :+++
+  LDA LVL_ITEM_COUNT + 2,Y
+  CMP $04D1
+  BCC :+
+  BNE :+++
+  LDA LVL_ITEM_COUNT + 3,Y
+  AND #$F0
+  CMP $FD
+  BEQ :++
+  BCC :+++
+: INC $A1
+  BNE :--
+: LDA #$00
+  STA $0700,X
+  LDA LVL_ITEM_COUNT + 3,Y
+  ASL
+  ASL
+  ASL
+  ASL
+  STA $0703,X
+  LDA #$81
+  STA $0701,X
+  LDA LVL_ITEM_COUNT + 4,Y
+  STA $0702,X
+: RTS
+
+nes_8498:
+.byte $BD, $00, $07, $C9, $F8, $B0, $11, $20
 .byte $8A, $D9, $90, $03, $4C, $C6, $84, $BD, $02, $07, $D0, $11, $A9, $FF, $85, $3E
 .byte $A9, $10, $8D, $81, $03, $A9, $80, $9D, $01, $07, $4C, $2B, $DD, $A5, $A6, $18
 .byte $69, $07, $85, $A6, $D0, $EA, $BD, $02, $07, $D0, $05, $A9, $19, $4C, $67, $C6
@@ -1165,13 +1220,64 @@ nes_9acd:
 
 
 ; AA00 - bank 2
-.byte $0A, $9D, $03, $07, $85, $A1, $60, $A2, $50, $BD, $01, $07, $10, $F8, $20, $17
-.byte $9F, $BD, $01, $07, $29, $0F, $D0, $52, $A5, $A1, $CD, $2A, $BC, $90, $06, $A9
-.byte $00, $9D, $01, $07, $60, $85, $00, $0A, $0A, $A8, $B9, $2B, $BC, $CD, $30, $01
-.byte $90, $1B, $D0, $D2, $B9, $2C, $BC, $CD, $D1, $04, $90, $11, $D0, $C8, $B9, $2D
-.byte $BC, $29, $0F, $0A, $0A, $0A, $0A, $C5, $FE, $F0, $06, $B0, $B9, $E6, $A1, $D0
-.byte $C7, $A9, $00, $9D, $03, $07, $B9, $2D, $BC, $29, $F0, $9D, $00, $07, $A9, $81
-.byte $9D, $01, $07, $B9, $2E, $BC, $9D, $02, $07, $60, $BD, $03, $07, $C9, $02, $90
+.byte $0A, $9D, $03, $07, $85, $A1
+
+: RTS
+; item placement for lvl 2
+
+  LDX #$50
+  LDA $0701,X
+  BPL :-
+  JSR $9F17
+  LDA $0701,X
+  AND #$0F
+  BNE nes_aa6a
+nes_aa18:
+  LDA $A1
+  CMP LVL_ITEM_COUNT
+  BCC :+
+  LDA #$00
+  STA $0701,X
+  RTS
+
+; item placement checks
+: STA $00
+  ASL
+  ASL
+  TAY
+  LDA LVL_ITEM_COUNT + 1,Y
+  CMP $0130
+  BCC :+
+  BNE :--
+  LDA LVL_ITEM_COUNT + 2,Y
+  CMP $04D1
+  BCC :+
+  BNE :--
+  LDA LVL_ITEM_COUNT + 3,Y
+  AND #$0F
+  ASL
+  ASL
+  ASL
+  ASL
+  CMP $FE
+  BEQ :++
+  BCS :--
+: INC $A1
+  BNE nes_aa18
+: LDA #$00
+  STA $0703,X
+  LDA LVL_ITEM_COUNT + 3,Y
+  AND #$F0
+  STA $0700,X
+  LDA #$81
+  STA $0701,X
+  LDA LVL_ITEM_COUNT + 4,Y
+  STA $0702,X
+  RTS
+
+
+nes_aa6a:
+.byte $BD, $03, $07, $C9, $02, $90
 .byte $11, $20, $8A, $D9, $90, $03, $4C, $98, $AA, $BD, $02, $07, $D0, $11, $A9, $FF
 .byte $85, $3E, $A9, $10, $8D, $81, $03, $A9, $80, $9D, $01, $07, $4C, $2B, $DD, $A5
 .byte $A6, $18, $69, $07, $85, $A6, $D0, $EA, $BD, $02, $07, $D0, $05, $A9, $19, $4C

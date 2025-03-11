@@ -120,7 +120,7 @@ lvl32:
 .byte $28, $00, <world_3_lvl_2_snes_bg_tilemap_upper, >world_3_lvl_2_snes_bg_tilemap_upper, ^world_3_lvl_2_snes_bg_tilemap_upper
 .byte $2C, $00, <world_3_lvl_2_snes_bg_tilemap_lower, >world_3_lvl_2_snes_bg_tilemap_lower, ^world_3_lvl_2_snes_bg_tilemap_lower
 .byte <world3_lvl2_palette, >world3_lvl2_palette
-.byte $0F ; every 16 pixels, scroll 1 px
+.byte $18 ; every 16 pixels, scroll 1 px
 .byte $00, $01 ; start at offs of $0000
 .byte $00, $00 ; hoffs
 .byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
@@ -130,7 +130,7 @@ lvl33:
 .byte $28, $00, <world_3_lvl_3_snes_bg_tilemap_upper, >world_3_lvl_3_snes_bg_tilemap_upper, ^world_3_lvl_3_snes_bg_tilemap_upper
 .byte $2C, $00, <world_3_lvl_3_snes_bg_tilemap_lower, >world_3_lvl_3_snes_bg_tilemap_lower, ^world_3_lvl_3_snes_bg_tilemap_lower
 .byte <world3_lvl3_palette, >world3_lvl3_palette
-.byte $0F ; every 16 pixels, scroll 1 px
+.byte $18 ; every 16 pixels, scroll 1 px
 .byte $00, $01 ; start at offs of $0000
 .byte $00, $00 ; hoffs
 .byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
@@ -140,7 +140,7 @@ lvl41:
 .byte $28, $00, <world_4_lvl_1_snes_bg_tilemap_left, >world_4_lvl_1_snes_bg_tilemap_left, ^world_4_lvl_1_snes_bg_tilemap_left
 .byte $2C, $00, <world_4_lvl_1_snes_bg_tilemap_right, >world_4_lvl_1_snes_bg_tilemap_right, ^world_4_lvl_1_snes_bg_tilemap_right
 .byte <world4_lvl1_palette, >world4_lvl1_palette
-.byte $0F ; every 16 pixels, scroll 1 px
+.byte $18 ; every 16 pixels, scroll 1 px
 .byte $00, $00 ; start at offs of $0000
 .byte $00, $00 ; hoffs
 .byte $40, $00 ; 0040 max of 40 VOFFS movement NYI
@@ -240,6 +240,14 @@ handle_bg2_paralax:
 
     LDA UPDATE_DONE
     BNE hbg2p_early_return
+
+    LDA BG2_OFS_LB
+    BNE increment_parallax
+    LDA BG2_OFS_HB
+    BNE increment_parallax
+    ; already at 0, don't do anything
+    BRA hbg2p_early_return
+:
 
 increment_parallax:
     LDA #$01

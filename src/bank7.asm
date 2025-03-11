@@ -2156,7 +2156,7 @@ RTS
   ; check if we're randomizing
   LDA RANDOMIZE_ENABLED
   BNE :+
-  jslb copy_default_platform_data_w1, $a8
+  jslb copy_default_data_w1, $a8
   JMP $9745 ; standard_level_1_creation
 : LDA #.lobyte(world_1_screen_data)
   STA PARAM_RULES_FP_LB
@@ -2186,7 +2186,7 @@ RTS
   ; check if we're randomizing
   LDA RANDOMIZE_ENABLED
   BNE :+  
-  jslb copy_default_platform_data_w2, $a8
+  jslb copy_default_data_w2, $a8
   JMP $AE2C
 : LDA #<world_2_screen_data
   STA PARAM_RULES_FP_LB
@@ -2217,7 +2217,7 @@ RTS
   ; check if we're randomizing
   LDA RANDOMIZE_ENABLED
   BNE :+  
-  jslb copy_default_platform_data_w3, $a8
+  jslb copy_default_data_w3, $a8
   JMP $99DE
 : LDA #<world_3_screen_data
   STA PARAM_RULES_FP_LB

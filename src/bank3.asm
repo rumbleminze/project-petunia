@@ -101,12 +101,59 @@ nops 3 ;   LDA $2002
 .byte $AE, $01, $03, $F8, $9A, $01, $F4, $F8, $9A, $01, $FC, $F8, $9A, $01, $04, $F8
 .byte $9A, $01, $0C, $F8, $0E, $00, $FC, $F8, $0E, $40, $04, $00, $5C, $00, $FC, $00
 .byte $5C, $40, $04, $A2, $50, $A9, $80, $9D, $01, $07, $0A, $9D, $00, $07, $85, $A1
-.byte $60, $A2, $50, $BD, $01, $07, $10, $16, $20, $E5, $85, $BD, $01, $07, $29, $0F
-.byte $D0, $4C, $A5, $A1, $CD, $2C, $79, $90, $06, $A9, $00, $9D, $01, $07, $60, $85
-.byte $00, $0A, $18, $65, $00, $A8, $B9, $2D, $79, $CD, $30, $01, $90, $17, $D0, $EE
-.byte $B9, $2E, $79, $CD, $D1, $04, $90, $0D, $D0, $E4, $B9, $2F, $79, $29, $F0, $C5
-.byte $FD, $F0, $06, $90, $D9, $E6, $A1, $D0, $C9, $A9, $00, $9D, $00, $07, $B9, $2F
-.byte $79, $0A, $0A, $0A, $0A, $9D, $03, $07, $A9, $81, $9D, $01, $07, $60, $BD, $00
+.byte $60
+
+
+; w3 item handling
+  LDX #$50
+  LDA $0701,X
+  BPL :+
+  JSR $85E5
+  LDA $0701,X
+  AND #$0F
+  BNE nes_e48e
+nes_8442:
+  LDA $A1
+  CMP LVL_ITEM_COUNT
+  BCC :++
+  LDA #$00
+  STA $0701,X
+: RTS
+
+: STA $00
+  ASL
+  CLC
+  ADC $00
+  TAY
+  LDA LVL_ITEM_COUNT + 1,Y
+  CMP $0130
+  BCC :+
+  BNE :--
+  LDA LVL_ITEM_COUNT + 2,Y
+  CMP $04D1
+  BCC :+
+  BNE :--
+  LDA LVL_ITEM_COUNT + 3,Y
+  AND #$F0
+  CMP $FD
+  BEQ :++
+  BCC :--
+: INC $A1
+  BNE nes_8442
+: LDA #$00
+  STA $0700,X
+  LDA LVL_ITEM_COUNT + 3,Y
+  ASL
+  ASL
+  ASL
+  ASL
+  STA $0703,X
+  LDA #$81
+  STA $0701,X
+  RTS
+
+nes_e48e:
+.byte $BD, $00
 .byte $07, $C9, $F8, $B0, $0C, $20, $8A, $D9, $90, $03, $4C, $A9, $84, $A9, $FF, $85
 .byte $3E, $A9, $80, $9D, $01, $07, $4C, $2B, $DD, $A9, $19, $4C, $67, $C6, $A9, $08
 .byte $9D, $00, $07, $A9, $44, $9D, $02, $07, $A9, $50, $9D, $03, $07, $A9, $00, $9D

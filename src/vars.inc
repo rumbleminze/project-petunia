@@ -99,6 +99,13 @@ ATTR_NES_VM_ADDR_LB = $09A2
 ATTR_NES_VM_COUNT   = $09A3
 ATTR_NES_VM_ATTR_START = $09A4
 
+; 0x200 bytes for full palette cache
+; though we'll just copy over 2 blocks of 0x80 each frame
+PALETTE_CACHE_BG = $1000
+PALETTE_CACHE_SP = $1080
+PALETTE_LOOKUP_LOCATION = $22
+PALETTE_COPY_IDX        = $24
+
 CURR_PALETTE_ADDR   = $17E0
 ATTRIBUTE_DMA       = $17F0
 ATTR_DMA_SRC_HB     = $17F2

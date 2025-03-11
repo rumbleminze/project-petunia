@@ -829,38 +829,142 @@ loadNextScreen:
     PLB
     RTL
 
-copy_default_platform_data_w1:
+copy_default_data_w1:
+	PHA
+	PHY
 	LDA CURRENT_SCREEN
 	BNE :+
+	jsr copy_default_platform_data_w1
+	jsr copy_default_item_data_w1
+: 	PLY
+	PLA
+	RTL
+
+copy_default_data_w2:
+	PHA
+	PHY
+	LDA CURRENT_SCREEN
+	BNE :+
+	jsr copy_default_platform_data_w2
+	jsr copy_default_item_data_w2
+: 	PLY
+	PLA
+	RTL
+
+copy_default_data_w3:
+	PHA
+	PHY
+	LDA CURRENT_SCREEN
+	BNE :+
+	jsr copy_default_platform_data_w3
+	jsr copy_default_item_data_w3
+: 	PLY
+	PLA
+ 	RTL
+
+copy_default_platform_data_w1:
     LDY #$7F
     lvl1_loop:
 	LDA LVL_1_PLATFORMS, Y
 	STA LVL_PLATFORMS, Y
 	DEY
 	BPL lvl1_loop
-:	RTL
+	RTS
 
 copy_default_platform_data_w2:
-	LDA CURRENT_SCREEN
-	BNE :+
     LDY #$7F
     lvl2_loop:
 	LDA LVL_2_PLATFORMS, Y
 	STA LVL_PLATFORMS, Y
 	DEY
 	BPL lvl2_loop
-:	RTL
+	RTS
 
 copy_default_platform_data_w3:
-	LDA CURRENT_SCREEN
-	BNE :+
     LDY #$7F
     lvl3_loop:
 	LDA LVL_3_PLATFORMS, Y
 	STA LVL_PLATFORMS, Y
 	DEY
 	BPL lvl3_loop
-:	RTL
+	RTS
+
+copy_default_item_data_w1:
+	PHB
+	PHK
+	PLB
+	LDY #$00
+	LDA w1_default_item_locations, y
+	STA LVL_ITEM_COUNT
+	ASL
+	ASL
+	TAY
+	lvl1_items_loop:
+		LDA w1_default_item_locations, Y
+		STA LVL_ITEM_COUNT, Y
+		DEY
+	BPL lvl1_items_loop
+	PLB
+	rts
+
+copy_default_item_data_w2:
+	PHB
+	PHK
+	PLB
+	LDY #$00
+	LDA w2_default_item_locations, y
+	STA LVL_ITEM_COUNT
+	ASL
+	ASL
+	TAY
+	lvl2_items_loop:
+		LDA w2_default_item_locations, Y
+		STA LVL_ITEM_COUNT, Y
+		DEY
+	BPL lvl2_items_loop
+	PLB
+	rts
+
+copy_default_item_data_w3:
+	PHB
+	PHK
+	PLB
+	LDY #$00
+	LDA w3_default_item_locations, y
+	STA LVL_ITEM_COUNT
+	ASL
+	ASL
+	TAY
+	lvl3_items_loop:
+		LDA w3_default_item_locations, Y
+		STA LVL_ITEM_COUNT, Y
+		DEY
+	BPL lvl3_items_loop
+	PLB
+	rts
+
+w1_default_item_locations:
+.byte $05
+.byte $00, $03, $5C, $00
+.byte $00, $07, $A8, $01
+.byte $01, $01, $57, $01
+.byte $01, $04, $5B, $01
+.byte $02, $0B, $AA, $00
+
+w2_default_item_locations:
+.byte $03
+.byte $00, $01, $8E, $00
+.byte $00, $0D, $AE, $01
+.byte $00, $04, $88, $01
+
+; w3 is weird, but we'll copy it as is
+w3_default_item_locations:
+.byte $04
+.byte $02, $01, $15, $00
+.byte $02, $07, $AF, $01
+.byte $02, $09, $B8, $01
+.byte $01, $01, $01, $01
+
 
 clearPlatformData:
 	LDA #$FF

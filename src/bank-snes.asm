@@ -164,8 +164,8 @@ initialize_registers:
   LDA #$01
   STA MEMSEL
 ; Use #$04 to enable overscan if we can.
-  LDA #$04
-  ; LDA #$00
+  ; LDA #$04
+  LDA #$00
   STA SETINI
 
   LDA #$01
@@ -200,6 +200,8 @@ initialize_registers:
   jsr show_options_screen
 
   JSR clearvm_to_12
+
+
   .if ENABLE_MSU = 1
     STZ $2000
     STZ $2002
@@ -223,6 +225,7 @@ initialize_registers:
     .endif
     jslb update_values_for_ppu_mask, $a0
     jslb infidelitys_scroll_handling, $a0
+    jslb transfer_palette_data, $a0
     jslb setup_hdma, $a0
     jslb handle_bg2_paralax, $ab
 
