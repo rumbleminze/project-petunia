@@ -21,6 +21,10 @@ maybe_seed_via_password:
   DEX                      
   BPL :-              
 
+; skip this check if we are randomizing
+LDA RANDOMIZE_ENABLED
+BEQ bailToOriginal
+
 LDA FIRST_PASSWORD_CHAR
 CMP #K_CHAR
 BNE bailToOriginal

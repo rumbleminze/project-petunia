@@ -18,6 +18,13 @@ This is a 1:1 port of the NES version of Kid Icarus, running on the SNES. It is 
 
 This has been tested in Mesen2, bsnes, Mister, and on original hardware via SD2Snes.
 
+Rev F Changes
+* Eggplant status is now a timed status in the randomizer
+* Hospitals have been removed from the Fortress levels in the randomizer
+* You can now set a randomizer seed in the continue menu:
+    * Enable the randomizer on the title screen
+    * Enter any 6 character password that starts with:  KI
+* fixed randomization of enemies in worlds 2, 3, and 4
 
 KNOWN ISSUES
 --------------------

@@ -228,6 +228,7 @@ initialize_registers:
     jslb transfer_palette_data, $a0
     jslb setup_hdma, $a0
     jslb handle_bg2_paralax, $ab
+    jsr check_eggplant
 
   LDA #$7E
   STA A1B3
@@ -367,7 +368,8 @@ clear_sram:
 
 dma_values:
   .byte $00, $12
-  
+   
+  .include "eggplant-timer.asm"
   .include "intro_screen.asm"
   .include "options_screen.asm"
   .include "palette_updates.asm"

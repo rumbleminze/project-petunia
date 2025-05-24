@@ -70,7 +70,7 @@ P3_3 = $1E
 .byte $FF
 
 msu_unavailable_tiles:
-.byte $AB, $20, $44, $3d, $30, $45, $30, $38, $3B, $30, $31, $3B, $34
+.byte $AB, $20, $44, $3d, $30, $45, $30, $38, $3B, $30, $31, $3B, $34, $12, $12, $12, $12, $12 
 
 show_options_screen:
     STZ CURR_OPTION
@@ -241,7 +241,7 @@ disable_msu_option:
 :   LDA msu_unavailable_tiles, Y
     STA VMDATAL
     INY
-    CPY #$0D
+    CPY #$11
     BNE :-
     rts
 

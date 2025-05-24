@@ -97,8 +97,8 @@ CURRENT_STR			        = $0152
 
 ; variables that are used while we generate the level
 POTENTIAL				    = $00D0	; index of the next room we might use
-CURRENT_SCREEN_ID		    = $00D1	; the index of the last screen we wrote
-SCREEN_RULES_LOCATION	    = $00D2	; offset of the room connection rule byte we care about
+; CURRENT_SCREEN_ID		    = $00D1	; the index of the last screen we wrote
+; SCREEN_RULES_LOCATION	    = $00D2	; offset of the room connection rule byte we care about
 SRL_WORK				    = $00D3	; temporary variable used to shift to get the right bit
 ROOM_BIT				    = $00D4	; index of the bit we care about
 SCREEN_RULE				    = $00D5
@@ -276,7 +276,7 @@ room_exists:
 	BRA deadend_detect
 
 newroom:
-	; main meet of the algorithm
+	; main meat of the algorithm
 	; we've got the room for this offset stored in ROOM_ID
 	; and Y contains the memory offset (0-127, only the even numbers) to
 	; store the room at
@@ -744,7 +744,10 @@ FORTRESS_ROOMS_CONNECTIONS:
 .byte $EE, $EE, $0F, $13; room 13 - 1110 1110 1110 1110
 
 .byte $BB, $0B, $0B, $14; room 14 - 1011 1011 0000 1011
-.byte $EE, $EE, $0F, $15; room 15 - 1110 1110 1110 1110 (medic room)
+; Disabling the hospitals, as we have changed the eggplant to a timer in the randomizer
+; .byte $EE, $EE, $0F, $15; room 15 - 1110 1110 1110 1110 (medic room) (original)
+.byte $00, $00, $00, $15; room 15 - 1110 1110 1110 1110 (medic room)
+
 .byte $EE, $EE, $0F, $16; room 16 - 1110 1110 1110 1110 (shop)
 .byte $EE, $EE, $0F, $17; room 17 - 1110 1110 1110 1110 
 
@@ -1737,4 +1740,3 @@ storeW4Room:
 .include "platform_data.asm"
 .include "enemy_frequency_table.asm"
 .include "door_distribution.asm"
-.include "set_seed_from_password.asm"

@@ -1,0 +1,32 @@
+EGGPLANT_STATUS = $6F
+EGGPLANT_TIMER_ACTIVE = $830
+EGGPLANT_TIMER_LB = $831
+EGGPLANT_TIMER_HB = $832
+
+check_eggplant:
+    PHA
+
+    LDA RANDOMIZE_ENABLED
+    BEQ exit_eggplant_check
+
+    LDA  EGGPLANT_STATUS
+    BEQ exit_eggplant_check
+
+    LDA EGGPLANT_TIMER_ACTIVE
+    BNE :+
+    INC EGGPLANT_TIMER_ACTIVE
+    LDA #$07 ; ~30s
+    STA EGGPLANT_TIMER_HB
+:
+
+    DEC EGGPLANT_TIMER_LB
+    BNE :+
+    DEC EGGPLANT_TIMER_HB
+    BNE :+
+    STZ EGGPLANT_STATUS
+    STZ EGGPLANT_TIMER_ACTIVE
+:
+
+exit_eggplant_check:
+    PLA
+    RTS

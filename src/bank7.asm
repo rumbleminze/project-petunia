@@ -2298,12 +2298,9 @@ RTS
   PHA
 
   LDY CURRENT_WORLD
-  
-  LDA #<(@randomization_overrides)
+  LDA @override_index_lb, Y
   STA $00
-  INY
-
-  LDA #>(@randomization_overrides)
+  LDA @override_index_hb, Y
   STA $01
 
 @next_data_overwrite_set:
@@ -2311,24 +2308,25 @@ RTS
   ; target LB
   LDA ($00), Y
   STA $02
+
   ; target HB
   CLC
   INC $00
-  BCC :+
+  BNE :+
   INC $01
 : LDA ($00), Y
   STA $03
 
   ; size
   INC $00
-  BCC :+
+  BNE :+
   INC $01
 : LDA ($00), Y
   BEQ @done_write_randomization_override_sets
   TAX
 
   INC $00
-  BCC :+
+  BNE :+
   INC $01
 : 
   ; read/write data
@@ -2342,7 +2340,7 @@ RTS
   CLC
   ADC $00
   STA $00
-  BCC :+
+  BNE :+
   INC $01
 : BRA @next_data_overwrite_set
 
@@ -2375,7 +2373,12 @@ RTS
   PLY
   PLA
   RTS
- 
+
+@override_index_lb:
+.byte $00, $00, <(@randomization_overrides), $00, <(@randomization_overrides), $00, <(@randomization_overrides_w3), <(@randomization_overrides)
+@override_index_hb:
+.byte $00, $00, >(@randomization_overrides), $00, >(@randomization_overrides), $00, >(@randomization_overrides_w3), >(@randomization_overrides)
+
 @randomization_overrides:
 ; enemy table 1
 .byte $D0, $7C, $06, $80, $61, $80, $61, $80, $61
@@ -2400,10 +2403,49 @@ repeat $00, $2F
 .byte $FF, $FF, $00, $00, $00
 .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $6F, $2A
 
+@randomization_overrides_w2:
+; enemy table 1
+; .byte $D0, $7C, $06, $80, $61, $80, $61, $80, $61
+; enemy table 2
+; .byte $07, $7D, $04, $0B, $7D, $0B, $7D
+; platform reads that we ignore
+.byte $0B, $7D, $2F
+repeat $00, $2F
+
+; other stuff 
+; Enemy Table 3
+; .byte $3A, $7D, $06, $A0, $61, $A0, $61, $A0, $61
+; enemy table 4
+; .byte $6F, $7D, $21, $C0, $61, $C0, $61, $C0, $61
+; enemy positions
+; .byte $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38
+; .byte $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38
+
+; Doors
+.byte $56, $7F, $02, $00, $61
+; end
+.byte $FF, $FF, $00, $00, $00
+.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $6F, $2A
+
+
+@randomization_overrides_w3:
+; enemy table 1 world 3
+.byte $E1, $77, $06, $80, $61, $80, $61, $80, $61
+; .byte $1C, $78,
+.byte $55, $78, $06, $A0, $61, $A0, $61, $A0, $61
+.byte $8f, $78, $21, $C0, $61, $C0, $61, $C0, $61
+; enemy positions
+.byte $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38
+.byte $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38, $38
+; Doors
+.byte $56, $7F, $02, $00, $61
+; end
+.byte $FF, $FF, $00
+
 ; F600 - bank 7
-repeat $FF, ($40 - 7)
-repeat $FF, $40
-repeat $FF, $40
+; repeat $FF, $40
+; repeat $FF, $40
+repeat $FF, ($40 - 34)
 repeat $FF, $40
 
 ; F700 - bank 7
