@@ -21,7 +21,7 @@ maybe_seed_via_password:
   DEX                      
   BPL :-              
 
-; skip this check if we are randomizing
+; skip this check if we are not randomizing
 LDA RANDOMIZE_ENABLED
 BEQ bailToOriginal
 
@@ -77,7 +77,7 @@ PHA
 LDA #$A2
 PHA
 PLB
-PHA
+; PHA
 LDA #$EE
 PHA
 LDA #$2A
@@ -90,7 +90,7 @@ LDA #$FF
 STA FIXED_SEED_LB - 1
 LDA #$00
 LDX #$00
-RTL
+RTS
 bailToOriginal:
     PLB
-    RTL
+    RTS

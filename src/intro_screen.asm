@@ -15,7 +15,7 @@ intro_screen_data:
 
 .byte $4C, $23, $22, $34, $3c, $31, $3b, $34, $41, $42, $ff             ; MEMBLERS
 
-.byte $7B, $23, $41, $34, $45, $0f, $1B, $ff ; Version (REV-E)
+.byte $7B, $23, $41, $34, $45, $0f, $1C, $ff ; Version (REV-E)
 .byte $ff, $ff
 
 write_intro_palette:
