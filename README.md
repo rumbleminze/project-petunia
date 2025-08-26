@@ -1,4 +1,4 @@
-Kid Icarus SNES Port - Rev F
+Kid Icarus SNES Port - Rev G
 
 This is a 1:1 port of the NES version of Kid Icarus, running on the SNES. It is utilizing FastROM/HiROM.  Additionally, this port has the following features:
 * The Kid Icarus Randomizer (developed by FruitBatSalad and myself) has been built in as an option. This includes
@@ -23,6 +23,9 @@ Rev F Changes
     * Enable the randomizer on the title screen
     * Enter any 6 character password that starts with:  KI
 * fixed randomization of enemies in worlds 2, 3, and 4
+
+Rev G Changes
+* Fixed password entry
 
 This has been tested in Mesen2, bsnes, Mister, and on original hardware via SD2Snes.
 
